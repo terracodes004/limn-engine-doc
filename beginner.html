@@ -39,9 +39,6 @@
 <main>
   <h1>🟢 Level 1 — Beginner <span class="badge lv1">L1</span></h1>
 
-  <!-- ───────────────────────────────────────────── -->
-  <!-- 1. CREATING A DISPLAY -->
-  <!-- ───────────────────────────────────────────── -->
   <fieldset id="s1">
     <legend><h2>1. Creating a Display</h2></legend>
     <article>
@@ -50,66 +47,57 @@
         the HTML5 canvas, attaches it to the page, listens for keyboard and mouse input, and
         starts the game loop that drives everything.
       </blockquote>
-
-      <p><strong>What we're going to do:</strong> Create the smallest possible Limn Engine game — just a canvas and an empty update loop. This is the starting point for every game you will ever build.</p>
-
-      <details open>
-        <summary>Full runnable code</summary>
+      <details>
+        <summary>see more...</summary>
+        <p>
+          To start a game you create one <code>Display</code> instance and call
+          <code>display.start(width, height)</code> on it.
+          Under the hood, <code>start()</code> sets the canvas dimensions, inserts the canvas
+          into the page, registers all keyboard and touch event listeners, and fires a
+          <code>setInterval</code> that calls the internal <code>updat()</code> method every
+          20 milliseconds to keep the game running.
+          Inside that loop the engine clears the canvas, applies the camera transform,
+          calls your <code>update()</code> function, and then draws every registered Component —
+          so all your game logic and rendering happens automatically once you define
+          <code>function update()</code>.
+          The important rule is that your Display instance <strong>must be named
+          <code>display</code></strong> — the engine references that variable name internally
+          across many classes, and any other name will break it.
+        </p>
         <pre><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
-&lt;head&gt;
-  &lt;title&gt;My First Limn Game&lt;/title&gt;
-  &lt;script src="epic.js"&gt;&lt;/script&gt;
-&lt;/head&gt;
+&lt;head&gt;&lt;title&gt;My First Limn Game&lt;/title&gt;&lt;/head&gt;
 &lt;body&gt;
-  &lt;script&gt;
-    // Create the engine
-    const display = new Display();
+&lt;script src="epic.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+const display = new Display();
+display.start(800, 600); // width, height
 
-    // Start it — creates the canvas and begins the game loop
-    display.start(800, 600);
+display.backgroundColor("#0d0d2a"); // optional background colour
 
-    // Optional: set a background colour
-    display.backgroundColor("#0d0d2a");
-
-    // The update() function runs every frame automatically
-    function update(dt) {
-      // Your game logic will go here
-    }
-  &lt;/script&gt;
+function update() {
+    // Your game logic runs here every frame
+}
+&lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
+        <div class="warn">
+          ⚠️ Your Display instance <strong>must</strong> be named <code>display</code> —
+          the engine uses this variable name internally across Component, Camera, TileMap,
+          and many other classes.
+        </div>
+        <table>
+          <tr><th>Method / Property</th><th>Parameters</th><th>Purpose</th></tr>
+          <tr><td><code>new Display()</code></td><td>None</td><td>Create the engine — canvas, input, loop, camera are all set up</td></tr>
+          <tr><td><code>display.start(w, h, node)</code></td><td>width, height, node=document.body</td><td>Create the canvas at that size and start the game loop</td></tr>
+          <tr><td><code>display.backgroundColor(color)</code></td><td>CSS color string</td><td>Set the canvas background colour</td></tr>
+          <tr><td><code>display.stop()</code></td><td>None</td><td>Pause the game loop</td></tr>
+          <tr><td><code>display.fullScreen()</code></td><td>None</td><td>Enter fullscreen mode</td></tr>
+        </table>
       </details>
-
-      <p><strong>What we just did:</strong></p>
-      <ul>
-        <li>Loaded the Limn Engine library with <code>&lt;script src="epic.js"&gt;</code></li>
-        <li>Created a <code>Display</code> instance — this is the engine itself</li>
-        <li>Called <code>display.start(800, 600)</code> — this creates the canvas on the page and begins the game loop</li>
-        <li>Set the background colour with <code>display.backgroundColor()</code></li>
-        <li>Defined an empty <code>update(dt)</code> function — this will be called every frame automatically, and <code>dt</code> is the delta time</li>
-      </ul>
-
-      <div class="warn">
-        ⚠️ Your Display instance <strong>must</strong> be named <code>display</code> —
-        the engine uses this variable name internally across Component, Camera, TileMap,
-        and many other classes.
-      </div>
-
-      <table>
-        <tr><th>Method / Property</th><th>Parameters</th><th>Purpose</th></tr>
-        <tr><td><code>new Display()</code></td><td>None</td><td>Create the engine — canvas, input, loop, camera are all set up</td></tr>
-        <tr><td><code>display.start(w, h, node)</code></td><td>width, height, node=document.body</td><td>Create the canvas at that size and start the game loop</td></tr>
-        <tr><td><code>display.backgroundColor(color)</code></td><td>CSS color string</td><td>Set the canvas background colour</td></tr>
-        <tr><td><code>display.stop()</code></td><td>None</td><td>Pause the game loop</td></tr>
-        <tr><td><code>display.fullScreen()</code></td><td>None</td><td>Enter fullscreen mode</td></tr>
-      </table>
     </article>
   </fieldset>
 
-  <!-- ───────────────────────────────────────────── -->
-  <!-- 2. ADDING & MOVING COMPONENTS -->
-  <!-- ───────────────────────────────────────────── -->
   <fieldset id="s2">
     <legend><h2>2. Adding &amp; Moving Components</h2></legend>
     <article>
@@ -118,76 +106,59 @@
         a coin, a wall — and it needs to be registered with <code>display.add()</code> before
         Limn Engine will draw or update it each frame.
       </blockquote>
+      <details>
+        <summary>see more...</summary>
+        <p>
+          You create a Component by passing its width, height, colour, starting X position,
+          starting Y position, and an optional type string to the constructor.
+          The type can be <code>"rect"</code> (a filled rectangle), <code>"image"</code>
+          (a loaded image file), or <code>"text"</code> (drawn text) — if you leave it blank
+          it defaults to <code>"rect"</code>.
+          Once created, the Component does nothing until you call <code>display.add(player)</code>,
+          which pushes it into the internal <code>comm[]</code> array so the engine draws and
+          moves it every single frame automatically.
+          To move a Component you set its <code>speedX</code> and <code>speedY</code> properties —
+          the engine adds those values to the Component's <code>x</code> and <code>y</code>
+          position on every frame, so setting <code>player.speedX = 3</code> means the player
+          moves 3 pixels to the right per frame without you needing to write
+          <code>player.x += 3</code> anywhere.
+        </p>
+        <pre><code>// Component(width, height, color, x, y, type)
+const player = new Component(50, 50, "blue", 100, 200, "rect");
+display.add(player); // now the engine draws and moves it every frame
 
-      <p><strong>What we're going to do:</strong> Create a player component, add it to the display, and make it move continuously across the screen using <code>speedX</code> and <code>speedY</code>.</p>
+// Teleport instantly
+player.x = 400;
+player.y = 300;
 
-      <details open>
-        <summary>Full runnable code</summary>
-        <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-  &lt;title&gt;Components&lt;/title&gt;
-  &lt;script src="epic.js"&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;script&gt;
-    const display = new Display();
-    display.start(800, 600);
-    display.backgroundColor("#0d0d2a");
+// Move continuously — engine applies this every frame
+player.speedX = 3;  // moves 3px right per frame
+player.speedY = 2;  // moves 2px down per frame
 
-    // Component(width, height, color, x, y, type)
-    const player = new Component(50, 50, "blue", 100, 200, "rect");
-    display.add(player);
-
-    // Make it move continuously — engine applies this every frame
-    player.speedX = 3;  // 3 pixels per frame to the right
-    player.speedY = 2;  // 2 pixels per frame down
-
-    function update(dt) {
-      // Stop the player when it reaches the right edge
-      if (player.x &gt; 750) {
-        player.stopMove();
-      }
-    }
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
+// Stop all movement
+player.stopMove();</code></pre>
+        <div class="tip">
+          💡 The canvas origin (0,0) is the <strong>top-left</strong> corner.
+          X increases going right. Y increases going down.
+        </div>
+        <table>
+          <tr><th>Property</th><th>Type</th><th>Purpose</th></tr>
+          <tr><td><code>x / y</code></td><td>number</td><td>World position — the top-left corner of the Component</td></tr>
+          <tr><td><code>width / height</code></td><td>number</td><td>Size in pixels</td></tr>
+          <tr><td><code>speedX / speedY</code></td><td>number</td><td>Velocity added to x/y every frame automatically</td></tr>
+          <tr><td><code>color</code></td><td>string</td><td>Fill colour (rect mode) or image path (image mode)</td></tr>
+          <tr><td><code>angle</code></td><td>radians</td><td>Rotation angle — engine applies it on draw</td></tr>
+        </table>
+        <p>The three Component types:</p>
+        <ol>
+          <li><code>"rect"</code> — draws a filled colour rectangle (default if omitted)</li>
+          <li><code>"image"</code> — draws a loaded image; pass the file path as the color argument</li>
+          <li><code>"text"</code> — draws text; use <code>Tctxt</code> for more control</li>
+        </ol>
       </details>
-
-      <p><strong>What we just did:</strong></p>
-      <ul>
-        <li>Created a <code>Component</code> with width 50, height 50, colour "blue", at position (100, 200), drawn as a rectangle</li>
-        <li>Added it to the display with <code>display.add(player)</code> — without this the component would exist but never appear</li>
-        <li>Set <code>speedX</code> and <code>speedY</code> so the engine automatically moves the component each frame</li>
-        <li>Added a stop condition in <code>update()</code> — when the player reaches x = 750, it calls <code>stopMove()</code> to halt all movement</li>
-      </ul>
-
-      <div class="tip">
-        💡 The canvas origin (0,0) is the <strong>top-left</strong> corner.
-        X increases going right. Y increases going down.
-      </div>
-
-      <table>
-        <tr><th>Property</th><th>Type</th><th>Purpose</th></tr>
-        <tr><td><code>x / y</code></td><td>number</td><td>World position — the top-left corner of the Component</td></tr>
-        <tr><td><code>width / height</code></td><td>number</td><td>Size in pixels</td></tr>
-        <tr><td><code>speedX / speedY</code></td><td>number</td><td>Velocity added to x/y every frame automatically</td></tr>
-        <tr><td><code>color</code></td><td>string</td><td>Fill colour (rect mode) or image path (image mode)</td></tr>
-        <tr><td><code>angle</code></td><td>radians</td><td>Rotation angle — engine applies it on draw</td></tr>
-      </table>
-
-      <p>The three Component types:</p>
-      <ol>
-        <li><code>"rect"</code> — draws a filled colour rectangle (default if omitted)</li>
-        <li><code>"image"</code> — draws a loaded image; pass the file path as the color argument</li>
-        <li><code>"text"</code> — draws text; use <code>Tctxt</code> for more control</li>
-      </ol>
     </article>
   </fieldset>
 
-  <!-- ───────────────────────────────────────────── -->
-  <!-- 3. KEYBOARD INPUT & DELTATIME -->
-  <!-- ───────────────────────────────────────────── -->
   <fieldset id="s3">
     <legend><h2>3. Keyboard Input &amp; deltaTime</h2></legend>
     <article>
@@ -197,80 +168,63 @@
         any key by its numeric keyCode inside <code>update()</code> — and multiplying by
         <code>dt</code> (deltaTime) makes your movement the same speed on every machine.
       </blockquote>
+      <details>
+        <summary>see more...</summary>
+        <p>
+          The engine attaches <code>keydown</code> and <code>keyup</code> listeners when
+          <code>display.start()</code> is called, so <code>display.keys[keyCode]</code> is
+          always up to date by the time your <code>update()</code> function runs.
+          When you check <code>display.keys[39]</code> for the right arrow key,
+          that value is <code>true</code> on every frame the key is physically held down
+          and automatically switches to <code>false</code> the moment the key is released.
+          Without deltaTime, setting <code>player.speedX = 4</code> moves the player
+          4 pixels per frame — which is 240px/sec at 60fps but only 200px/sec at 50fps,
+          meaning slower machines play the game in slow motion.
+          Multiplying by <code>dt</code> converts your speed into pixels per second:
+          <code>250 * dt</code> always travels 250 pixels in one real-world second regardless
+          of frame rate, making your game fair and consistent across all devices.
+          Note that <code>dt</code> is only accurate and non-zero when you use
+          <code>display.perform()</code> — in the default loop deltaTime is updated once per
+          second from a separate interval, so for frame-rate-independent movement you should
+          use <code>perform()</code>.
+        </p>
+        <pre><code>function update(dt) {
+    // Reset every frame so the player stops when no key is held
+    player.speedX = 0;
+    player.speedY = 0;
 
-      <p><strong>What we're going to do:</strong> Make a player move with both the arrow keys and WASD, using <code>dt</code> so the movement is frame-rate independent. We'll also add a Space-bar action that fires only once per press.</p>
+    // Arrow keys
+    if (display.keys[37]) player.speedX = -250 * dt; // ←
+    if (display.keys[39]) player.speedX =  250 * dt; // →
+    if (display.keys[38]) player.speedY = -250 * dt; // ↑
+    if (display.keys[40]) player.speedY =  250 * dt; // ↓
 
-      <details open>
-        <summary>Full runnable code</summary>
-        <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-  &lt;title&gt;Keyboard Input&lt;/title&gt;
-  &lt;script src="epic.js"&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;script&gt;
-    const display = new Display();
-    display.perform(); // enables true deltaTime
-    display.start(800, 600);
-    display.backgroundColor("#0d0d2a");
+    // WASD — same thing, different codes
+    if (display.keys[65]) player.speedX = -250 * dt; // A
+    if (display.keys[68]) player.speedX =  250 * dt; // D
+    if (display.keys[87]) player.speedY = -250 * dt; // W
+    if (display.keys[83]) player.speedY =  250 * dt; // S
 
-    const player = new Component(50, 50, "cyan", 375, 275, "rect");
-    display.add(player);
-
-    function update(dt) {
-      // Reset every frame so the player stops when no key is held
-      player.speedX = 0;
-      player.speedY = 0;
-
-      // Arrow keys
-      if (display.keys[37]) player.speedX = -250 * dt;
-      if (display.keys[39]) player.speedX =  250 * dt;
-      if (display.keys[38]) player.speedY = -250 * dt;
-      if (display.keys[40]) player.speedY =  250 * dt;
-
-      // WASD
-      if (display.keys[65]) player.speedX = -250 * dt;
-      if (display.keys[68]) player.speedX =  250 * dt;
-      if (display.keys[87]) player.speedY = -250 * dt;
-      if (display.keys[83]) player.speedY =  250 * dt;
-
-      // Single-press action — Space fires only once per key press
-      if (display.keys[32]) {
-        display.keys[32] = false; // reset the key
-        player.setColor("yellow");
-      }
+    // Single press — reset the key so it only fires once per press
+    if (display.keys[32]) {
+        display.keys[32] = false; // Space — fire once
+        shoot();
     }
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
+}</code></pre>
+        <table>
+          <tr><th>Key</th><th>Code</th><th>Key</th><th>Code</th></tr>
+          <tr><td>← Left Arrow</td><td>37</td><td>A</td><td>65</td></tr>
+          <tr><td>↑ Up Arrow</td><td>38</td><td>W</td><td>87</td></tr>
+          <tr><td>→ Right Arrow</td><td>39</td><td>D</td><td>68</td></tr>
+          <tr><td>↓ Down Arrow</td><td>40</td><td>S</td><td>83</td></tr>
+          <tr><td>Space</td><td>32</td><td>Enter</td><td>13</td></tr>
+          <tr><td>Escape</td><td>27</td><td>Shift</td><td>16</td></tr>
+          <tr><td>Z</td><td>90</td><td>X</td><td>88</td></tr>
+        </table>
       </details>
-
-      <p><strong>What we just did:</strong></p>
-      <ul>
-        <li>Called <code>display.perform()</code> before <code>display.start()</code> so <code>dt</code> is accurate</li>
-        <li>In <code>update(dt)</code>, reset <code>player.speedX</code> and <code>player.speedY</code> to 0 at the start — this makes the player stop when no key is held</li>
-        <li>Checked each key with <code>display.keys[keyCode]</code> and set the speed accordingly</li>
-        <li>Multiplied each speed by <code>dt</code> so movement is in pixels per second, not pixels per frame</li>
-        <li>For the Space bar, set <code>display.keys[32] = false</code> after handling it, so it only fires once per press</li>
-      </ul>
-
-      <table>
-        <tr><th>Key</th><th>Code</th><th>Key</th><th>Code</th></tr>
-        <tr><td>← Left Arrow</td><td>37</td><td>A</td><td>65</td></tr>
-        <tr><td>↑ Up Arrow</td><td>38</td><td>W</td><td>87</td></tr>
-        <tr><td>→ Right Arrow</td><td>39</td><td>D</td><td>68</td></tr>
-        <tr><td>↓ Down Arrow</td><td>40</td><td>S</td><td>83</td></tr>
-        <tr><td>Space</td><td>32</td><td>Enter</td><td>13</td></tr>
-        <tr><td>Escape</td><td>27</td><td>Shift</td><td>16</td></tr>
-        <tr><td>Z</td><td>90</td><td>X</td><td>88</td></tr>
-      </table>
     </article>
   </fieldset>
 
-  <!-- ───────────────────────────────────────────── -->
-  <!-- 4. BOUNDARIES WITH move.bound() -->
-  <!-- ───────────────────────────────────────────── -->
   <fieldset id="s4">
     <legend><h2>4. Boundaries with move.bound()</h2></legend>
     <article>
@@ -279,94 +233,48 @@
         canvas by clamping its position to the canvas boundaries every frame — one line
         of code that replaces four manual if-checks.
       </blockquote>
-
-      <p><strong>What we're going to do:</strong> Add boundary checking to a moving player so it can never leave the visible canvas.</p>
-
-      <details open>
-        <summary>Full runnable code</summary>
-        <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-  &lt;title&gt;Boundaries&lt;/title&gt;
-  &lt;script src="epic.js"&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;script&gt;
-    const display = new Display();
-    display.start(800, 600);
-    display.backgroundColor("#0d0d2a");
-
-    const player = new Component(50, 50, "cyan", 375, 275, "rect");
-    display.add(player);
-
-    function update(dt) {
-      player.speedX = 0;
-      player.speedY = 0;
-
-      if (display.keys[39]) player.speedX =  250 * dt;
-      if (display.keys[37]) player.speedX = -250 * dt;
-      if (display.keys[38]) player.speedY = -250 * dt;
-      if (display.keys[40]) player.speedY =  250 * dt;
-
-      // Clamp to all four canvas edges — one line
-      move.bound(player);
-    }
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
-      </details>
-
-      <p><strong>What we just did:</strong> We called <code>move.bound(player)</code> after every movement update. This reads the canvas width and height from <code>display.canvas</code> and clamps the player's <code>x</code> and <code>y</code> so the component can never go past any of the four edges. It also accounts for the component's own width and height so the whole rectangle stays visible.</p>
-
-      <p>If you need custom boundaries instead of the full canvas, use <code>move.boundTo()</code>:</p>
-
       <details>
-        <summary>Full runnable code — custom boundaries</summary>
-        <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-  &lt;title&gt;Custom Boundaries&lt;/title&gt;
-  &lt;script src="epic.js"&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;script&gt;
-    const display = new Display();
-    display.start(800, 600);
-    display.backgroundColor("#0d0d2a");
+        <summary>see more...</summary>
+        <p>
+          Without boundary checking, a player that walks past the right edge of the canvas
+          will simply disappear — the engine still updates and draws it, it is just off-screen
+          and unreachable.
+          <code>move.bound(id)</code> reads the canvas width and height from
+          <code>display.canvas.width</code> and <code>display.canvas.height</code> and clamps
+          the Component's <code>x</code> and <code>y</code> so it can never go past any of
+          the four sides, accounting for the Component's own width and height so the whole
+          rectangle stays visible.
+          If you need the player to be bounded within a custom region rather than the full
+          canvas — for example locked between two walls — use <code>move.boundTo()</code>
+          which takes explicit left, right, top, and bottom values, and you can pass
+          <code>false</code> for any side you want to leave open.
+          Both methods modify position directly, so call them after setting speed inside
+          <code>update()</code> for correct results every frame.
+        </p>
+        <pre><code>function update(dt) {
+    if (display.keys[39]) player.speedX =  4;
+    if (display.keys[37]) player.speedX = -4;
+    else if (!display.keys[39]) player.speedX = 0;
 
-    const player = new Component(50, 50, "cyan", 375, 275, "rect");
-    display.add(player);
+    // Clamp to all four canvas edges
+    move.bound(player);
 
-    function update(dt) {
-      player.speedX = 0;
-      player.speedY = 0;
+    // OR clamp to custom boundaries — pass false to leave a side open
+    move.boundTo(player, 50, 750, 0, 580);
+    // left=50, right=750, top=0, bottom=580
 
-      if (display.keys[39]) player.speedX =  250 * dt;
-      if (display.keys[37]) player.speedX = -250 * dt;
-      if (display.keys[38]) player.speedY = -250 * dt;
-      if (display.keys[40]) player.speedY =  250 * dt;
-
-      // Clamp to a custom region: left=100, right=700, top=100, bottom=500
-      move.boundTo(player, 100, 700, 100, 500);
-    }
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
+    // Leave top and bottom open (only clamp horizontally)
+    move.boundTo(player, 0, 800, false, false);
+}</code></pre>
+        <table>
+          <tr><th>Method</th><th>Parameters</th><th>Purpose</th></tr>
+          <tr><td><code>move.bound(id)</code></td><td>Component</td><td>Clamp to all four canvas edges — accounts for Component size</td></tr>
+          <tr><td><code>move.boundTo(id,l,r,t,b)</code></td><td>Component, left, right, top, bottom (or false)</td><td>Clamp to custom pixel boundaries per side</td></tr>
+        </table>
       </details>
-
-      <p><strong>What we just did:</strong> We called <code>move.boundTo(player, left, right, top, bottom)</code> with explicit pixel values. Passing <code>false</code> for any side leaves that side open — for example, <code>move.boundTo(player, 0, 800, false, false)</code> only clamps horizontally.</p>
-
-      <table>
-        <tr><th>Method</th><th>Parameters</th><th>Purpose</th></tr>
-        <tr><td><code>move.bound(id)</code></td><td>Component</td><td>Clamp to all four canvas edges — accounts for Component size</td></tr>
-        <tr><td><code>move.boundTo(id,l,r,t,b)</code></td><td>Component, left, right, top, bottom (or false)</td><td>Clamp to custom pixel boundaries per side</td></tr>
-      </table>
     </article>
   </fieldset>
 
-  <!-- ───────────────────────────────────────────── -->
-  <!-- 5. RECTANGLE COLLISION -->
-  <!-- ───────────────────────────────────────────── -->
   <fieldset id="s5">
     <legend><h2>5. Rectangle Collision with crashWith()</h2></legend>
     <article>
@@ -376,74 +284,58 @@
         <code>true</code> if they do, giving you the foundation for hit detection, pickups,
         and obstacle collision in a single call.
       </blockquote>
+      <details>
+        <summary>see more...</summary>
+        <p>
+          The engine uses AABB (Axis-Aligned Bounding Box) collision — it compares the left,
+          right, top, and bottom edges of both Components and returns <code>true</code> the
+          moment any overlap is detected.
+          The implementation is also rotation-aware: it rotates the other Component's
+          centre point into <code>this</code> Component's local angle space before doing
+          the edge comparison, so collision still works correctly even when your player or
+          enemy is rotated.
+          You call it inside <code>update()</code> on every frame so the check runs
+          continuously — the moment the player rectangle touches the coin rectangle,
+          the condition becomes true and you can respond to it.
+          For round objects like balls and circular enemies, the separate
+          <code>enableCircleCollision()</code> and <code>crashWithCircle()</code> methods give
+          more accurate results than AABB — but <code>crashWith()</code> is the right starting
+          point for most beginner games.
+        </p>
+        <pre><code>const player = new Component(40, 40, "blue",  100, 300, "rect");
+const coin   = new Component(20, 20, "gold",  400, 200, "rect");
+const wall   = new Component(200, 20, "gray", 300, 350, "rect");
+display.add(player);
+display.add(coin);
+display.add(wall);
 
-      <p><strong>What we're going to do:</strong> Create a player, a coin, and a wall. Collect the coin when you touch it, and stop when you hit the wall.</p>
+let score = 0;
 
-      <details open>
-        <summary>Full runnable code</summary>
-        <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-  &lt;title&gt;Collision&lt;/title&gt;
-  &lt;script src="epic.js"&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;script&gt;
-    const display = new Display();
-    display.start(800, 600);
-    display.backgroundColor("#0d0d2a");
+function update(dt) {
+    if (display.keys[39]) player.speedX =  4;
+    if (display.keys[37]) player.speedX = -4;
+    else if (!display.keys[39]) player.speedX = 0;
 
-    const player = new Component(40, 40, "blue", 100, 300, "rect");
-    const coin   = new Component(20, 20, "gold", 400, 200, "rect");
-    const wall   = new Component(200, 20, "gray", 300, 350, "rect");
-
-    display.add(player);
-    display.add(coin);
-    display.add(wall);
-
-    let score = 0;
-
-    function update(dt) {
-      player.speedX = 0;
-      player.speedY = 0;
-
-      if (display.keys[39]) player.speedX =  250 * dt;
-      if (display.keys[37]) player.speedX = -250 * dt;
-      if (display.keys[38]) player.speedY = -250 * dt;
-      if (display.keys[40]) player.speedY =  250 * dt;
-
-      // Collect coin on touch
-      if (player.crashWith(coin)) {
+    // Collect coin on touch
+    if (player.crashWith(coin)) {
         score++;
         coin.x = Math.random() * 760;
         coin.y = Math.random() * 560;
-      }
-
-      // Stop at wall
-      if (player.crashWith(wall)) {
-        player.speedX = 0;
-        player.speedY = 0;
-      }
-
-      move.bound(player);
     }
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
+
+    // Stop at wall
+    if (player.crashWith(wall)) {
+        player.speedX = 0;
+    }
+}</code></pre>
+        <table>
+          <tr><th>Method</th><th>Returns</th><th>How it works</th></tr>
+          <tr><td><code>a.crashWith(b)</code></td><td>boolean</td><td>AABB overlap check — rotation-aware</td></tr>
+        </table>
       </details>
-
-      <p><strong>What we just did:</strong> We used <code>crashWith()</code> to detect overlap between the player and both the coin and the wall. When the player touches the coin, we increase the score and teleport the coin to a new random position. When the player touches the wall, we stop its movement.</p>
-
-      <table>
-        <tr><th>Method</th><th>Returns</th><th>How it works</th></tr>
-        <tr><td><code>a.crashWith(b)</code></td><td>boolean</td><td>AABB overlap check — rotation-aware</td></tr>
-      </table>
     </article>
   </fieldset>
 
-  <!-- ───────────────────────────────────────────── -->
-  <!-- 6. TEXT WITH Tctxt -->
-  <!-- ───────────────────────────────────────────── -->
   <fieldset id="s6">
     <legend><h2>6. Text with Tctxt</h2></legend>
     <article>
@@ -453,96 +345,66 @@
         background fill with padding, and a baseline setting, making it the correct tool
         for any score display, dialogue box, or on-screen UI label.
       </blockquote>
+      <details>
+        <summary>see more...</summary>
+        <p>
+          The base <code>Component</code> class has a <code>setText()</code> method but it
+          gives you very limited control over appearance.
+          <code>Tctxt</code> solves this by accepting eleven constructor parameters that cover
+          every aspect of canvas text rendering — and because it extends Component you
+          register it with <code>display.add()</code> exactly like any other game object.
+          The background fill draws a filled rectangle behind the text using the
+          <code>paddingX</code> and <code>paddingY</code> values to add space around it,
+          which is what makes HUD elements like score boxes look clean and readable against
+          any background colour.
+          Call <code>scoreText.fixed()</code> inside <code>update()</code> every frame to
+          lock the text to a fixed screen position even when the camera is scrolling —
+          without this call the text scrolls with the world and falls off screen when the
+          player moves far enough.
+        </p>
+        <pre><code>// Tctxt(size, font, color, x, y, align, stroke, baseline, background, padX, padY)
+const scoreText = new Tctxt(
+    "22px",                   // font size
+    "Arial",                  // font family
+    "white",                  // text colour
+    20, 36,                   // x, y position on screen
+    "left",                   // alignment: "left", "center", or "right"
+    false,                    // stroke mode — false = fill, true = outline only
+    "alphabetic",             // text baseline
+    "rgba(0,0,0,0.6)",        // background fill colour (null to disable)
+    14, 6                     // paddingX, paddingY around the text
+);
+scoreText.setText("Score: 0");
+display.add(scoreText);
 
-      <p><strong>What we're going to do:</strong> Add a score display that is locked to the top-left corner of the screen and updates every frame.</p>
+let score = 0;
+function update() {
+    score++;
+    scoreText.setText("Score: " + Math.floor(score / 60));
 
-      <details open>
-        <summary>Full runnable code</summary>
-        <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-  &lt;title&gt;Text with Tctxt&lt;/title&gt;
-  &lt;script src="epic.js"&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;script&gt;
-    const display = new Display();
-    display.start(800, 600);
-    display.backgroundColor("#0d0d2a");
-
-    const player = new Component(40, 40, "cyan", 375, 275, "rect");
-    display.add(player);
-
-    // Tctxt(size, font, color, x, y, align, stroke, baseline, background, padX, padY)
-    const scoreText = new Tctxt(
-      "22px",             // font size
-      "Arial",            // font family
-      "white",            // text colour
-      20, 36,             // x, y position on screen
-      "left",             // alignment
-      false,              // stroke = false → filled text
-      "alphabetic",       // text baseline
-      "rgba(0,0,0,0.6)",  // background fill colour
-      14, 6               // paddingX, paddingY
-    );
-    scoreText.setText("Score: 0");
-    display.add(scoreText);
-
-    let score = 0;
-
-    function update(dt) {
-      // Move player with arrow keys
-      player.speedX = 0;
-      player.speedY = 0;
-      if (display.keys[39]) player.speedX =  250 * dt;
-      if (display.keys[37]) player.speedX = -250 * dt;
-      if (display.keys[38]) player.speedY = -250 * dt;
-      if (display.keys[40]) player.speedY =  250 * dt;
-
-      // Increase the score over time as a demo
-      score += 60 * dt;
-      scoreText.setText("Score: " + Math.floor(score));
-
-      // Lock the score box to the screen
-      scoreText.fixed();
-    }
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
+    // Keep the score box locked to the screen when the camera moves
+    scoreText.fixed();
+}</code></pre>
+        <div class="tip">
+          💡 <code>fixed()</code> works by adding the current camera offset to
+          the Component's stored <code>aX</code> / <code>aY</code> anchor position every
+          frame, keeping it at the same screen coordinates no matter where the camera is.
+          You must call it every frame — not just once.
+        </div>
+        <table>
+          <tr><th>Parameter</th><th>Example</th><th>Purpose</th></tr>
+          <tr><td>size</td><td>"22px"</td><td>Font size as a CSS string</td></tr>
+          <tr><td>font</td><td>"Arial"</td><td>Font family name</td></tr>
+          <tr><td>align</td><td>"left"</td><td>"left", "center", or "right"</td></tr>
+          <tr><td>stroke</td><td>false</td><td>false = filled text, true = outlined text only</td></tr>
+          <tr><td>background</td><td>"rgba(0,0,0,0.6)"</td><td>Background fill — null disables it</td></tr>
+          <tr><td>padX / padY</td><td>14, 6</td><td>Pixel padding around the text inside the background</td></tr>
+          <tr><td><code>setText(txt)</code></td><td>"Score: 0"</td><td>Update the displayed string — returns the string</td></tr>
+        </table>
       </details>
-
-      <p><strong>What we just did:</strong></p>
-      <ul>
-        <li>Created a <code>Tctxt</code> component with all eleven constructor parameters, giving us full control over how the text is drawn</li>
-        <li>Set the background to <code>"rgba(0,0,0,0.6)"</code> so the text is readable against any game background</li>
-        <li>Added padding of 14 pixels horizontally and 6 pixels vertically around the text inside the background box</li>
-        <li>Called <code>scoreText.setText()</code> in <code>update()</code> to refresh the displayed string</li>
-        <li>Called <code>scoreText.fixed()</code> every frame to lock the text to the top-left of the screen — without this it would scroll away with the camera</li>
-      </ul>
-
-      <div class="tip">
-        💡 <code>fixed()</code> works by adding the current camera offset to
-        the Component's stored <code>aX</code> / <code>aY</code> anchor position every
-        frame, keeping it at the same screen coordinates no matter where the camera is.
-        You must call it every frame — not just once.
-      </div>
-
-      <table>
-        <tr><th>Parameter</th><th>Example</th><th>Purpose</th></tr>
-        <tr><td>size</td><td>"22px"</td><td>Font size as a CSS string</td></tr>
-        <tr><td>font</td><td>"Arial"</td><td>Font family name</td></tr>
-        <tr><td>align</td><td>"left"</td><td>"left", "center", or "right"</td></tr>
-        <tr><td>stroke</td><td>false</td><td>false = filled text, true = outlined text only</td></tr>
-        <tr><td>background</td><td>"rgba(0,0,0,0.6)"</td><td>Background fill — null disables it</td></tr>
-        <tr><td>padX / padY</td><td>14, 6</td><td>Pixel padding around the text inside the background</td></tr>
-        <tr><td><code>setText(txt)</code></td><td>"Score: 0"</td><td>Update the displayed string — returns the string</td></tr>
-      </table>
     </article>
   </fieldset>
 
-  <!-- ───────────────────────────────────────────── -->
-  <!-- 7. IMAGES WITH setImage() -->
-  <!-- ───────────────────────────────────────────── -->
   <fieldset id="s7">
     <legend><h2>7. Images with setImage()</h2></legend>
     <article>
@@ -552,76 +414,43 @@
         <code>setImage(src)</code> at any point to switch to image mode, with automatic
         fallback to a red rectangle if the file fails to load.
       </blockquote>
+      <details>
+        <summary>see more...</summary>
+        <p>
+          When you pass <code>"image"</code> as the type and a file path as the color
+          argument, Limn immediately creates an <code>Image</code> object and starts
+          loading the file — the Component draws the image once loading completes.
+          <code>setImage(src)</code> does the same thing at runtime: it changes the type
+          to <code>"image"</code>, starts loading the new file, and if the load fails for
+          any reason (wrong path, network error) it automatically falls back to
+          <code>type = "rect"</code> with <code>color = "red"</code> so you always see
+          something on screen and can diagnose the problem.
+          To switch back from image to a plain colour rectangle at any time, call
+          <code>setColor(color)</code>, which clears the image reference and restores
+          rect rendering immediately.
+          The Component's width and height still control the drawn size regardless of the
+          image's natural dimensions — Limn stretches or shrinks the image to fit.
+        </p>
+        <pre><code>// Method 1 — image at construction
+const player = new Component(64, 64, "img/hero.png", 100, 100, "image");
+display.add(player);
 
-      <p><strong>What we're going to do:</strong> Create a player using a plain rectangle, then swap it to an image at runtime. We'll also show how to switch back to a colour if needed.</p>
+// Method 2 — switch to image at runtime
+const enemy = new Component(40, 40, "red", 300, 200, "rect");
+display.add(enemy);
+enemy.setImage("img/enemy.png"); // switches to image mode safely
 
-      <details open>
-        <summary>Full runnable code</summary>
-        <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-  &lt;title&gt;Images&lt;/title&gt;
-  &lt;script src="epic.js"&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;script&gt;
-    const display = new Display();
-    display.start(800, 600);
-    display.backgroundColor("#0d0d2a");
-
-    // Start as a coloured rectangle
-    const player = new Component(64, 64, "cyan", 100, 100, "rect");
-    display.add(player);
-
-    // Switch to an image at runtime
-    player.setImage("img/hero.png");
-
-    // Create a second component that starts as an image
-    const enemy = new Component(40, 40, "img/enemy.png", 400, 300, "image");
-    display.add(enemy);
-
-    function update(dt) {
-      player.speedX = 0;
-      player.speedY = 0;
-
-      if (display.keys[39]) player.speedX =  250 * dt;
-      if (display.keys[37]) player.speedX = -250 * dt;
-      if (display.keys[38]) player.speedY = -250 * dt;
-      if (display.keys[40]) player.speedY =  250 * dt;
-
-      move.bound(player);
-      move.bound(enemy);
-
-      // Press S to switch the enemy back to a purple rectangle
-      if (display.keys[83]) {
-        display.keys[83] = false;
-        enemy.setColor("purple");
-      }
-    }
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
+// Switch back to a colour rectangle
+enemy.setColor("purple"); // image cleared, back to rect mode</code></pre>
+        <table>
+          <tr><th>Method</th><th>Parameters</th><th>Behaviour</th></tr>
+          <tr><td><code>setImage(src)</code></td><td>file path string</td><td>Load an image — falls back to red rect on error</td></tr>
+          <tr><td><code>setColor(color)</code></td><td>CSS color string</td><td>Switch back to filled rect, clears the image</td></tr>
+        </table>
       </details>
-
-      <p><strong>What we just did:</strong></p>
-      <ul>
-        <li>Created the player as a <code>"rect"</code> component, added it to the display, then called <code>player.setImage("img/hero.png")</code> to swap it to image mode at runtime</li>
-        <li>Created the enemy directly in image mode by passing <code>"img/enemy.png"</code> as the colour argument and <code>"image"</code> as the type</li>
-        <li>Added an S-key action that calls <code>enemy.setColor("purple")</code> — this clears the image and switches back to rectangle mode</li>
-        <li>If any image fails to load (wrong path, missing file), the engine automatically falls back to a red rectangle so you can see the problem</li>
-      </ul>
-
-      <table>
-        <tr><th>Method</th><th>Parameters</th><th>Behaviour</th></tr>
-        <tr><td><code>setImage(src)</code></td><td>file path string</td><td>Load an image — falls back to red rect on error</td></tr>
-        <tr><td><code>setColor(color)</code></td><td>CSS color string</td><td>Switch back to filled rect, clears the image</td></tr>
-      </table>
     </article>
   </fieldset>
 
-  <!-- ───────────────────────────────────────────── -->
-  <!-- 8. MOUSE INPUT & CLICKED() -->
-  <!-- ───────────────────────────────────────────── -->
   <fieldset id="s8">
     <legend><h2>8. Mouse Input &amp; clicked()</h2></legend>
     <article>
@@ -631,62 +460,51 @@
         them to <code>false</code> on release — and <code>clicked()</code> lets you
         check whether the press landed specifically on a given Component.
       </blockquote>
+      <details>
+        <summary>see more...</summary>
+        <p>
+          The engine registers both <code>mousedown</code>/<code>mouseup</code> and
+          <code>touchstart</code>/<code>touchend</code> listeners in
+          <code>addEventListeners()</code>, so <code>display.x</code> and
+          <code>display.y</code> work identically on desktop and mobile without any
+          extra code from you.
+          While the mouse is pressed <code>display.x</code> holds the page X coordinate
+          and <code>display.y</code> holds the page Y coordinate; the moment the button
+          is released both become <code>false</code>, which means checking
+          <code>if (display.x)</code> is a reliable test for "is the mouse currently held".
+          <code>clicked()</code> goes further — it checks whether those coordinates fall
+          inside the bounding box of the specific Component you call it on, and it is
+          rotation-aware, so clicking a rotated button still registers correctly.
+          The standard pattern is <code>if (display.x &amp;&amp; btn.clicked())</code> —
+          the first condition confirms a press is active, the second confirms it landed
+          on that Component.
+        </p>
+        <pre><code>const btn = new Component(160, 50, "#7fffb2", 320, 270, "rect");
+display.add(btn);
 
-      <p><strong>What we're going to do:</strong> Create a button that changes colour when the mouse is pressed on it, and resets when the mouse is released. Works on touchscreens too.</p>
-
-      <details open>
-        <summary>Full runnable code</summary>
-        <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-  &lt;title&gt;Mouse Input&lt;/title&gt;
-  &lt;script src="epic.js"&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;script&gt;
-    const display = new Display();
-    display.start(800, 600);
-    display.backgroundColor("#0d0d2a");
-
-    const btn = new Component(160, 50, "#7fffb2", 320, 270, "rect");
-    display.add(btn);
-
-    let clicks = 0;
-
-    function update(dt) {
-      // Check if mouse pressed specifically on the button
-      if (display.x && btn.clicked()) {
-        btn.setColor("lime");
-        clicks++;
-        console.log("Button clicked! Total clicks:", clicks);
-      } else {
-        btn.setColor("#7fffb2");
-      }
+function update() {
+    // Check if mouse is pressed anywhere
+    if (display.x) {
+        console.log("Mouse at", display.x, display.y);
     }
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
+
+    // Check if mouse pressed specifically on the button
+    if (display.x && btn.clicked()) {
+        btn.setColor("lime");
+        console.log("Button clicked!");
+    } else {
+        btn.setColor("#7fffb2");
+    }
+}</code></pre>
+        <div class="tip">
+          💡 Works on touchscreen too — <code>touchstart</code> sets
+          <code>display.x</code> and <code>display.y</code> to the finger position,
+          and <code>touchend</code> resets them to <code>false</code>.
+        </div>
       </details>
-
-      <p><strong>What we just did:</strong></p>
-      <ul>
-        <li>Checked <code>display.x</code> to confirm the mouse is currently pressed (it is <code>false</code> when released)</li>
-        <li>Called <code>btn.clicked()</code> to test whether the press coordinates fall inside the button's rectangle</li>
-        <li>Changed the button colour to lime and logged the click when both conditions are true</li>
-        <li>Reset the colour back to the default when the condition is false</li>
-      </ul>
-
-      <div class="tip">
-        💡 Works on touchscreen too — <code>touchstart</code> sets
-        <code>display.x</code> and <code>display.y</code> to the finger position,
-        and <code>touchend</code> resets them to <code>false</code>.
-      </div>
     </article>
   </fieldset>
 
-  <!-- ───────────────────────────────────────────── -->
-  <!-- 9. SOUND WITH THE Sound CLASS -->
-  <!-- ───────────────────────────────────────────── -->
   <fieldset id="s9">
     <legend><h2>9. Sound with the Sound Class</h2></legend>
     <article>
@@ -696,78 +514,55 @@
         clone-on-overlap so the same sound file can play multiple times simultaneously
         without cutting itself off.
       </blockquote>
+      <details>
+        <summary>see more...</summary>
+        <p>
+          When you create <code>new Sound("jump.wav")</code> the engine immediately creates
+          an <code>Audio</code> element, starts preloading the file, and waits for the
+          <code>canplaythrough</code> event before marking it as ready.
+          Calling <code>play()</code> before the file has finished loading logs a warning
+          and does nothing, so it is safest to create all sounds before calling
+          <code>display.start()</code>.
+          The clone-on-overlap behaviour is what makes sound effects in games work
+          correctly — if a sound is already playing and you call <code>play()</code> again,
+          instead of restarting from the beginning it creates a temporary copy of the
+          sound, plays that copy, and disposes of it automatically, meaning rapid
+          events like bullet fires all get their own audio instance.
+          For looping background music, pass <code>{ loop: true }</code> as the options
+          object; for sounds that should stop and restart on each call (like a jump),
+          the default non-loop behaviour handles that without any extra code.
+        </p>
+        <pre><code>// Create sounds at the top — preloading starts immediately
+const jumpSfx  = new Sound("audio/jump.wav");
+const hitSfx   = new Sound("audio/hit.wav", { volume: 0.8 });
+const bgMusic  = new Sound("audio/music.mp3", { loop: true, volume: 0.5 });
 
-      <p><strong>What we're going to do:</strong> Load three sounds — a jump effect, a hit effect, and looping background music — then play them in response to game events.</p>
+bgMusic.play(); // start background music
 
-      <details open>
-        <summary>Full runnable code</summary>
-        <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-  &lt;title&gt;Sound&lt;/title&gt;
-  &lt;script src="epic.js"&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;script&gt;
-    const display = new Display();
-    display.start(800, 600);
-    display.backgroundColor("#0d0d2a");
-
-    // Create sounds BEFORE display.start() so they preload
-    const jumpSfx = new Sound("audio/jump.wav");
-    const hitSfx  = new Sound("audio/hit.wav", { volume: 0.8 });
-    const bgMusic = new Sound("audio/music.mp3", { loop: true, volume: 0.5 });
-
-    // Start background music
-    bgMusic.play();
-
-    const player = new Component(40, 40, "cyan", 375, 275, "rect");
-    display.add(player);
-
-    function update(dt) {
-      player.speedX = 0;
-      player.speedY = 0;
-
-      if (display.keys[39]) player.speedX =  250 * dt;
-      if (display.keys[37]) player.speedX = -250 * dt;
-      if (display.keys[38]) player.speedY = -250 * dt;
-      if (display.keys[40]) player.speedY =  250 * dt;
-
-      // Space bar → play jump sound (clones so rapid presses all play)
-      if (display.keys[32]) {
+function update() {
+    // Jump on Space — reset key so it fires only once per press
+    if (display.keys[32]) {
         display.keys[32] = false;
-        jumpSfx.play();
-      }
+        jumpSfx.play(); // clones if already playing — no cut-off
     }
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
+
+    if (player.crashWith(enemy)) {
+        hitSfx.play();
+    }
+}</code></pre>
+        <table>
+          <tr><th>Method</th><th>Purpose</th></tr>
+          <tr><td><code>play(volume?)</code></td><td>Play the sound — clones if already playing (overlap safe)</td></tr>
+          <tr><td><code>stop()</code></td><td>Stop playback and rewind to the beginning</td></tr>
+          <tr><td><code>pause()</code></td><td>Pause at the current position</td></tr>
+          <tr><td><code>setVolume(0–1)</code></td><td>Change the volume</td></tr>
+          <tr><td><code>setLoop(bool)</code></td><td>Enable or disable looping</td></tr>
+          <tr><td><code>isPlaying()</code></td><td>Returns true if currently playing</td></tr>
+        </table>
       </details>
-
-      <p><strong>What we just did:</strong></p>
-      <ul>
-        <li>Created three <code>Sound</code> objects at the top of the script — this starts preloading immediately, before the game begins</li>
-        <li>Passed an options object <code>{ volume: 0.8 }</code> to set the hit sound quieter than default</li>
-        <li>Passed <code>{ loop: true, volume: 0.5 }</code> to the background music so it repeats forever at half volume</li>
-        <li>Called <code>bgMusic.play()</code> to start the music</li>
-        <li>Played <code>jumpSfx</code> on every Space press — if the sound is still playing, the engine creates a temporary clone so nothing is cut off</li>
-      </ul>
-
-      <table>
-        <tr><th>Method</th><th>Purpose</th></tr>
-        <tr><td><code>play(volume?)</code></td><td>Play the sound — clones if already playing (overlap safe)</td></tr>
-        <tr><td><code>stop()</code></td><td>Stop playback and rewind to the beginning</td></tr>
-        <tr><td><code>pause()</code></td><td>Pause at the current position</td></tr>
-        <tr><td><code>setVolume(0–1)</code></td><td>Change the volume</td></tr>
-        <tr><td><code>setLoop(bool)</code></td><td>Enable or disable looping</td></tr>
-        <tr><td><code>isPlaying()</code></td><td>Returns true if currently playing</td></tr>
-      </table>
     </article>
   </fieldset>
 
-  <!-- ───────────────────────────────────────────── -->
-  <!-- 10. GAME STATES WITH display.scene -->
-  <!-- ───────────────────────────────────────────── -->
   <fieldset id="s10">
     <legend><h2>10. Game States with display.scene</h2></legend>
     <article>
@@ -778,107 +573,62 @@
         letting you switch between a main menu, gameplay, and game-over screen with
         a single assignment.
       </blockquote>
+      <details>
+        <summary>see more...</summary>
+        <p>
+          When you call <code>display.add(component, 1)</code> the second argument is
+          the scene number — it defaults to <code>0</code> if you leave it out.
+          Every frame the engine's internal loop checks
+          <code>if (component.scene == display.scene)</code> before drawing anything,
+          so Components assigned to scene 1 are completely invisible and inactive when
+          <code>display.scene</code> is 0, and instantly become active the moment you
+          set <code>display.scene = 1</code>.
+          This approach is much more efficient than creating and destroying objects
+          on state change — all your Components exist in memory at all times but only
+          the active scene's objects consume draw calls.
+          The pattern is to build every screen upfront, assign each object to the right
+          scene, start on scene 0, and then change <code>display.scene</code> in response
+          to player actions — a button click to start the game, a collision that triggers
+          game over, or a menu option.
+        </p>
+        <pre><code>// Scene 0 — main menu
+const playBtn = new Component(160, 50, "#7fffb2", 320, 270, "rect");
+display.add(playBtn, 0);
 
-      <p><strong>What we're going to do:</strong> Build a mini game with a main menu, a playable scene, and a game-over screen. Click a button on the menu to start; reach a certain score to trigger game over.</p>
+// Scene 1 — gameplay
+const player = new Component(40, 40, "cyan", 100, 100, "rect");
+display.add(player, 1);
 
-      <details open>
-        <summary>Full runnable code</summary>
-        <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-  &lt;title&gt;Scenes&lt;/title&gt;
-  &lt;script src="epic.js"&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;script&gt;
-    const display = new Display();
-    display.start(800, 600);
-    display.backgroundColor("#0d0d2a");
+// Scene 2 — game over
+const gameOverText = new Tctxt("36px","Arial","red",260,280,"center");
+gameOverText.setText("GAME OVER");
+display.add(gameOverText, 2);
 
-    // ── Scene 0 — main menu ──
-    const playBtn = new Component(160, 50, "#7fffb2", 320, 270, "rect");
-    display.add(playBtn, 0);
+display.scene = 0; // start on the menu
 
-    const title = new Tctxt("40px","Arial","white",400,180,"center");
-    title.setText("LIMN GAME");
-    display.add(title, 0);
+let playerDead = false;
 
-    // ── Scene 1 — gameplay ──
-    const player = new Component(40, 40, "cyan", 100, 100, "rect");
-    display.add(player, 1);
-
-    let playerDead = false;
-    let timer = 0;
-
-    // ── Scene 2 — game over ──
-    const gameOverText = new Tctxt("36px","Arial","red",400,280,"center");
-    gameOverText.setText("GAME OVER");
-    display.add(gameOverText, 2);
-
-    // Start on the menu
-    display.scene = 0;
-
-    function update(dt) {
-      if (display.scene === 0) {
-        // Menu — wait for a click on the play button
-        if (display.x &amp;&amp; playBtn.clicked()) {
-          display.scene = 1;
-          timer = 0;
-          player.x = 100;
-          player.y = 100;
-          playerDead = false;
+function update() {
+    if (display.scene === 0) {
+        if (display.x && playBtn.clicked()) {
+            display.scene = 1; // start game
         }
-      }
-
-      if (display.scene === 1) {
-        // Gameplay — move player and count down
-        player.speedX = 0;
-        player.speedY = 0;
-        if (display.keys[39]) player.speedX =  250 * dt;
-        if (display.keys[37]) player.speedX = -250 * dt;
-        if (display.keys[38]) player.speedY = -250 * dt;
-        if (display.keys[40]) player.speedY =  250 * dt;
-        move.bound(player);
-
-        timer += dt;
-        if (timer &gt; 5) { // end after 5 seconds as a demo
-          playerDead = true;
-          display.scene = 2;
-        }
-      }
-
-      if (display.scene === 2) {
-        // Game over — click to return to the menu
-        if (display.x) {
-          display.scene = 0;
-        }
-      }
     }
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
+
+    if (display.scene === 1) {
+        // gameplay logic here
+        if (playerDead) display.scene = 2;
+    }
+}</code></pre>
+        <div class="tip">
+          💡 Components default to scene 0 if you call <code>display.add(obj)</code>
+          without a second argument — so beginner games that only have one screen
+          never need to think about scene numbers.
+        </div>
       </details>
-
-      <p><strong>What we just did:</strong></p>
-      <ul>
-        <li>Created three scenes by passing a second argument to <code>display.add()</code> — the scene number</li>
-        <li>Assigned the play button and title to scene 0, the player to scene 1, and the game-over text to scene 2</li>
-        <li>Set <code>display.scene = 0</code> to start on the menu</li>
-        <li>In <code>update()</code> we used <code>if (display.scene === 0)</code>, <code>=== 1</code>, and <code>=== 2</code> to run different logic depending on the active scene</li>
-        <li>Switched scenes by simply assigning a new number — all objects for that scene became active instantly, and all others became inactive</li>
-      </ul>
-
-      <div class="tip">
-        💡 Components default to scene 0 if you call <code>display.add(obj)</code>
-        without a second argument — so beginner games that only have one screen
-        never need to think about scene numbers.
-      </div>
     </article>
   </fieldset>
 
-  <!-- ───────────────────────────────────────────── -->
-  <!-- 11. COIN COLLECTOR — COMPLETE TUTORIAL -->
-  <!-- ───────────────────────────────────────────── -->
   <fieldset id="s11">
     <legend><h2>11. Coin Collector — Complete Tutorial</h2></legend>
     <article>
@@ -887,105 +637,80 @@
         movement, collision, a score counter, boundaries, and a Tctxt HUD — to show
         how the pieces fit together into a working, playable game.
       </blockquote>
+      <details>
+        <summary>see more...</summary>
+        <pre><code>&lt;script src="epic.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+const display = new Display();
+display.start(800, 600);
+display.backgroundColor("#0d0d2a");
 
-      <p><strong>What we're going to do:</strong> Build a complete coin-collecting game. The player moves with WASD, collects gold coins, and the score updates in a fixed HUD. Coins respawn at new random positions so the game never ends.</p>
+// Player
+const player = new Component(40, 40, "cyan", 380, 280, "rect");
+display.add(player);
 
-      <details open>
-        <summary>Full runnable code</summary>
-        <pre><code>&lt;!DOCTYPE html&gt;
-&lt;html&gt;
-&lt;head&gt;
-  &lt;title&gt;Coin Collector&lt;/title&gt;
-  &lt;script src="epic.js"&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-  &lt;script&gt;
-    const display = new Display();
-    display.perform();
-    display.start(800, 600);
-    display.backgroundColor("#0d0d2a");
-
-    // Player
-    const player = new Component(40, 40, "cyan", 380, 280, "rect");
-    display.add(player);
-
-    // Five coins at random positions
-    const coins = [];
-    for (let i = 0; i &lt; 5; i++) {
-      const c = new Component(
-        20, 20, "gold",
+// Five coins at random positions
+const coins = [];
+for (let i = 0; i &lt; 5; i++) {
+    const c = new Component(20, 20, "gold",
         50 + Math.random() * 700,
-        50 + Math.random() * 500,
-        "rect"
-      );
-      display.add(c);
-      coins.push(c);
-    }
+        50 + Math.random() * 500, "rect");
+    display.add(c);
+    coins.push(c);
+}
 
-    // Score HUD — fixed to screen
-    const scoreText = new Tctxt(
-      "22px","Arial","white", 16, 36,
-      "left", false, "alphabetic",
-      "rgba(0,0,0,0.55)", 12, 6
-    );
-    scoreText.setText("Score: 0");
-    display.add(scoreText);
+// Score HUD — fixed to screen
+const scoreText = new Tctxt(
+    "22px","Arial","white", 16, 36,
+    "left", false, "alphabetic",
+    "rgba(0,0,0,0.55)", 12, 6
+);
+scoreText.setText("Score: 0");
+display.add(scoreText);
 
-    let score = 0;
+let score = 0;
 
-    function update(dt) {
-      // WASD movement with deltaTime
-      player.speedX = 0;
-      player.speedY = 0;
-      if (display.keys[87]) player.speedY = -250 * dt;
-      if (display.keys[83]) player.speedY =  250 * dt;
-      if (display.keys[65]) player.speedX = -250 * dt;
-      if (display.keys[68]) player.speedX =  250 * dt;
+function update(dt) {
+    // WASD movement with deltaTime
+    player.speedX = 0;
+    player.speedY = 0;
+    if (display.keys[87]) player.speedY = -250 * dt; // W
+    if (display.keys[83]) player.speedY =  250 * dt; // S
+    if (display.keys[65]) player.speedX = -250 * dt; // A
+    if (display.keys[68]) player.speedX =  250 * dt; // D
 
-      // Stay inside canvas
-      move.bound(player);
+    // Stay inside canvas
+    move.bound(player);
 
-      // Collect coins
-      for (let i = 0; i &lt; coins.length; i++) {
+    // Collect coins
+    for (let i = 0; i &lt; coins.length; i++) {
         if (player.crashWith(coins[i])) {
-          // Respawn at a new random position
-          coins[i].x = 50 + Math.random() * 700;
-          coins[i].y = 50 + Math.random() * 500;
-          score++;
-          scoreText.setText("Score: " + score);
+            // Respawn at a new random position
+            coins[i].x = 50 + Math.random() * 700;
+            coins[i].y = 50 + Math.random() * 500;
+            score++;
+            scoreText.setText("Score: " + score);
         }
-      }
-
-      // Keep HUD fixed to screen
-      scoreText.fixed();
     }
-  &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre>
+
+    // Keep HUD fixed to screen
+    scoreText.fixed();
+}
+&lt;/script&gt;</code></pre>
+        <p>
+          ✅ WASD to move. Walk into gold squares to collect them — each coin respawns
+          at a new position. The score counter stays fixed to the top-left corner
+          even if a camera is added later.
+        </p>
       </details>
-
-      <p><strong>What we just did:</strong></p>
-      <ul>
-        <li>Created a player component in the centre of the canvas</li>
-        <li>Looped five times to create five coins, each at a random position, and stored them in the <code>coins</code> array so we can check them all for collision</li>
-        <li>Created a <code>Tctxt</code> HUD to display the score, with a semi-transparent black background so it's readable anywhere</li>
-        <li>In <code>update(dt)</code>, we move the player with WASD, multiply by <code>dt</code> for frame-rate independence, and call <code>move.bound()</code> to keep the player on screen</li>
-        <li>Looped through every coin, checking <code>player.crashWith(coin)</code> — on collision we teleport the coin to a new random position, increment the score, and update the HUD text</li>
-        <li>Called <code>scoreText.fixed()</code> every frame to lock the score to the top-left of the screen</li>
-      </ul>
-
-      <p>✅ WASD to move. Walk into gold squares to collect them — each coin respawns at a new position. The score counter stays fixed to the top-left corner even if a camera is added later.</p>
     </article>
   </fieldset>
 
-  <!-- ───────────────────────────────────────────── -->
-  <!-- 12. QUICK REFERENCE -->
-  <!-- ───────────────────────────────────────────── -->
   <fieldset id="s12">
     <legend><h2>12. Quick Reference</h2></legend>
     <article>
-      <details open>
-        <summary>Quick reference table</summary>
+      <details>
+        <summary>see more...</summary>
         <table>
           <tr><th>What you want</th><th>Code</th></tr>
           <tr><td>Start the engine</td><td><code>const display = new Display(); display.start(800,600);</code></td></tr>
@@ -997,7 +722,7 @@
           <tr><td>Show score text</td><td><code>const t = new Tctxt("20px","Arial","white",10,30); t.setText("0");</code></td></tr>
           <tr><td>Lock HUD to screen</td><td><code>t.fixed(); // every frame in update()</code></td></tr>
           <tr><td>Display an image</td><td><code>obj.setImage("img/hero.png");</code></td></tr>
-          <tr><td>Detect mouse click on object</td><td><code>if(display.x &amp;&amp; btn.clicked()) { ... }</code></td></tr>
+          <tr><td>Detect mouse click on object</td><td><code>if(display.x && btn.clicked()) { ... }</code></td></tr>
           <tr><td>Play a sound</td><td><code>const s = new Sound("sfx.wav"); s.play();</code></td></tr>
           <tr><td>Switch game screen</td><td><code>display.add(obj, 1); display.scene = 1;</code></td></tr>
         </table>
