@@ -55,6 +55,82 @@
         .dropdown:hover .dropdown-content {
             display: block;
         }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 8px 16px;
+            background: #0d0d16;
+            border-bottom: 1px solid #222;
+        }
+        .tab {
+            background: transparent;
+            border: none;
+            color: #888;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .tab.active {
+            background: #2563eb;
+            color: #fff;
+        }
+        .build-panel {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            padding: 20px;
+            min-height: 400px;
+        }
+        .build-field {
+            margin-bottom: 12px;
+        }
+        .build-field label {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .build-field input {
+            width: 100%;
+            padding: 8px;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+        }
+        .build-field input[type="color"] {
+            height: 40px;
+            padding: 4px;
+            cursor: pointer;
+        }
+        .build-label {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .build-reset {
+            margin-top: 16px;
+            padding: 10px 16px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .build-hint {
+            color: #666;
+            font-size: 13px;
+        }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Limn playground</title>
@@ -132,7 +208,28 @@
                 <div id="file"></div>
             </div>
 
-            <section>
+            <div class="tabs">
+                <button class="tab active" data-tab="build">Build</button>
+                <button class="tab" data-tab="code">Code</button>
+            </div>
+
+            <div id="buildPanel" class="build-panel">
+                <div class="build-left">
+                    <label class="build-label">Template</label>
+                    <select id="templateSelect">
+                        <option value="dressup">Dress-Up</option>
+                    </select>
+
+                    <div id="templateFields"></div>
+
+                    <button id="buildReset" class="build-reset">↻ Reset from template</button>
+                </div>
+                <div class="build-right">
+                    <p class="build-hint">Click <strong>Run</strong> to see your game.</p>
+                </div>
+            </div>
+
+            <section id="codeSection" style="display:none">
                 <select id="version">
                     <option value="v2">Limn Version 2</option>
                     <option value="v3">Limn Version 3</option>
@@ -216,6 +313,8 @@ function update(dt) {
         inp.type = "file";
         inp.accept = ".js";
     </script>
+    <script src="templates.js"></script>
+    <script src="build.js"></script>
     <script type="module" src="script.js"></script>
 </body>
-</html>
+    </html>
