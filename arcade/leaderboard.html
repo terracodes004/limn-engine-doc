@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Leaderboard — Arcade</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0a0a14; color: #fff;
+         font-family: system-ui, sans-serif; min-height: 100vh; }
+  header { padding: 24px 32px;
+           border-bottom: 1px solid rgba(255,255,255,0.06); }
+  header h1 { margin: 0 0 4px; font-size: 24px; }
+  header p { margin: 0; opacity: 0.5; font-size: 14px; }
+  main { padding: 32px; max-width: 800px; margin: 0 auto; }
+  h2 { font-size: 14px; text-transform: uppercase;
+       letter-spacing: 1px; opacity: 0.6;
+       margin: 32px 0 16px; font-weight: 600; }
+  .row { display: flex; align-items: center; gap: 16px;
+         padding: 14px 16px;
+         background: linear-gradient(180deg,#15152a,#10101e);
+         border: 1px solid rgba(255,255,255,0.06);
+         border-radius: 10px; margin-bottom: 8px;
+         text-decoration: none; color: inherit;
+         transition: border-color 0.15s; }
+  .row:hover { border-color: rgba(68,170,255,0.4); }
+  .rank { font-size: 18px; font-weight: 800;
+          width: 32px; text-align: center; }
+  .rank.gold { color: #fd3; }
+  .rank.silver { color: #bbb; }
+  .rank.bronze { color: #c85; }
+  .info { flex: 1; min-width: 0; }
+  .info .name { font-size: 15px; font-weight: 600;
+                white-space: nowrap; overflow: hidden;
+                text-overflow: ellipsis; }
+  .info .sub { font-size: 12px; opacity: 0.5;
+               margin-top: 2px; }
+  .count { font-size: 18px; font-weight: 700; color: #f44; }
+  .count::before { content: "♥ "; }
+  .empty { text-align: center; padding: 60px 20px;
+           opacity: 0.4; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Leaderboard</h1>
+  <p id="weekLabel">This week</p>
+</header>
+
+<main>
+  <h2>Top Games</h2>
+  <div id="games"><div class="empty">Loading...</div></div>
+
+  <h2>Top Creators</h2>
+  <div id="creators"><div class="empty">Loading...</div></div>
+</main>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+const supabase = createClient(
+  'https://pjtpesdhjfvcidfkxord.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38'
+);
+
+const now = new Date();
+const dayOfWeek = now.getUTCDay();
+const diffToMonday = (dayOfWeek + 6) % 7;
+const monday = new Date(Date.UTC(now.getUTCFullYear(),
+  now.getUTCMonth(), now.getUTCDate() - diffToMonday, 0, 0, 0));
+const sunday = new Date(monday);
+sunday.setUTCDate(monday.getUTCDate() + 7);
+
+document.getElementById('weekLabel').textContent =
+  monday.toLocaleDateString('en', { month: 'short', day: 'numeric' }) +
+  ' – ' +
+  sunday.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+
+const since = monday.toISOString();
+
+const { data: likes } = await supabase
+  .from('likes')
+  .select('game_id, created_at')
+  .gte('created_at', since);
+
+const { data: games } = await supabase
+  .from('games')
+  .select('id, slug, title, author_name');
+
+const gameMap = {};
+if (games) for (const g of games) gameMap[g.id] = g;
+
+const gameCounts = {};
+if (likes) for (const l of likes) {
+  gameCounts[l.game_id] = (gameCounts[l.game_id] || 0) + 1;
+}
+
+const topGames = Object.entries(gameCounts)
+  .map(([id, count]) => ({ game: gameMap[id], count }))
+  .filter(x => x.game)
+  .sort((a, b) => b.count - a.count)
+  .slice(0, 10);
+
+const creatorCounts = {};
+if (likes) for (const l of likes) {
+  const g = gameMap[l.game_id];
+  if (!g) continue;
+  const name = g.author_name || 'anonymous';
+  creatorCounts[name] = (creatorCounts[name] || 0) + 1;
+}
+
+const topCreators = Object.entries(creatorCounts)
+  .map(([name, count]) => ({ name, count }))
+  .sort((a, b) => b.count - a.count)
+  .slice(0, 10);
+
+const gamesEl = document.getElementById('games');
+if (topGames.length === 0) {
+  gamesEl.innerHTML = '<div class="empty">No likes yet this week.</div>';
+} else {
+  gamesEl.innerHTML = topGames.map((x, i) => {
+    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    return `<a class="row" href="/arcade/game.html?slug=${encodeURIComponent(x.game.slug)}">
+      <div class="rank ${rankClass}">${i + 1}</div>
+      <div class="info">
+        <div class="name">${esc(x.game.title)}</div>
+        <div class="sub">by ${esc(x.game.author_name || 'anonymous')}</div>
+      </div>
+      <div class="count">${x.count}</div>
+    </a>`;
+  }).join('');
+}
+
+const creatorsEl = document.getElementById('creators');
+if (topCreators.length === 0) {
+  creatorsEl.innerHTML = '<div class="empty">No creators yet this week.</div>';
+} else {
+  creatorsEl.innerHTML = topCreators.map((x, i) => {
+    const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    return `<div class="row">
+      <div class="rank ${rankClass}">${i + 1}</div>
+      <div class="info">
+        <div class="name">${esc(x.name)}</div>
+      </div>
+      <div class="count">${x.count}</div>
+    </div>`;
+  }).join('');
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
+}
+</script>
+
+</body>
+  </html>
