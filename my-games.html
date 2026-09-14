@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Games — Limn</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0a0a14; color: #fff;
+         font-family: system-ui, sans-serif; min-height: 100vh; }
+  header { padding: 24px 32px;
+           border-bottom: 1px solid rgba(255,255,255,0.06); }
+  header h1 { margin: 0 0 4px; font-size: 24px; }
+  header p { margin: 0; opacity: 0.5; font-size: 14px; }
+  main { padding: 32px; max-width: 1200px; margin: 0 auto; }
+  .grid { display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          gap: 18px; }
+  .card { background: linear-gradient(180deg,#15152a,#10101e);
+          border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 14px; overflow: hidden;
+          text-decoration: none; color: inherit; display: block;
+          transition: border-color 0.15s; }
+  .card:hover { border-color: rgba(68,170,255,0.4); }
+  .thumb { width: 100%; aspect-ratio: 4/3; display: block; }
+  .info { padding: 14px 16px; }
+  .info h3 { margin: 0 0 6px; font-size: 15px; }
+  .stats { font-size: 12px; opacity: 0.6;
+           display: flex; gap: 12px; }
+  .empty { text-align: center; padding: 80px 20px; opacity: 0.4; }
+  .empty a { color: #4af; text-decoration: none; font-weight: 600; }
+</style>
+</head>
+<body>
+<header>
+  <h1>My Games</h1>
+  <p id="subtitle">Loading...</p>
+</header>
+<main>
+  <div class="grid" id="grid"><div class="empty">Loading...</div></div>
+</main>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+const supabase = createClient(
+  'https://pjtpesdhjfvcidfkxord.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38'
+);
+
+const { data: { user } } = await supabase.auth.getUser();
+const grid = document.getElementById('grid');
+
+if (!user) {
+  document.getElementById('subtitle').textContent = 'Log in to see your games.';
+  grid.innerHTML = '<div class="empty"><a href="/signup">Sign in →</a></div>';
+} else {
+  const { data: games } = await supabase
+    .from('games')
+    .select('id, slug, title, config, plays')
+    .eq('author_id', user.id)
+    .order('created_at', { ascending: false });
+
+  const list = games || [];
+  document.getElementById('subtitle').textContent =
+    list.length + ' game' + (list.length === 1 ? '' : 's') + ' published';
+
+  if (list.length === 0) {
+    grid.innerHTML = '<div class="empty"><p>No games yet.</p><p><a href="/editor/">Make your first →</a></p></div>';
+  } else {
+    const ids = list.map(g => g.id);
+    const { data: likes } = await supabase.from('likes').select('game_id').in('game_id', ids);
+    const { data: comments } = await supabase.from('comments').select('game_id').in('game_id', ids);
+
+    const lc = {}, cc = {};
+    for (const l of likes || []) lc[l.game_id] = (lc[l.game_id] || 0) + 1;
+    for (const c of comments || []) cc[c.game_id] = (cc[c.game_id] || 0) + 1;
+
+    grid.innerHTML = '';
+    for (const g of list) {
+      const a = document.createElement('a');
+      a.className = 'card';
+      a.href = '/arcade/game.html?slug=' + encodeURIComponent(g.slug);
+      a.innerHTML = thumbSVG(g.config) +
+        '<div class="info">' +
+        '<h3>' + esc(g.title) + '</h3>' +
+        '<div class="stats">' +
+        '<span>♥ ' + (lc[g.id] || 0) + '</span>' +
+        '<span>💬 ' + (cc[g.id] || 0) + '</span>' +
+        '<span>▶ ' + (g.plays || 0) + '</span>' +
+        '</div></div>';
+      grid.appendChild(a);
+    }
+  }
+}
+
+function thumbSVG(config) {
+  const w = 300, h = 225;
+  const world = (config && config.world) || { w: 800, h: 600, bg: '#0d0d2a' };
+  const slots = (config && config.slots) || [];
+  const sx = w / world.w, sy = h / world.h;
+  let rects = '';
+  for (const s of slots) {
+    rects += '<rect x="' + (s.x*sx) + '" y="' + (s.y*sy) + '" width="' + (s.w*sx) + '" height="' + (s.h*sy) + '" fill="' + (s.color||'#4af') + '" />';
+  }
+  if (!rects) rects = '<text x="' + (w/2) + '" y="' + (h/2) + '" text-anchor="middle" fill="#4af" font-size="40">▶</text>';
+  return '<svg class="thumb" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="xMidYMid slice" style="background:' + (world.bg||'#0d0d2a') + '">' + rects + '</svg>';
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
+}
+</script>
+</body>
+  </html>
