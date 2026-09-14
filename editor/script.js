@@ -321,24 +321,24 @@ window.down = function(filename) {
                      : selectedVersion.includes('v3') ? v3t
                      : v4t;
 
-    const htmlTemplate = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${filename} - Limn Engine Game</title>
-    <style>
-        body { margin: 0; background: #0a0a0a; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-        canvas { display: block; }
-    </style>
-</head>
-<body>
-    <script>${engineCode}<\/script>
-    <script>
-        ${codeData}
-    <\/script>
-</body>
-</html>`;
+    const htmlTemplate = '<!DOCTYPE html>\n' +
+'<html lang="en">\n' +
+'<head>\n' +
+'    <meta charset="UTF-8">\n' +
+'    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+'    <title>' + filename + ' - Limn Engine Game</title>\n' +
+'    <style>\n' +
+'        body { margin: 0; background: #0a0a0a; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }\n' +
+'        canvas { display: block; }\n' +
+'    </style>\n' +
+'</head>\n' +
+'<body>\n' +
+'    <script>' + engineCode + '<\/script>\n' +
+'    <script>\n' +
+'        ' + codeData + '\n' +
+'    <\/script>\n' +
+'</body>\n' +
+'</html>';
 
     const blob = new Blob([htmlTemplate], { type: "text/html" });
     const url = URL.createObjectURL(blob);
@@ -348,3 +348,21 @@ window.down = function(filename) {
     a.click();
     URL.revokeObjectURL(url);
 };
+
+(function forkLoader() {
+    const params = new URLSearchParams(location.search);
+    if (params.get('fork') !== '1') return;
+
+    const code = localStorage.getItem('limn_fork_code');
+    const title = localStorage.getItem('limn_fork_title') || 'forked';
+
+    if (!code) return;
+
+    const textarea = document.querySelector('textarea');
+    const h5 = document.querySelector('h5');
+    if (textarea) textarea.value = code;
+    if (h5) h5.innerText = 'forked-' + title + '.js';
+
+    localStorage.removeItem('limn_fork_code');
+    localStorage.removeItem('limn_fork_title');
+})();
