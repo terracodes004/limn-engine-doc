@@ -33,8 +33,17 @@
         </div>
 
         <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--accent2); margin-bottom: 8px; font-family: 'Space Mono', monospace; text-transform: uppercase;">Username</label>
+          <div style="position: relative;">
+            <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 600;">@</span>
+            <input type="text" id="username-input" placeholder="Pick a username" readonly style="width: 100%; padding: 12px 16px 12px 32px; background: rgba(255,255,255,0.03); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; outline: none; cursor: not-allowed;">
+          </div>
+          <p id="username-hint" style="font-size: 0.8rem; color: var(--muted); margin-top: 6px;">Your permanent @handle. Cannot be changed once set.</p>
+        </div>
+
+        <div>
           <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--accent2); margin-bottom: 8px; font-family: 'Space Mono', monospace; text-transform: uppercase;">Profile Name</label>
-          <input type="text" id="username-input" placeholder="Enter your new name" required style="width: 100%; padding: 12px 16px; background: var(--code-bg); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; outline: none;">
+          <input type="text" id="display-name-input" placeholder="Enter your display name" required style="width: 100%; padding: 12px 16px; background: var(--code-bg); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; outline: none;">
         </div>
 
         <div>
@@ -67,13 +76,18 @@
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const nameInput = document.getElementById('username-input');
+    const nameInput = document.getElementById('display-name-input');
+    const usernameInput = document.getElementById('username-input');
+    const usernameHint = document.getElementById('username-hint');
     const emailInput = document.getElementById('email-input');
     const avatarInput = document.getElementById('avatar-input');
     const avatarPreview = document.getElementById('avatar-preview');
     const subscribedInput = document.getElementById('subscribed-input');
     const form = document.getElementById('settings-form');
     const statusMsg = document.getElementById('status-message');
+
+    let currentUserId = null;
+    let usernameIsLocked = false;
 
     avatarInput.addEventListener('input', () => {
       avatarPreview.src = avatarInput.value || 'https://via.placeholder.com/50';
@@ -85,6 +99,7 @@
         window.location.href = 'index.html';
         return;
       }
+      currentUserId = user.id;
 
       emailInput.value = user.email || '';
 
@@ -92,10 +107,11 @@
       avatarInput.value = '';
       avatarPreview.src = 'https://via.placeholder.com/50';
       subscribedInput.checked = false;
+      usernameInput.value = '';
 
       const { data, error } = await supabase
         .from('users')
-        .select('name, subscribed, avatar_url')
+        .select('name, username, subscribed, avatar_url')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -106,7 +122,32 @@
           avatarInput.value = data.avatar_url;
           avatarPreview.src = data.avatar_url;
         }
+        if (data.username) {
+          usernameInput.value = data.username;
+          usernameIsLocked = true;
+          usernameInput.readOnly = true;
+          usernameInput.style.cursor = 'not-allowed';
+          usernameHint.textContent = 'Your permanent @handle. Cannot be changed.';
+        } else {
+          usernameIsLocked = false;
+          usernameInput.readOnly = false;
+          usernameInput.style.cursor = 'text';
+          usernameHint.textContent = 'Pick a username. Once saved, it cannot be changed.';
+        }
+      } else {
+        usernameIsLocked = false;
+        usernameInput.readOnly = false;
+        usernameInput.style.cursor = 'text';
+        usernameHint.textContent = 'Pick a username. Once saved, it cannot be changed.';
       }
+    }
+
+    function validateUsername(u) {
+      if (!u) return 'Username cannot be empty.';
+      if (u.length < 3) return 'Username must be at least 3 characters.';
+      if (u.length > 20) return 'Username must be 20 characters or less.';
+      if (!/^[a-z0-9_]+$/.test(u)) return 'Only lowercase letters, numbers, and underscores.';
+      return null;
     }
 
     form.addEventListener('submit', async (e) => {
@@ -118,30 +159,69 @@
       const newName = nameInput.value.trim();
       const newAvatarUrl = avatarInput.value.trim();
       const isSubscribed = subscribedInput.checked;
+      const rawUsername = usernameInput.value.trim().toLowerCase().replace(/^@/, '');
 
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          await supabase
-            .from('users')
-            .upsert({ 
-              id: user.id,
-              name: newName, 
-              avatar_url: newAvatarUrl,
-              subscribed: isSubscribed 
-            });
+      const upsertData = {
+        id: currentUserId,
+        name: newName,
+        avatar_url: newAvatarUrl,
+        subscribed: isSubscribed
+      };
+
+      if (!usernameIsLocked) {
+        const err = validateUsername(rawUsername);
+        if (err) {
+          statusMsg.style.color = '#f87171';
+          statusMsg.textContent = '⚠️ ' + err;
+          return;
         }
-      } catch (err) {
-        console.error(err);
+
+        const { data: existing } = await supabase
+          .from('users')
+          .select('id')
+          .eq('username', rawUsername)
+          .neq('id', currentUserId)
+          .maybeSingle();
+
+        if (existing) {
+          statusMsg.style.color = '#f87171';
+          statusMsg.textContent = '⚠️ That username is already taken.';
+          return;
+        }
+
+        upsertData.username = rawUsername;
       }
 
-      statusMsg.style.color = 'var(--accent2)';
-      statusMsg.textContent = '✨ Settings updated successfully!';
-      setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
+      try {
+        const { error } = await supabase
+          .from('users')
+          .upsert(upsertData);
+
+        if (error) {
+          statusMsg.style.color = '#f87171';
+          statusMsg.textContent = '⚠️ ' + error.message;
+          return;
+        }
+
+        if (!usernameIsLocked && upsertData.username) {
+          usernameInput.value = upsertData.username;
+          usernameIsLocked = true;
+          usernameInput.readOnly = true;
+          usernameInput.style.cursor = 'not-allowed';
+          usernameHint.textContent = 'Your permanent @handle. Cannot be changed.';
+        }
+
+        statusMsg.style.color = 'var(--accent2)';
+        statusMsg.textContent = '✨ Settings updated successfully!';
+        setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
+      } catch (err) {
+        console.error(err);
+        statusMsg.style.color = '#f87171';
+        statusMsg.textContent = '⚠️ Something went wrong.';
+      }
     });
 
     fetchUserData();
   </script>
 </body>
           </html>
-          
