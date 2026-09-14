@@ -39,6 +39,29 @@
   .comment .body { font-size: 14px; line-height: 1.4;
                    white-space: pre-wrap; word-break: break-word; }
   .comment .when { font-size: 11px; opacity: 0.4; margin-top: 4px; }
+  .comment .reply-link { color: #4af; opacity: 0.7;
+                         cursor: pointer; text-decoration: none;
+                         font-size: 11px; }
+  .comment .reply-link:hover { opacity: 1; }
+  .replies { margin-top: 8px; margin-left: 16px;
+             padding-left: 12px;
+             border-left: 2px solid rgba(68,170,255,0.15); }
+  .replies .comment { border-bottom: 0;
+                      padding: 6px 0;
+                      border-top: 1px solid rgba(255,255,255,0.03); }
+  .replies .comment:first-child { border-top: 0; }
+  .reply-form { display: flex; gap: 6px; margin-top: 8px;
+                margin-left: 16px; }
+  .reply-form input { flex: 1; padding: 8px 12px;
+                      background: #1a1a2e;
+                      border: 1px solid rgba(255,255,255,0.1);
+                      border-radius: 6px; color: #fff;
+                      font-size: 13px; }
+  .reply-form button { padding: 8px 14px; border: 0;
+                       border-radius: 6px; background: #4af;
+                       color: #fff; font-weight: 600;
+                       font-size: 12px; cursor: pointer; }
+  .reply-form button:hover { background: #5bf; }
   .comment-form { display: flex; gap: 6px; margin-top: 12px; }
   .comment-form input { flex: 1; padding: 10px;
                         background: #1a1a2e;
@@ -96,6 +119,7 @@ const supabase = createClient(
 
 const slug = new URLSearchParams(location.search).get('slug');
 const stage = document.getElementById('stage');
+let currentGameId = null;
 
 if (!slug) {
   stage.innerHTML = '<div class="err">No game specified.</div>';
@@ -109,6 +133,8 @@ if (!slug) {
   if (error || !data) {
     stage.innerHTML = '<div class="err">Game not found.</div>';
   } else {
+    currentGameId = data.id;
+
     let creatorLabel = 'anonymous';
     if (data.author_id) {
       const { data: profile } = await supabase
@@ -187,42 +213,51 @@ if (!slug) {
       location.href = '/editor/?fork=1';
     };
 
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session ? session.user : null;
-
-    document.getElementById('commentSubmit').onclick = async () => {
-      const input = document.getElementById('commentInput');
-      const body = input.value.trim();
-      if (!body) return;
-      if (!user) { alert('Log in to comment.'); return; }
-      const { error: cErr } = await supabase.from('comments').insert([{
-        game_id: data.id,
-        user_id: user.id,
-        user_name: creatorLabelFromUser(user),
-        body: body
-      }]);
-      if (cErr) { alert('Failed: ' + cErr.message); return; }
-      input.value = '';
-      loadComments(data.id);
-    };
-
-    document.getElementById('likeBtn').onclick = async () => {
-      if (!user) { alert('Log in to like.'); return; }
-      const { data: existing } = await supabase
-        .from('likes').select('id')
-        .eq('game_id', data.id).eq('user_id', user.id).maybeSingle();
-      if (existing) {
-        await supabase.from('likes').delete().eq('id', existing.id);
-      } else {
-        await supabase.from('likes').insert([{ game_id: data.id, user_id: user.id }]);
-      }
-      loadLikes(data.id, user.id);
-    };
+    document.getElementById('commentSubmit').onclick = () => submitComment(null);
   }
 }
 
 function creatorLabelFromUser(user) {
   return user.email ? user.email.split('@')[0] : 'anonymous';
+}
+
+async function submitComment(parentId) {
+  let body = '';
+
+  if (parentId) {
+    const input = document.querySelector('[data-reply-input="' + parentId + '"]');
+    body = input ? input.value.trim() : '';
+  } else {
+    const input = document.getElementById('commentInput');
+    body = input ? input.value.trim() : '';
+  }
+
+  if (!body) return;
+
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session ? session.user : null;
+  if (!user) { alert('Log in to comment.'); return; }
+
+  const payload = {
+    game_id: currentGameId,
+    user_id: user.id,
+    user_name: creatorLabelFromUser(user),
+    body: body
+  };
+  if (parentId) payload.parent_id = parentId;
+
+  const { error: cErr } = await supabase.from('comments').insert([payload]);
+  if (cErr) { alert('Failed: ' + cErr.message); return; }
+
+  if (parentId) {
+    const input = document.querySelector('[data-reply-input="' + parentId + '"]');
+    if (input) input.value = '';
+  } else {
+    const input = document.getElementById('commentInput');
+    if (input) input.value = '';
+  }
+
+  loadComments(currentGameId);
 }
 
 async function loadLikes(gameId, currentUserId) {
@@ -238,17 +273,38 @@ async function loadLikes(gameId, currentUserId) {
   }
 }
 
+document.getElementById('likeBtn').onclick = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session ? session.user : null;
+  if (!user) { alert('Log in to like.'); return; }
+
+  const { data: existing } = await supabase
+    .from('likes').select('id')
+    .eq('game_id', currentGameId).eq('user_id', user.id).maybeSingle();
+
+  if (existing) {
+    await supabase.from('likes').delete().eq('id', existing.id);
+  } else {
+    await supabase.from('likes').insert([{ game_id: currentGameId, user_id: user.id }]);
+  }
+  loadLikes(currentGameId, user.id);
+};
+
 async function loadComments(gameId) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('comments')
-    .select('user_id, user_name, body, created_at')
+    .select('id, user_id, user_name, body, created_at, parent_id')
     .eq('game_id', gameId)
-    .order('created_at', { ascending: false })
-    .limit(50);
+    .order('created_at', { ascending: true })
+    .limit(200);
 
   const box = document.getElementById('comments');
+  if (error) {
+    box.innerHTML = '<div style="opacity:0.4;font-size:13px">Could not load comments.</div>';
+    return;
+  }
   if (!data || data.length === 0) {
-    box.innerHTML = '<div style="opacity:0.4;font-size:13px">No comments yet.</div>';
+    box.innerHTML = '<div style="opacity:0.4;font-size:13px">No comments yet. Be the first.</div>';
     return;
   }
 
@@ -262,18 +318,60 @@ async function loadComments(gameId) {
     for (const p of profiles || []) commentProfileMap[p.user_id] = p;
   }
 
-  box.innerHTML = data.map(c => {
+  function who(c) {
     const p = commentProfileMap[c.user_id];
-    let who = c.user_name ? c.user_name.split('@')[0] : 'anon';
-    if (p && p.username) who = '@' + p.username;
-    else if (p && p.display_name) who = p.display_name;
-    return `
-    <div class="comment">
-      <div class="who">${escapeHtml(who)}</div>
-      <div class="body">${escapeHtml(c.body)}</div>
-      <div class="when">${timeAgo(c.created_at)}</div>
-    </div>`;
-  }).join('');
+    if (p && p.username) return '@' + p.username;
+    if (p && p.display_name) return p.display_name;
+    return c.user_name ? c.user_name.split('@')[0] : 'anon';
+  }
+
+  const roots = data.filter(c => !c.parent_id);
+  const repliesByParent = {};
+  for (const c of data) {
+    if (c.parent_id) {
+      if (!repliesByParent[c.parent_id]) repliesByParent[c.parent_id] = [];
+      repliesByParent[c.parent_id].push(c);
+    }
+  }
+
+  function renderComment(c, isReply) {
+    const kids = repliesByParent[c.id] || [];
+    const replyHtml = isReply ? '' :
+      '<div class="reply-form">' +
+        '<input data-reply-input="' + c.id + '" placeholder="Reply to ' + escapeHtml(who(c)) + '..." maxlength="200">' +
+        '<button data-reply-btn="' + c.id + '">Reply</button>' +
+      '</div>';
+
+    const repliesHtml = kids.length > 0
+      ? '<div class="replies">' + kids.map(k => renderComment(k, true)).join('') + '</div>'
+      : '';
+
+    return '' +
+      '<div class="comment">' +
+        '<div class="who">' + escapeHtml(who(c)) + '</div>' +
+        '<div class="body">' + escapeHtml(c.body) + '</div>' +
+        '<div class="when">' + timeAgo(c.created_at) +
+          (!isReply ? ' · <a class="reply-link" data-reply-toggle="' + c.id + '">Reply</a>' : '') +
+        '</div>' +
+        repliesHtml +
+        replyHtml +
+      '</div>';
+  }
+
+  box.innerHTML = roots.map(c => renderComment(c, false)).join('');
+
+  box.querySelectorAll('[data-reply-btn]').forEach(btn => {
+    btn.addEventListener('click', () => submitComment(btn.dataset.replyBtn));
+  });
+
+  box.querySelectorAll('[data-reply-toggle]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const id = link.dataset.replyToggle;
+      const input = box.querySelector('[data-reply-input="' + id + '"]');
+      if (input) input.focus();
+    });
+  });
 }
 
 function escapeHtml(s) {
