@@ -8,7 +8,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 function withTimeout(promise, ms) {
   return Promise.race([
     promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+    new Promise(function (_, reject) {
+      setTimeout(function () { reject(new Error('timeout')); }, ms);
+    })
   ]);
 }
 
@@ -38,8 +40,11 @@ async function loadInbox() {
           4000
         );
         if (docResult.data) {
-          docResult.data.forEach(doc => {
-            notifications.push(Object.assign({}, doc, { uniqueId: 'doc-' + doc.id, kind: 'doc' }));
+          docResult.data.forEach(function (doc) {
+            notifications.push(Object.assign({}, doc, {
+              uniqueId: 'doc-' + doc.id,
+              kind: 'doc'
+            }));
           });
         }
       } catch (e) {
@@ -55,9 +60,19 @@ async function loadInbox() {
       supabase.from('engine_updates').select('*'),
       4000
     );
+    console.log('[inbox] engine_updates raw result:', updateResult);
+    console.log('[inbox] engine_updates count:', updateResult.data ? updateResult.data.length : 0);
+
     if (updateResult.data) {
-      updateResult.data.forEach(update => {
-        notifications.push(Object.assign({}, update, { uniqueId: 'update-' + update.id, kind: 'update' }));
+      updateResult.data.forEach(function (update, idx) {
+        console.log('[inbox] update ' + idx + ':', update);
+        notifications.push(Object.assign({}, update, {
+          uniqueId: 'update-' + (update.id != null ? update.id : idx),
+          kind: 'update',
+          title: update.title || 'Untitled Update',
+          content: update.content || '',
+          created_at: update.created_at || new Date().toISOString()
+        }));
       });
     }
   } catch (e) {
@@ -85,22 +100,28 @@ async function loadInbox() {
     const games = gamesResult.data || [];
 
     const gameMap = {};
-    games.forEach(g => { gameMap[g.id] = g; });
+    games.forEach(function (g) { gameMap[g.id] = g; });
 
     const likeCounts = {};
-    likes.forEach(l => {
+    likes.forEach(function (l) {
       likeCounts[l.game_id] = (likeCounts[l.game_id] || 0) + 1;
     });
 
     const commentCounts = {};
-    comments.forEach(c => {
+    comments.forEach(function (c) {
       commentCounts[c.game_id] = (commentCounts[c.game_id] || 0) + 1;
     });
 
     const topGames = Object.keys(likeCounts)
-      .map(id => ({ game: gameMap[id], likes: likeCounts[id], comments: commentCounts[id] || 0 }))
-      .filter(x => x.game)
-      .sort((a, b) => b.likes - a.likes)
+      .map(function (id) {
+        return {
+          game: gameMap[id],
+          likes: likeCounts[id],
+          comments: commentCounts[id] || 0
+        };
+      })
+      .filter(function (x) { return x.game; })
+      .sort(function (a, b) { return b.likes - a.likes; })
       .slice(0, 5);
 
     if (topGames.length > 0) {
@@ -129,7 +150,7 @@ async function loadInbox() {
       const myGames = gamesResult.data || [];
 
       if (myGames.length > 0) {
-        const myIds = myGames.map(g => g.id);
+        const myIds = myGames.map(function (g) { return g.id; });
 
         const likesResult = await withTimeout(
           supabase.from('likes').select('game_id').in('game_id', myIds),
@@ -157,13 +178,15 @@ async function loadInbox() {
     console.log('Stats fetch skipped:', e.message);
   }
 
-  notifications.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+  notifications.sort(function (a, b) {
+    return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+  });
 
   const readIds = JSON.parse(localStorage.getItem('limn_read_notifications') || '[]');
   let currentFilter = '';
 
   function markAllAsRead() {
-    notifications.forEach(item => {
+    notifications.forEach(function (item) {
       if (readIds.indexOf(item.uniqueId) === -1) readIds.push(item.uniqueId);
     });
     localStorage.setItem('limn_read_notifications', JSON.stringify(readIds));
@@ -176,21 +199,25 @@ async function loadInbox() {
     container.innerHTML = '';
 
     const q = filterQuery.toLowerCase();
-    const filtered = notifications.filter(item => {
+    const filtered = notifications.filter(function (item) {
       const title = String(item.title || '').toLowerCase();
       const content = String(item.content || '').toLowerCase();
       return !q || title.indexOf(q) !== -1 || content.indexOf(q) !== -1;
     });
 
-    const unreadCount = notifications.filter(item => readIds.indexOf(item.uniqueId) === -1).length;
+    const unreadCount = notifications.filter(function (item) {
+      return readIds.indexOf(item.uniqueId) === -1;
+    }).length;
 
     if (unreadCount > 0) {
       const markAllDiv = document.createElement('div');
       markAllDiv.style.cssText = 'display:flex;justify-content:flex-end;margin-bottom:16px;';
+
       const markAllBtn = document.createElement('button');
       markAllBtn.textContent = '✓ Mark all as read (' + unreadCount + ')';
       markAllBtn.style.cssText = 'background:var(--accent);color:#fff;border:none;border-radius:20px;padding:8px 18px;font-size:0.9rem;font-weight:600;cursor:pointer;';
       markAllBtn.addEventListener('click', markAllAsRead);
+
       markAllDiv.appendChild(markAllBtn);
       container.appendChild(markAllDiv);
     }
@@ -204,27 +231,32 @@ async function loadInbox() {
       return;
     }
 
-    filtered.forEach(item => {
+    filtered.forEach(function (item) {
       const isRead = readIds.indexOf(item.uniqueId) !== -1;
       const dateFormatted = new Date(item.created_at || Date.now()).toLocaleDateString('en-US', {
-        month: 'short', day: 'numeric', year: 'numeric'
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
       });
 
       const title = item.title || 'Update';
       const content = item.content || '';
 
       const card = document.createElement('div');
-      card.style.cssText = 'background:' + (isRead ? 'var(--surface)' : 'rgba(255,99,140,0.04)') +
-        ';border:1.5px solid ' + (isRead ? 'var(--border)' : 'var(--accent)') +
+      card.style.cssText = 'background:' +
+        (isRead ? 'var(--surface)' : 'rgba(255,99,140,0.04)') +
+        ';border:1.5px solid ' +
+        (isRead ? 'var(--border)' : 'var(--accent)') +
         ';border-radius:14px;padding:24px;cursor:pointer;margin-bottom:16px;';
 
       const unreadDot = isRead ? '' :
         '<span style="height:10px;width:10px;background-color:var(--accent);border-radius:50%;display:inline-block;margin-right:8px;"></span>';
 
       let extraHtml = '';
+
       if (item.kind === 'leaderboard' && item.leaderboardData) {
         extraHtml = '<div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">' +
-          item.leaderboardData.map((x, i) => {
+          item.leaderboardData.map(function (x, i) {
             const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i + 1);
             return '<a href="/arcade/game.html?slug=' + encodeURIComponent(x.game.slug) +
               '" style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;text-decoration:none;color:inherit;">' +
@@ -232,9 +264,9 @@ async function loadInbox() {
               '<span style="flex:1;font-weight:600;color:#fff;">' + x.game.title + '</span>' +
               '<span style="color:var(--accent);">♥ ' + x.likes + '</span>' +
               '<span style="color:var(--muted);">💬 ' + x.comments + '</span>' +
-            '</a>';
+              '</a>';
           }).join('') +
-        '</div>';
+          '</div>';
       }
 
       card.innerHTML =
@@ -246,7 +278,7 @@ async function loadInbox() {
         extraHtml;
 
       if (!isRead) {
-        card.addEventListener('click', () => {
+        card.addEventListener('click', function () {
           if (readIds.indexOf(item.uniqueId) === -1) {
             readIds.push(item.uniqueId);
             localStorage.setItem('limn_read_notifications', JSON.stringify(readIds));
@@ -274,7 +306,9 @@ async function loadInbox() {
 
   const searchInput = document.getElementById('search-input');
   if (searchInput) {
-    searchInput.addEventListener('input', e => renderList(e.target.value));
+    searchInput.addEventListener('input', function (e) {
+      renderList(e.target.value);
+    });
   }
 }
 
