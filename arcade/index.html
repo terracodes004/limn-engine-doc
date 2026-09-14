@@ -9,15 +9,27 @@
   body { margin: 0; background: #0a0a14; color: #fff;
          font-family: system-ui, -apple-system, sans-serif;
          min-height: 100vh; }
-  header { padding: 24px 32px; display: flex;
+  header { padding: 20px 32px; display: flex;
            justify-content: space-between; align-items: center;
-           border-bottom: 1px solid rgba(255,255,255,0.06); }
+           border-bottom: 1px solid rgba(255,255,255,0.06);
+           gap: 16px; flex-wrap: wrap; }
   header h1 { margin: 0; font-size: 22px; letter-spacing: -0.5px; }
-  header a { color: #4af; text-decoration: none; font-weight: 600;
-             padding: 10px 20px; border-radius: 8px;
-             background: rgba(68,170,255,0.1); }
-  header a:hover { background: rgba(68,170,255,0.2); }
-  main { padding: 32px; display: grid;
+  .nav-links { display: flex; gap: 8px; }
+  .nav-links a { color: #4af; text-decoration: none; font-weight: 600;
+                 padding: 8px 16px; border-radius: 8px;
+                 background: rgba(68,170,255,0.1);
+                 font-size: 14px; }
+  .nav-links a:hover { background: rgba(68,170,255,0.2); }
+  .search-bar { padding: 16px 32px 0;
+                max-width: 1400px; margin: 0 auto; }
+  .search-bar input { width: 100%; padding: 14px 18px;
+                      background: #15152a;
+                      border: 1px solid rgba(255,255,255,0.08);
+                      border-radius: 10px; color: #fff;
+                      font-size: 15px; font-family: inherit; }
+  .search-bar input:focus { outline: none;
+                            border-color: rgba(68,170,255,0.5); }
+  main { padding: 24px 32px 32px; display: grid;
          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
          gap: 20px; max-width: 1400px; margin: 0 auto; }
   .card { background: linear-gradient(180deg,#15152a,#10101e);
@@ -32,7 +44,9 @@
   .info h3 { margin: 0 0 4px; font-size: 16px;
              white-space: nowrap; overflow: hidden;
              text-overflow: ellipsis; }
-  .info p { margin: 0; font-size: 13px; opacity: 0.5; }
+  .info p { margin: 0; font-size: 13px; opacity: 0.5;
+            white-space: nowrap; overflow: hidden;
+            text-overflow: ellipsis; }
   .empty { grid-column: 1/-1; text-align: center;
            padding: 80px 20px; opacity: 0.5; }
   .empty a { color: #4af; text-decoration: none; font-weight: 600; }
@@ -42,8 +56,15 @@
 
 <header>
   <h1>Arcade</h1>
-  <a href="/editor/">+ Make a game</a>
+  <div class="nav-links">
+    <a href="/arcade/leaderboard.html">🏆 Leaderboard</a>
+    <a href="/editor/">+ Make a game</a>
+  </div>
 </header>
+
+<div class="search-bar">
+  <input type="text" id="search" placeholder="Search games or creators...">
+</div>
 
 <main id="grid"><div class="empty"><h2>Loading...</h2></div></main>
 
@@ -59,18 +80,29 @@ const { data, error } = await supabase
   .from('games')
   .select('slug, title, author_name, config')
   .order('created_at', { ascending: false })
-  .limit(60);
+  .limit(200);
 
 const grid = document.getElementById('grid');
+const searchInput = document.getElementById('search');
+let allGames = data || [];
 
-if (error || !data || data.length === 0) {
-  grid.innerHTML = `<div class="empty">
-    <h2>No games yet.</h2>
-    <p><a href="/editor/">Make the first one →</a></p>
-  </div>`;
-} else {
+function render(list) {
+  if (error) {
+    grid.innerHTML = '<div class="empty"><h2>Failed to load games.</h2></div>';
+    return;
+  }
+  if (!list || list.length === 0) {
+    const msg = searchInput.value.trim()
+      ? 'No games match your search.'
+      : 'No games yet.';
+    grid.innerHTML = `<div class="empty">
+      <h2>${msg}</h2>
+      ${searchInput.value.trim() ? '' : '<p><a href="/editor/">Make the first one →</a></p>'}
+    </div>`;
+    return;
+  }
   grid.innerHTML = '';
-  for (const g of data) {
+  for (const g of list) {
     const a = document.createElement('a');
     a.className = 'card';
     a.href = '/arcade/game.html?slug=' + encodeURIComponent(g.slug);
@@ -83,6 +115,18 @@ if (error || !data || data.length === 0) {
     grid.appendChild(a);
   }
 }
+
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (!q) { render(allGames); return; }
+  const filtered = allGames.filter(g =>
+    (g.title || '').toLowerCase().includes(q) ||
+    (g.author_name || '').toLowerCase().includes(q)
+  );
+  render(filtered);
+});
+
+render(allGames);
 
 function thumbSVG(config) {
   const w = 300, h = 225;
@@ -110,4 +154,4 @@ function esc(s) {
 </script>
 
 </body>
-</html>
+                                     </html>
