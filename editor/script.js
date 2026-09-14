@@ -222,8 +222,10 @@ window.shareProject = async function() {
         files[currentFileName] = textarea.value;
     }
 
-    if (Object.keys(files).length === 0) {
-        alert("⚠️ You have no files to share!");
+    const liveCode = textarea ? textarea.value.trim() : "";
+
+    if (!liveCode) {
+        alert("⚠️ Nothing to publish. Write some code or use the Build tab first.");
         return;
     }
 
@@ -233,14 +235,25 @@ window.shareProject = async function() {
                      : selectedVersion.includes('v3') ? v3t
                      : v4t;
 
-    const firstFile = filesName[0] || "Untitled";
-    const title = firstFile.replace(/\.js$/i, '');
-    const userCode = files[firstFile] || "";
+    let title = "Untitled";
+    const h5Text = h5 ? h5.innerText : "";
+    if (h5Text && h5Text !== "*Untitled*") {
+        title = h5Text.replace(/\.js$/i, '');
+    } else if (window.currentConfig && window.currentConfig.title) {
+        title = window.currentConfig.title;
+    }
 
     const slug = (title.toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '')
         .slice(0, 30) || 'game') + '-' + Math.random().toString(36).slice(2, 6);
+
+    const config = window.currentConfig || {
+        title: title,
+        world: { w: 800, h: 600, bg: '#0d0d2a' },
+        slots: [],
+        palette: []
+    };
 
     const { data, error } = await supabase
         .from('games')
@@ -249,8 +262,8 @@ window.shareProject = async function() {
             title: title,
             author_id: user ? user.id : null,
             author_name: user ? (user.email || 'anonymous') : 'anonymous',
-            config: { title: title, author: user ? user.email : 'anonymous', slots: [], palette: [] },
-            code: userCode,
+            config: config,
+            code: liveCode,
             engine_version: selectedVersion,
             engine_code: engineCode
         }])
@@ -264,7 +277,7 @@ window.shareProject = async function() {
     }
 
     const playUrl = `${window.location.origin}/arcade/game.html?slug=${data.slug}`;
-    await navigator.clipboard.writeText(playUrl);
+    try { await navigator.clipboard.writeText(playUrl); } catch (e) {}
     window.history.pushState({}, '', `?id=${data.slug}`);
 
     alert("🎮 Published! Play link copied:\n" + playUrl);
