@@ -86,10 +86,29 @@ const { data: likes } = await supabase
 
 const { data: games } = await supabase
   .from('games')
-  .select('id, slug, title, author_name');
+  .select('id, slug, title, author_id, author_name');
 
 const gameMap = {};
 if (games) for (const g of games) gameMap[g.id] = g;
+
+const authorIds = [...new Set((games || []).map(g => g.author_id).filter(Boolean))];
+const profileMap = {};
+if (authorIds.length > 0) {
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('user_id, username, display_name')
+    .in('user_id', authorIds);
+  for (const p of profiles || []) profileMap[p.user_id] = p;
+}
+
+function creatorLabel(game) {
+  if (!game) return 'anonymous';
+  const profile = profileMap[game.author_id];
+  if (profile && profile.username) return '@' + profile.username;
+  if (profile && profile.display_name) return profile.display_name;
+  if (game.author_name) return game.author_name.split('@')[0];
+  return 'anonymous';
+}
 
 const gameCounts = {};
 if (likes) for (const l of likes) {
@@ -106,8 +125,8 @@ const creatorCounts = {};
 if (likes) for (const l of likes) {
   const g = gameMap[l.game_id];
   if (!g) continue;
-  const name = g.author_name || 'anonymous';
-  creatorCounts[name] = (creatorCounts[name] || 0) + 1;
+  const label = creatorLabel(g);
+  creatorCounts[label] = (creatorCounts[label] || 0) + 1;
 }
 
 const topCreators = Object.entries(creatorCounts)
@@ -125,7 +144,7 @@ if (topGames.length === 0) {
       <div class="rank ${rankClass}">${i + 1}</div>
       <div class="info">
         <div class="name">${esc(x.game.title)}</div>
-        <div class="sub">by ${esc(x.game.author_name || 'anonymous')}</div>
+        <div class="sub">by ${esc(creatorLabel(x.game))}</div>
       </div>
       <div class="count">${x.count}</div>
     </a>`;
@@ -156,4 +175,4 @@ function esc(s) {
 </script>
 
 </body>
-  </html>
+</html>
