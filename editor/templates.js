@@ -36,7 +36,7 @@ window.LimnTemplates = {
       ];
       var palette = [cfg.hatColor, cfg.headColor, cfg.shirtColor,
                      cfg.pantsColor, cfg.shoesColor, "#ffffff", "#111111"];
-      var lines = [
+      return [
         "const display = new Display();",
         "display.perform();",
         "display.start(800, 600);",
@@ -68,8 +68,7 @@ window.LimnTemplates = {
         "  }",
         "  if (display.x === false) mouseWasDown = false;",
         "}"
-      ];
-      return lines.join("\n");
+      ].join("\n");
     }
   },
 
@@ -111,7 +110,7 @@ window.LimnTemplates = {
         coinPositions.push({ x: x, y: y });
       }
 
-      var lines = [
+      return [
         "const display = new Display();",
         "display.perform();",
         "display.start(800, 600);",
@@ -141,12 +140,20 @@ window.LimnTemplates = {
         "score.setText('Score: 0');",
         "display.add(score);",
         "",
-        "const btnSize = 70;",
-        "const btnY = 500;",
-        "const btnL = new Component(btnSize, btnSize, 'rgba(255,255,255,0.18)', 30, btnY, 'rect');",
-        "const btnR = new Component(btnSize, btnSize, 'rgba(255,255,255,0.18)', 120, btnY, 'rect');",
-        "const btnJ = new Component(btnSize, btnSize, 'rgba(68,170,255,0.5)', 680, btnY, 'rect');",
+        "const BTN = 80;",
+        "const BTN_Y = 500;",
+        "function mkBtn(x, color) {",
+        "  return new Component(BTN, BTN, color, x, BTN_Y, 'rect');",
+        "}",
+        "const btnL = mkBtn(20,  '#1a1a2e');",
+        "const btnR = mkBtn(120, '#1a1a2e');",
+        "const btnJ = mkBtn(680, '#2563eb');",
+        "const lblL = new Tctxt('36px','Arial','white',60,540,'center',false,'middle');",
+        "const lblR = new Tctxt('36px','Arial','white',160,540,'center',false,'middle');",
+        "const lblJ = new Tctxt('16px','Arial','white',720,540,'center',false,'middle');",
+        "lblL.setText('◀'); lblR.setText('▶'); lblJ.setText('JUMP');",
         "display.add(btnL); display.add(btnR); display.add(btnJ);",
+        "display.add(lblL); display.add(lblR); display.add(lblJ);",
         "",
         "function inBtn(b, x, y) {",
         "  return x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height;",
@@ -215,8 +222,7 @@ window.LimnTemplates = {
         "    score.setText('You win! Score: ' + points);",
         "  }",
         "}"
-      ];
-      return lines.join("\n");
+      ].join("\n");
     }
   },
 
@@ -245,7 +251,7 @@ window.LimnTemplates = {
     generate: function(cfg) {
       var speed = parseInt(cfg.speed) || 6;
       var spawnRate = parseInt(cfg.spawn) || 100;
-      var lines = [
+      return [
         "const display = new Display();",
         "display.perform();",
         "display.start(800, 600);",
@@ -258,8 +264,11 @@ window.LimnTemplates = {
         "display.add(player);",
         "",
         "const score = new Tctxt('20px','Arial','white',20,40,'left',false,'top','rgba(0,0,0,0.5)',10,4);",
-        "score.setText('Tap anywhere to jump. Score: 0');",
+        "score.setText('Tap to jump. Score: 0');",
         "display.add(score);",
+        "",
+        "let restartBtn = null;",
+        "let restartLbl = null;",
         "",
         "const obstacles = [];",
         "let frame = 0;",
@@ -279,8 +288,37 @@ window.LimnTemplates = {
         "  obstacles.push(o);",
         "}",
         "",
+        "function showRestart() {",
+        "  restartBtn = new Component(200, 60, '#2563eb', 300, 300, 'rect');",
+        "  restartLbl = new Tctxt('24px','Arial','white',400,330,'center',false,'middle');",
+        "  restartLbl.setText('▶ PLAY AGAIN');",
+        "  display.add(restartBtn); display.add(restartLbl);",
+        "}",
+        "",
+        "function restart() {",
+        "  if (restartBtn) { restartBtn.destroy(); restartBtn = null; }",
+        "  if (restartLbl) { restartLbl.destroy(); restartLbl = null; }",
+        "  for (let i = obstacles.length - 1; i >= 0; i--) {",
+        "    obstacles[i].destroy();",
+        "  }",
+        "  obstacles.length = 0;",
+        "  player.x = 100; player.y = 500;",
+        "  vy = 0; onGround = true; points = 0; frame = 0;",
+        "  gameOver = false;",
+        "  score.setText('Tap to jump. Score: 0');",
+        "}",
+        "",
         "function update(dt) {",
-        "  if (gameOver) return;",
+        "  if (gameOver) {",
+        "    const mx = display.x, my = display.y;",
+        "    if (mx !== false && restartBtn &&",
+        "        mx >= restartBtn.x && mx <= restartBtn.x + restartBtn.width &&",
+        "        my >= restartBtn.y && my <= restartBtn.y + restartBtn.height) {",
+        "      restart();",
+        "    }",
+        "    return;",
+        "  }",
+        "",
         "  frame++;",
         "  if (frame % " + spawnRate + " === 0) spawn();",
         "",
@@ -311,11 +349,11 @@ window.LimnTemplates = {
         "    } else if (rectHit(player, o)) {",
         "      gameOver = true;",
         "      score.setText('Game Over! Score: ' + points);",
+        "      showRestart();",
         "    }",
         "  }",
         "}"
-      ];
-      return lines.join("\n");
+      ].join("\n");
     }
   },
 
@@ -346,7 +384,7 @@ window.LimnTemplates = {
       var speed = parseInt(cfg.speed) || 320;
       var fireRate = parseInt(cfg.fireRate) || 12;
       var spawnRate = parseInt(cfg.spawn) || 90;
-      var lines = [
+      return [
         "const display = new Display();",
         "display.perform();",
         "display.start(800, 600);",
@@ -359,16 +397,27 @@ window.LimnTemplates = {
         "score.setText('Score: 0');",
         "display.add(score);",
         "",
-        "const btnSize = 70;",
-        "const btnY = 500;",
-        "const btnL = new Component(btnSize, btnSize, 'rgba(255,255,255,0.18)', 30, btnY, 'rect');",
-        "const btnR = new Component(btnSize, btnSize, 'rgba(255,255,255,0.18)', 120, btnY, 'rect');",
-        "const btnF = new Component(btnSize, btnSize, 'rgba(68,170,255,0.5)', 680, btnY, 'rect');",
+        "const BTN = 80;",
+        "const BTN_Y = 500;",
+        "function mkBtn(x, color) {",
+        "  return new Component(BTN, BTN, color, x, BTN_Y, 'rect');",
+        "}",
+        "const btnL = mkBtn(20,  '#1a1a2e');",
+        "const btnR = mkBtn(120, '#1a1a2e');",
+        "const btnF = mkBtn(680, '#dc2626');",
+        "const lblL = new Tctxt('36px','Arial','white',60,540,'center',false,'middle');",
+        "const lblR = new Tctxt('36px','Arial','white',160,540,'center',false,'middle');",
+        "const lblF = new Tctxt('16px','Arial','white',720,540,'center',false,'middle');",
+        "lblL.setText('◀'); lblR.setText('▶'); lblF.setText('FIRE');",
         "display.add(btnL); display.add(btnR); display.add(btnF);",
+        "display.add(lblL); display.add(lblR); display.add(lblF);",
         "",
         "function inBtn(b, x, y) {",
         "  return x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height;",
         "}",
+        "",
+        "let restartBtn = null;",
+        "let restartLbl = null;",
         "",
         "const bullets = [];",
         "const enemies = [];",
@@ -380,8 +429,35 @@ window.LimnTemplates = {
         "  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;",
         "}",
         "",
+        "function showRestart() {",
+        "  restartBtn = new Component(200, 60, '#2563eb', 300, 300, 'rect');",
+        "  restartLbl = new Tctxt('24px','Arial','white',400,330,'center',false,'middle');",
+        "  restartLbl.setText('▶ PLAY AGAIN');",
+        "  display.add(restartBtn); display.add(restartLbl);",
+        "}",
+        "",
+        "function restart() {",
+        "  if (restartBtn) { restartBtn.destroy(); restartBtn = null; }",
+        "  if (restartLbl) { restartLbl.destroy(); restartLbl = null; }",
+        "  for (let i = bullets.length - 1; i >= 0; i--) bullets[i].destroy();",
+        "  for (let i = enemies.length - 1; i >= 0; i--) enemies[i].destroy();",
+        "  bullets.length = 0; enemies.length = 0;",
+        "  player.x = 380; player.y = 520;",
+        "  frame = 0; points = 0; gameOver = false;",
+        "  score.setText('Score: 0');",
+        "}",
+        "",
         "function update(dt) {",
-        "  if (gameOver) return;",
+        "  if (gameOver) {",
+        "    const mx = display.x, my = display.y;",
+        "    if (mx !== false && restartBtn &&",
+        "        mx >= restartBtn.x && mx <= restartBtn.x + restartBtn.width &&",
+        "        my >= restartBtn.y && my <= restartBtn.y + restartBtn.height) {",
+        "      restart();",
+        "    }",
+        "    return;",
+        "  }",
+        "",
         "  frame++;",
         "  const sp = " + speed + ";",
         "",
@@ -406,10 +482,7 @@ window.LimnTemplates = {
         "  for (let i = bullets.length - 1; i >= 0; i--) {",
         "    const b = bullets[i];",
         "    b.y -= 12;",
-        "    if (b.y < -20) {",
-        "      b.destroy();",
-        "      bullets.splice(i, 1);",
-        "    }",
+        "    if (b.y < -20) { b.destroy(); bullets.splice(i, 1); }",
         "  }",
         "",
         "  if (frame % " + spawnRate + " === 0) {",
@@ -422,23 +495,18 @@ window.LimnTemplates = {
         "    const e = enemies[i];",
         "    e.y += 2;",
         "",
-        "    if (e.y > 620) {",
-        "      e.destroy();",
-        "      enemies.splice(i, 1);",
-        "      continue;",
-        "    }",
+        "    if (e.y > 620) { e.destroy(); enemies.splice(i, 1); continue; }",
         "",
         "    if (rectHit(player, e)) {",
         "      gameOver = true;",
         "      score.setText('Game Over! Score: ' + points);",
+        "      showRestart();",
         "    }",
         "",
         "    for (let j = bullets.length - 1; j >= 0; j--) {",
         "      if (rectHit(bullets[j], e)) {",
-        "        bullets[j].destroy();",
-        "        bullets.splice(j, 1);",
-        "        e.destroy();",
-        "        enemies.splice(i, 1);",
+        "        bullets[j].destroy(); bullets.splice(j, 1);",
+        "        e.destroy(); enemies.splice(i, 1);",
         "        points += 10;",
         "        score.setText('Score: ' + points);",
         "        break;",
@@ -446,8 +514,7 @@ window.LimnTemplates = {
         "    }",
         "  }",
         "}"
-      ];
-      return lines.join("\n");
+      ].join("\n");
     }
   },
 
@@ -475,7 +542,7 @@ window.LimnTemplates = {
       var size = parseInt(cfg.size) || 60;
       var life = parseInt(cfg.lifetime) || 90;
       var totalTime = parseInt(cfg.time) || 30;
-      var lines = [
+      return [
         "const display = new Display();",
         "display.perform();",
         "display.start(800, 600);",
@@ -493,6 +560,9 @@ window.LimnTemplates = {
         "let gameOver = false;",
         "let mouseWasDown = false;",
         "",
+        "let restartBtn = null;",
+        "let restartLbl = null;",
+        "",
         "function spawnTarget() {",
         "  if (target) target.destroy();",
         "  const s = " + size + ";",
@@ -502,10 +572,35 @@ window.LimnTemplates = {
         "  display.add(target);",
         "}",
         "",
+        "function showRestart() {",
+        "  restartBtn = new Component(200, 60, '#2563eb', 300, 300, 'rect');",
+        "  restartLbl = new Tctxt('24px','Arial','white',400,330,'center',false,'middle');",
+        "  restartLbl.setText('▶ PLAY AGAIN');",
+        "  display.add(restartBtn); display.add(restartLbl);",
+        "}",
+        "",
+        "function restart() {",
+        "  if (restartBtn) { restartBtn.destroy(); restartBtn = null; }",
+        "  if (restartLbl) { restartLbl.destroy(); restartLbl = null; }",
+        "  if (target) { target.destroy(); target = null; }",
+        "  points = 0; timeLeft = " + totalTime + "; timer = 0; spawnTimer = 0;",
+        "  gameOver = false;",
+        "  score.setText('Tap the square. Score: 0  Time: " + totalTime + "');",
+        "  spawnTarget();",
+        "}",
+        "",
         "spawnTarget();",
         "",
         "function update(dt) {",
-        "  if (gameOver) return;",
+        "  if (gameOver) {",
+        "    const mx = display.x, my = display.y;",
+        "    if (mx !== false && restartBtn &&",
+        "        mx >= restartBtn.x && mx <= restartBtn.x + restartBtn.width &&",
+        "        my >= restartBtn.y && my <= restartBtn.y + restartBtn.height) {",
+        "      restart();",
+        "    }",
+        "    return;",
+        "  }",
         "",
         "  timer += dt;",
         "  if (timer >= 1) {",
@@ -516,6 +611,7 @@ window.LimnTemplates = {
         "      gameOver = true;",
         "      if (target) target.destroy();",
         "      score.setText('Game Over! Final Score: ' + points);",
+        "      showRestart();",
         "      return;",
         "    }",
         "  }",
@@ -540,8 +636,7 @@ window.LimnTemplates = {
         "  }",
         "  if (display.x === false) mouseWasDown = false;",
         "}"
-      ];
-      return lines.join("\n");
+      ].join("\n");
     }
   }
 
