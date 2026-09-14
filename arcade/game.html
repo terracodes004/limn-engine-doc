@@ -102,7 +102,7 @@ if (!slug) {
 } else {
   const { data, error } = await supabase
     .from('games')
-    .select('id, slug, title, author_name, code, engine_version, plays')
+    .select('id, slug, title, author_name, code, engine_code, engine_version, plays')
     .eq('slug', slug)
     .single();
 
@@ -115,29 +115,40 @@ if (!slug) {
       'by ' + (data.author_name || 'anonymous');
     document.getElementById('side').style.display = 'block';
 
-    const userCode = data.code || '';
-    const version = (data.engine_version || 'v4').toLowerCase();
-    const engineFile = version.includes('v2') ? 'tcjsgame-v2.js'
-                     : version.includes('v3') ? 'tcjsgame-v3.js'
-                     : 'epic.js';
-    const engineUrl = location.origin + '/editor/' + engineFile;
+    let engine = data.engine_code || '';
 
-    const userCodeEscaped = userCode.replace(/<\/script>/gi, '<\\/script>');
+    if (!engine || engine.length < 100) {
+      const version = (data.engine_version || 'v4').toLowerCase();
+      const engineFile = version.includes('v2') ? 'tcjsgame-v2.js'
+                       : version.includes('v3') ? 'tcjsgame-v3.js'
+                       : 'epic.js';
+      try {
+        const res = await fetch('/editor/' + engineFile);
+        if (res.ok) engine = await res.text();
+      } catch(e) {}
+      if (!engine || engine.length < 100) {
+        try {
+          const res2 = await fetch('/asset/' + engineFile);
+          if (res2.ok) engine = await res2.text();
+        } catch(e) {}
+      }
+    }
+
+    const userCode = data.code || '';
+    const safeUserCode = userCode.replace(/<\/script>/gi, '<\\/script>');
 
     const page = '<!DOCTYPE html>' +
       '<html><head><meta charset="utf-8"><title>' +
       escapeHtml(data.title) +
       '</title><style>html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%}canvas{display:block;margin:0 auto}</style>' +
       '</head><body>' +
-      '<script src="' + engineUrl + '"><\/script>' +
+      '<script>' + engine + '<\/script>' +
       '<script>' +
-      'window.addEventListener("load", function() {' +
-      'try {' +
-      userCodeEscaped +
+      'try {\n' +
+      safeUserCode + '\n' +
       '} catch(e) {' +
       'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">" + e.message + "\\n\\n" + (e.stack || "") + "</pre>";' +
       '}' +
-      '});' +
       '<\/script>' +
       '</body></html>';
 
@@ -246,4 +257,4 @@ function timeAgo(iso) {
 </script>
 
 </body>
-</html>
+     </html>
