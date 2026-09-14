@@ -21,10 +21,14 @@
              text-overflow: ellipsis; }
   .side .author { font-size: 13px; opacity: 0.5;
                   margin-bottom: 16px; }
-  .row { display: flex; gap: 8px; margin-bottom: 20px; }
+  .side .author a { color: #4af; text-decoration: none; opacity: 0.9; }
+  .side .author a:hover { text-decoration: underline; }
+  .row { display: flex; gap: 8px; margin-bottom: 20px;
+         flex-wrap: wrap; }
   .btn { padding: 10px 14px; border: 0; border-radius: 8px;
          background: rgba(255,255,255,0.08); color: #fff;
-         font-weight: 600; font-size: 13px; cursor: pointer; }
+         font-weight: 600; font-size: 13px; cursor: pointer;
+         text-decoration: none; display: inline-block; }
   .btn:hover { background: rgba(255,255,255,0.15); }
   .btn.liked { background: #f44; }
   .section { border-top: 1px solid rgba(255,255,255,0.06);
@@ -36,6 +40,8 @@
              border-bottom: 1px solid rgba(255,255,255,0.05); }
   .comment .who { font-size: 12px; font-weight: 700;
                   color: #4af; margin-bottom: 2px; }
+  .comment .who a { color: #4af; text-decoration: none; }
+  .comment .who a:hover { text-decoration: underline; }
   .comment .body { font-size: 14px; line-height: 1.4;
                    white-space: pre-wrap; word-break: break-word; }
   .comment .when { font-size: 11px; opacity: 0.4; margin-top: 4px; }
@@ -97,6 +103,7 @@
       <button class="btn" id="likeBtn">♥ <span id="likeCount">0</span></button>
       <button class="btn" id="shareBtn">🔗 Share</button>
       <button class="btn" id="forkBtn">✎ Fork</button>
+      <a class="btn" id="backBtn" href="/arcade/">← Arcade</a>
     </div>
     <div class="section">
       <h2>Comments</h2>
@@ -120,6 +127,7 @@ const supabase = createClient(
 const slug = new URLSearchParams(location.search).get('slug');
 const stage = document.getElementById('stage');
 let currentGameId = null;
+let currentUserId = null;
 
 if (!slug) {
   stage.innerHTML = '<div class="err">No game specified.</div>';
@@ -135,7 +143,14 @@ if (!slug) {
   } else {
     currentGameId = data.id;
 
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session ? session.user : null;
+    currentUserId = user ? user.id : null;
+
     let creatorLabel = 'anonymous';
+    let creatorUsername = null;
+    let creatorDisplayName = null;
+
     if (data.author_id) {
       const { data: profile } = await supabase
         .from('profiles')
@@ -143,8 +158,13 @@ if (!slug) {
         .eq('user_id', data.author_id)
         .maybeSingle();
 
-      if (profile && profile.username) creatorLabel = '@' + profile.username;
-      else if (profile && profile.display_name) creatorLabel = profile.display_name;
+      if (profile) {
+        creatorUsername = profile.username || null;
+        creatorDisplayName = profile.display_name || null;
+      }
+
+      if (creatorUsername) creatorLabel = '@' + creatorUsername;
+      else if (creatorDisplayName) creatorLabel = creatorDisplayName;
       else if (data.author_name) creatorLabel = data.author_name.split('@')[0];
     } else if (data.author_name) {
       creatorLabel = data.author_name.split('@')[0];
@@ -152,7 +172,16 @@ if (!slug) {
 
     document.title = data.title + ' — Arcade';
     document.getElementById('title').textContent = data.title;
-    document.getElementById('author').textContent = 'by ' + creatorLabel;
+
+    const authorEl = document.getElementById('author');
+    if (creatorUsername) {
+      authorEl.innerHTML = 'by <a href="/u/?u=' +
+        encodeURIComponent(creatorUsername) + '">@' +
+        escapeHtml(creatorUsername) + '</a>';
+    } else {
+      authorEl.textContent = 'by ' + creatorLabel;
+    }
+
     document.getElementById('side').style.display = 'block';
 
     let engine = data.engine_code || '';
@@ -198,7 +227,7 @@ if (!slug) {
     supabase.from('games').update({ plays: (data.plays || 0) + 1 })
       .eq('id', data.id).then(() => {});
 
-    loadLikes(data.id);
+    loadLikes(data.id, currentUserId);
     loadComments(data.id);
 
     document.getElementById('shareBtn').onclick = async () => {
@@ -214,6 +243,7 @@ if (!slug) {
     };
 
     document.getElementById('commentSubmit').onclick = () => submitComment(null);
+    document.getElementById('likeBtn').onclick = () => toggleLike();
   }
 }
 
@@ -241,153 +271,4 @@ async function submitComment(parentId) {
   const payload = {
     game_id: currentGameId,
     user_id: user.id,
-    user_name: creatorLabelFromUser(user),
-    body: body
-  };
-  if (parentId) payload.parent_id = parentId;
-
-  const { error: cErr } = await supabase.from('comments').insert([payload]);
-  if (cErr) { alert('Failed: ' + cErr.message); return; }
-
-  if (parentId) {
-    const input = document.querySelector('[data-reply-input="' + parentId + '"]');
-    if (input) input.value = '';
-  } else {
-    const input = document.getElementById('commentInput');
-    if (input) input.value = '';
-  }
-
-  loadComments(currentGameId);
-}
-
-async function loadLikes(gameId, currentUserId) {
-  const { count } = await supabase
-    .from('likes').select('*', { count: 'exact', head: true })
-    .eq('game_id', gameId);
-  document.getElementById('likeCount').textContent = count || 0;
-  if (currentUserId) {
-    const { data } = await supabase
-      .from('likes').select('id')
-      .eq('game_id', gameId).eq('user_id', currentUserId).maybeSingle();
-    document.getElementById('likeBtn').classList.toggle('liked', !!data);
-  }
-}
-
-document.getElementById('likeBtn').onclick = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  const user = session ? session.user : null;
-  if (!user) { alert('Log in to like.'); return; }
-
-  const { data: existing } = await supabase
-    .from('likes').select('id')
-    .eq('game_id', currentGameId).eq('user_id', user.id).maybeSingle();
-
-  if (existing) {
-    await supabase.from('likes').delete().eq('id', existing.id);
-  } else {
-    await supabase.from('likes').insert([{ game_id: currentGameId, user_id: user.id }]);
-  }
-  loadLikes(currentGameId, user.id);
-};
-
-async function loadComments(gameId) {
-  const { data, error } = await supabase
-    .from('comments')
-    .select('id, user_id, user_name, body, created_at, parent_id')
-    .eq('game_id', gameId)
-    .order('created_at', { ascending: true })
-    .limit(200);
-
-  const box = document.getElementById('comments');
-  if (error) {
-    box.innerHTML = '<div style="opacity:0.4;font-size:13px">Could not load comments.</div>';
-    return;
-  }
-  if (!data || data.length === 0) {
-    box.innerHTML = '<div style="opacity:0.4;font-size:13px">No comments yet. Be the first.</div>';
-    return;
-  }
-
-  const commentUserIds = [...new Set(data.map(c => c.user_id).filter(Boolean))];
-  const commentProfileMap = {};
-  if (commentUserIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('user_id, username, display_name')
-      .in('user_id', commentUserIds);
-    for (const p of profiles || []) commentProfileMap[p.user_id] = p;
-  }
-
-  function who(c) {
-    const p = commentProfileMap[c.user_id];
-    if (p && p.username) return '@' + p.username;
-    if (p && p.display_name) return p.display_name;
-    return c.user_name ? c.user_name.split('@')[0] : 'anon';
-  }
-
-  const roots = data.filter(c => !c.parent_id);
-  const repliesByParent = {};
-  for (const c of data) {
-    if (c.parent_id) {
-      if (!repliesByParent[c.parent_id]) repliesByParent[c.parent_id] = [];
-      repliesByParent[c.parent_id].push(c);
-    }
-  }
-
-  function renderComment(c, isReply) {
-    const kids = repliesByParent[c.id] || [];
-    const replyHtml = isReply ? '' :
-      '<div class="reply-form">' +
-        '<input data-reply-input="' + c.id + '" placeholder="Reply to ' + escapeHtml(who(c)) + '..." maxlength="200">' +
-        '<button data-reply-btn="' + c.id + '">Reply</button>' +
-      '</div>';
-
-    const repliesHtml = kids.length > 0
-      ? '<div class="replies">' + kids.map(k => renderComment(k, true)).join('') + '</div>'
-      : '';
-
-    return '' +
-      '<div class="comment">' +
-        '<div class="who">' + escapeHtml(who(c)) + '</div>' +
-        '<div class="body">' + escapeHtml(c.body) + '</div>' +
-        '<div class="when">' + timeAgo(c.created_at) +
-          (!isReply ? ' · <a class="reply-link" data-reply-toggle="' + c.id + '">Reply</a>' : '') +
-        '</div>' +
-        repliesHtml +
-        replyHtml +
-      '</div>';
-  }
-
-  box.innerHTML = roots.map(c => renderComment(c, false)).join('');
-
-  box.querySelectorAll('[data-reply-btn]').forEach(btn => {
-    btn.addEventListener('click', () => submitComment(btn.dataset.replyBtn));
-  });
-
-  box.querySelectorAll('[data-reply-toggle]').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      const id = link.dataset.replyToggle;
-      const input = box.querySelector('[data-reply-input="' + id + '"]');
-      if (input) input.focus();
-    });
-  });
-}
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  })[c]);
-}
-
-function timeAgo(iso) {
-  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return 'just now';
-  if (s < 3600) return Math.floor(s/60) + 'm ago';
-  if (s < 86400) return Math.floor(s/3600) + 'h ago';
-  return Math.floor(s/86400) + 'd ago';
-}
-</script>
-
-</body>
- </html>
+    user_name: creator
