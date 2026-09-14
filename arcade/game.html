@@ -102,17 +102,31 @@ if (!slug) {
 } else {
   const { data, error } = await supabase
     .from('games')
-    .select('id, slug, title, author_name, code, engine_code, engine_version, plays')
+    .select('id, slug, title, author_id, author_name, code, engine_code, engine_version, plays')
     .eq('slug', slug)
     .single();
 
   if (error || !data) {
     stage.innerHTML = '<div class="err">Game not found.</div>';
   } else {
+    let creatorLabel = 'anonymous';
+    if (data.author_id) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username, display_name')
+        .eq('user_id', data.author_id)
+        .maybeSingle();
+
+      if (profile && profile.username) creatorLabel = '@' + profile.username;
+      else if (profile && profile.display_name) creatorLabel = profile.display_name;
+      else if (data.author_name) creatorLabel = data.author_name.split('@')[0];
+    } else if (data.author_name) {
+      creatorLabel = data.author_name.split('@')[0];
+    }
+
     document.title = data.title + ' — Arcade';
     document.getElementById('title').textContent = data.title;
-    document.getElementById('author').textContent =
-      'by ' + (data.author_name || 'anonymous');
+    document.getElementById('author').textContent = 'by ' + creatorLabel;
     document.getElementById('side').style.display = 'block';
 
     let engine = data.engine_code || '';
@@ -184,7 +198,7 @@ if (!slug) {
       const { error: cErr } = await supabase.from('comments').insert([{
         game_id: data.id,
         user_id: user.id,
-        user_name: user.email || 'anonymous',
+        user_name: creatorLabelFromUser(user),
         body: body
       }]);
       if (cErr) { alert('Failed: ' + cErr.message); return; }
@@ -207,6 +221,10 @@ if (!slug) {
   }
 }
 
+function creatorLabelFromUser(user) {
+  return user.email ? user.email.split('@')[0] : 'anonymous';
+}
+
 async function loadLikes(gameId, currentUserId) {
   const { count } = await supabase
     .from('likes').select('*', { count: 'exact', head: true })
@@ -223,22 +241,39 @@ async function loadLikes(gameId, currentUserId) {
 async function loadComments(gameId) {
   const { data } = await supabase
     .from('comments')
-    .select('user_name, body, created_at')
+    .select('user_id, user_name, body, created_at')
     .eq('game_id', gameId)
     .order('created_at', { ascending: false })
     .limit(50);
+
   const box = document.getElementById('comments');
   if (!data || data.length === 0) {
     box.innerHTML = '<div style="opacity:0.4;font-size:13px">No comments yet.</div>';
     return;
   }
-  box.innerHTML = data.map(c => `
+
+  const commentUserIds = [...new Set(data.map(c => c.user_id).filter(Boolean))];
+  const commentProfileMap = {};
+  if (commentUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('user_id, username, display_name')
+      .in('user_id', commentUserIds);
+    for (const p of profiles || []) commentProfileMap[p.user_id] = p;
+  }
+
+  box.innerHTML = data.map(c => {
+    const p = commentProfileMap[c.user_id];
+    let who = c.user_name ? c.user_name.split('@')[0] : 'anon';
+    if (p && p.username) who = '@' + p.username;
+    else if (p && p.display_name) who = p.display_name;
+    return `
     <div class="comment">
-      <div class="who">${escapeHtml(c.user_name || 'anon')}</div>
+      <div class="who">${escapeHtml(who)}</div>
       <div class="body">${escapeHtml(c.body)}</div>
       <div class="when">${timeAgo(c.created_at)}</div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function escapeHtml(s) {
