@@ -33,8 +33,12 @@
   .info .name { font-size: 15px; font-weight: 600;
                 white-space: nowrap; overflow: hidden;
                 text-overflow: ellipsis; }
+  .info .name a { color: inherit; text-decoration: none; }
+  .info .name a:hover { color: #4af; text-decoration: underline; }
   .info .sub { font-size: 12px; opacity: 0.5;
                margin-top: 2px; }
+  .info .sub a { color: #4af; text-decoration: none; opacity: 0.9; }
+  .info .sub a:hover { text-decoration: underline; }
   .count { font-size: 18px; font-weight: 700; color: #f44; }
   .count::before { content: "♥ "; }
   .empty { text-align: center; padding: 60px 20px;
@@ -110,6 +114,16 @@ function creatorLabel(game) {
   return 'anonymous';
 }
 
+function creatorLink(game) {
+  if (!game) return 'anonymous';
+  const profile = profileMap[game.author_id];
+  if (profile && profile.username) {
+    return '<a href="/u/?u=' + encodeURIComponent(profile.username) + '">@' +
+      esc(profile.username) + '</a>';
+  }
+  return esc(creatorLabel(game));
+}
+
 const gameCounts = {};
 if (likes) for (const l of likes) {
   gameCounts[l.game_id] = (gameCounts[l.game_id] || 0) + 1;
@@ -122,15 +136,21 @@ const topGames = Object.entries(gameCounts)
   .slice(0, 10);
 
 const creatorCounts = {};
+const creatorUsernames = {};
 if (likes) for (const l of likes) {
   const g = gameMap[l.game_id];
   if (!g) continue;
   const label = creatorLabel(g);
   creatorCounts[label] = (creatorCounts[label] || 0) + 1;
+
+  const profile = profileMap[g.author_id];
+  if (profile && profile.username) {
+    creatorUsernames[label] = profile.username;
+  }
 }
 
 const topCreators = Object.entries(creatorCounts)
-  .map(([name, count]) => ({ name, count }))
+  .map(([name, count]) => ({ name, count, username: creatorUsernames[name] || null }))
   .sort((a, b) => b.count - a.count)
   .slice(0, 10);
 
@@ -144,7 +164,7 @@ if (topGames.length === 0) {
       <div class="rank ${rankClass}">${i + 1}</div>
       <div class="info">
         <div class="name">${esc(x.game.title)}</div>
-        <div class="sub">by ${esc(creatorLabel(x.game))}</div>
+        <div class="sub">by ${creatorLink(x.game)}</div>
       </div>
       <div class="count">${x.count}</div>
     </a>`;
@@ -157,10 +177,13 @@ if (topCreators.length === 0) {
 } else {
   creatorsEl.innerHTML = topCreators.map((x, i) => {
     const rankClass = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const nameHtml = x.username
+      ? '<a href="/u/?u=' + encodeURIComponent(x.username) + '">' + esc(x.name) + '</a>'
+      : esc(x.name);
     return `<div class="row">
       <div class="rank ${rankClass}">${i + 1}</div>
       <div class="info">
-        <div class="name">${esc(x.name)}</div>
+        <div class="name">${nameHtml}</div>
       </div>
       <div class="count">${x.count}</div>
     </div>`;
@@ -175,4 +198,4 @@ function esc(s) {
 </script>
 
 </body>
-</html>
+ </html>
