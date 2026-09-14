@@ -35,7 +35,7 @@ async function loadUserData() {
                 if (parsed.files && parsed.filesName) {
                     files = parsed.files;
                     filesName = parsed.filesName;
-                    
+
                     const fileContainer = document.getElementById('file');
                     if (fileContainer) fileContainer.innerHTML = '';
                     filesName.forEach(e => {
@@ -58,7 +58,7 @@ async function loadUserData() {
     }
 
     const user = await getActiveUser();
-    
+
     if (user) {
         try {
             const { data, error } = await supabase
@@ -121,14 +121,14 @@ function createFileUI(name) {
     let btn = document.createElement('button');
     btn.innerHTML = name;
     btn.title = "Click to open. Double click to delete";
-    
+
     btn.addEventListener('click', () => {
         const textarea = document.querySelector('textarea');
         const h5 = document.querySelector('h5');
         if (textarea) textarea.value = files[name] || "";
         if (h5) h5.innerText = name;
     });
-    
+
     btn.addEventListener("dblclick", () => del(name, np));
 
     let dbtn = document.createElement('button');
@@ -138,7 +138,7 @@ function createFileUI(name) {
 
     np.appendChild(btn);
     np.appendChild(dbtn);
-    
+
     const fileListEl = document.getElementById('file');
     if (fileListEl) fileListEl.appendChild(np);
 }
@@ -178,14 +178,14 @@ window.saveAs = async function() {
 
     const h5 = document.querySelector('h5');
     const textarea = document.querySelector('textarea');
-    
+
     if (h5) h5.innerText = name;
     if (textarea) files[name] = textarea.value;
 
     if (!filesName.includes(name)) {
         filesName.push(name);
     }
-    
+
     await persistData();
     createFileUI(name);
     alert("Saved Successfully ✅");
@@ -214,7 +214,7 @@ window.save = async function() {
 
 window.shareProject = async function() {
     const user = await getActiveUser();
-    
+
     const h5 = document.querySelector('h5');
     const textarea = document.querySelector('textarea');
     let currentFileName = h5 ? h5.innerText : "";
@@ -227,26 +227,47 @@ window.shareProject = async function() {
         return;
     }
 
+    const versionDropdown = document.querySelector('#version');
+    const selectedVersion = versionDropdown ? versionDropdown.value.toLowerCase() : 'v4';
+    const engineCode = selectedVersion.includes('v2') ? v2t
+                     : selectedVersion.includes('v3') ? v3t
+                     : v4t;
+
+    const firstFile = filesName[0] || "Untitled";
+    const title = firstFile.replace(/\.js$/i, '');
+    const userCode = files[firstFile] || "";
+
+    const slug = (title.toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 30) || 'game') + '-' + Math.random().toString(36).slice(2, 6);
+
     const { data, error } = await supabase
-        .from('snippets')
-        .insert([{ 
-            code: JSON.stringify({ files, filesName }), 
-            user_id: user ? user.id : null 
+        .from('games')
+        .insert([{
+            slug: slug,
+            title: title,
+            author_id: user ? user.id : null,
+            author_name: user ? (user.email || 'anonymous') : 'anonymous',
+            config: { title: title, author: user ? user.email : 'anonymous', slots: [], palette: [] },
+            code: userCode,
+            engine_version: selectedVersion,
+            engine_code: engineCode
         }])
-        .select('id')
+        .select('slug')
         .single();
 
     if (error) {
-        console.error("Share error:", error.message);
-        alert("⚠️ Failed to generate share link.");
+        console.error("Publish error:", error.message);
+        alert("⚠️ Failed to publish: " + error.message);
         return;
     }
 
-    const shareUrl = `${window.location.origin}${window.location.pathname}?id=${data.id}`;
-    await navigator.clipboard.writeText(shareUrl);
-    window.history.pushState({}, '', `?id=${data.id}`);
-    
-    alert("🔗 Shareable project link copied to clipboard! ✅");
+    const playUrl = `${window.location.origin}/arcade/game.html?slug=${data.slug}`;
+    await navigator.clipboard.writeText(playUrl);
+    window.history.pushState({}, '', `?id=${data.slug}`);
+
+    alert("🎮 Published! Play link copied:\n" + playUrl);
 };
 
 async function del(name, element) {
@@ -280,7 +301,13 @@ if (textareaEl) {
 window.down = function(filename) {
     const textarea = document.querySelector("textarea");
     const codeData = textarea ? textarea.value : "";
-    
+
+    const versionDropdown = document.querySelector('#version');
+    const selectedVersion = versionDropdown ? versionDropdown.value.toLowerCase() : 'v4';
+    const engineCode = selectedVersion.includes('v2') ? v2t
+                     : selectedVersion.includes('v3') ? v3t
+                     : v4t;
+
     const htmlTemplate = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -293,9 +320,10 @@ window.down = function(filename) {
     </style>
 </head>
 <body>
+    <script>${engineCode}<\/script>
     <script>
         ${codeData}
-    </script>
+    <\/script>
 </body>
 </html>`;
 
@@ -307,4 +335,3 @@ window.down = function(filename) {
     a.click();
     URL.revokeObjectURL(url);
 };
-
