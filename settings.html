@@ -9,7 +9,7 @@
 <body style="background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; padding: 40px 20px;">
 
   <div style="max-width: 600px; margin: 0 auto;">
-    
+
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; border-bottom: 1.5px solid var(--border); padding-bottom: 20px;">
       <div>
         <h1 style="font-size: 2.2rem; font-weight: 800; color: #ffffff; letter-spacing: -1px;">
@@ -21,9 +21,9 @@
     </div>
 
     <div style="background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 30px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);">
-      
+
       <form id="settings-form" style="display: flex; flex-direction: column; gap: 20px;">
-        
+
         <div>
           <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--accent2); margin-bottom: 8px; font-family: 'Space Mono', monospace; text-transform: uppercase;">Avatar Image URL</label>
           <div style="display: flex; gap: 15px; align-items: center;">
@@ -42,21 +42,13 @@
         </div>
 
         <div>
-          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--accent2); margin-bottom: 8px; font-family: 'Space Mono', monospace; text-transform: uppercase;">Profile Name</label>
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--accent2); margin-bottom: 8px; font-family: 'Space Mono', monospace; text-transform: uppercase;">Display Name</label>
           <input type="text" id="display-name-input" placeholder="Enter your display name" required style="width: 100%; padding: 12px 16px; background: var(--code-bg); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; outline: none;">
         </div>
 
         <div>
           <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-bottom: 8px; font-family: 'Space Mono', monospace; text-transform: uppercase;">Email Address (Read-only)</label>
           <input type="email" id="email-input" disabled style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.02); border: 1.5px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 1rem; cursor: not-allowed;">
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 12px; background: var(--code-bg); padding: 16px; border-radius: 8px; border: 1.5px solid var(--border);">
-          <input type="checkbox" id="subscribed-input" style="width: 18px; height: 18px; accent-color: var(--accent2); cursor: pointer;">
-          <div>
-            <label for="subscribed-input" style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text); cursor: pointer;">Receive Monthly Digest Emails</label>
-            <p style="font-size: 0.8rem; color: var(--muted); margin-top: 2px;">Get top community creations and updates sent straight to your inbox.</p>
-          </div>
         </div>
 
         <button type="submit" class="btn-primary" style="margin-top: 10px; width: 100%; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer;">Save Changes</button>
@@ -82,7 +74,6 @@
     const emailInput = document.getElementById('email-input');
     const avatarInput = document.getElementById('avatar-input');
     const avatarPreview = document.getElementById('avatar-preview');
-    const subscribedInput = document.getElementById('subscribed-input');
     const form = document.getElementById('settings-form');
     const statusMsg = document.getElementById('status-message');
 
@@ -106,18 +97,16 @@
       nameInput.value = '';
       avatarInput.value = '';
       avatarPreview.src = 'https://via.placeholder.com/50';
-      subscribedInput.checked = false;
       usernameInput.value = '';
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('name, username, subscribed, avatar_url')
-        .eq('id', user.id)
+      const { data } = await supabase
+        .from('profiles')
+        .select('display_name, username, avatar_url')
+        .eq('user_id', user.id)
         .maybeSingle();
 
       if (data) {
-        if (data.name) nameInput.value = data.name;
-        if (data.subscribed !== undefined) subscribedInput.checked = data.subscribed;
+        if (data.display_name) nameInput.value = data.display_name;
         if (data.avatar_url) {
           avatarInput.value = data.avatar_url;
           avatarPreview.src = data.avatar_url;
@@ -158,14 +147,12 @@
 
       const newName = nameInput.value.trim();
       const newAvatarUrl = avatarInput.value.trim();
-      const isSubscribed = subscribedInput.checked;
       const rawUsername = usernameInput.value.trim().toLowerCase().replace(/^@/, '');
 
       const upsertData = {
-        id: currentUserId,
-        name: newName,
-        avatar_url: newAvatarUrl,
-        subscribed: isSubscribed
+        user_id: currentUserId,
+        display_name: newName,
+        avatar_url: newAvatarUrl
       };
 
       if (!usernameIsLocked) {
@@ -177,10 +164,10 @@
         }
 
         const { data: existing } = await supabase
-          .from('users')
-          .select('id')
+          .from('profiles')
+          .select('user_id')
           .eq('username', rawUsername)
-          .neq('id', currentUserId)
+          .neq('user_id', currentUserId)
           .maybeSingle();
 
         if (existing) {
@@ -192,36 +179,30 @@
         upsertData.username = rawUsername;
       }
 
-      try {
-        const { error } = await supabase
-          .from('users')
-          .upsert(upsertData);
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(upsertData, { onConflict: 'user_id' });
 
-        if (error) {
-          statusMsg.style.color = '#f87171';
-          statusMsg.textContent = '⚠️ ' + error.message;
-          return;
-        }
-
-        if (!usernameIsLocked && upsertData.username) {
-          usernameInput.value = upsertData.username;
-          usernameIsLocked = true;
-          usernameInput.readOnly = true;
-          usernameInput.style.cursor = 'not-allowed';
-          usernameHint.textContent = 'Your permanent @handle. Cannot be changed.';
-        }
-
-        statusMsg.style.color = 'var(--accent2)';
-        statusMsg.textContent = '✨ Settings updated successfully!';
-        setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
-      } catch (err) {
-        console.error(err);
+      if (error) {
         statusMsg.style.color = '#f87171';
-        statusMsg.textContent = '⚠️ Something went wrong.';
+        statusMsg.textContent = '⚠️ ' + error.message;
+        return;
       }
+
+      if (!usernameIsLocked && upsertData.username) {
+        usernameInput.value = upsertData.username;
+        usernameIsLocked = true;
+        usernameInput.readOnly = true;
+        usernameInput.style.cursor = 'not-allowed';
+        usernameHint.textContent = 'Your permanent @handle. Cannot be changed.';
+      }
+
+      statusMsg.style.color = 'var(--accent2)';
+      statusMsg.textContent = '✨ Settings updated successfully!';
+      setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
     });
 
     fetchUserData();
   </script>
 </body>
-          </html>
+  </html>
