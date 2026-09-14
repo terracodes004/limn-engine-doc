@@ -754,6 +754,46 @@ footer {
     padding: 16px !important;
   }
 }
+nav .dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+nav .dropdown .dropbtn {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+nav .dropdown .dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #0f172a;
+  min-width: 180px;
+  border-radius: 8px;
+  border: 1px solid #1e293b;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+nav .dropdown:hover .dropdown-content {
+  display: block;
+}
+
+nav .dropdown .dropdown-content a {
+  display: block;
+  padding: 12px 16px;
+  color: #f8fafc;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+
+nav .dropdown .dropdown-content a:hover {
+  background: #1e293b;
+  }
 /* ============================================================
    🔒 ORIGINAL RESPONSIVE FIXES — DO NOT TOUCH
    ============================================================ */
