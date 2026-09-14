@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Playing — Arcade</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #0a0a14; color: #fff;
+               font-family: system-ui, sans-serif; }
+  .wrap { display: grid; grid-template-columns: 1fr 340px;
+          min-height: 100vh; }
+  .stage { background: #000; display: flex;
+           align-items: center; justify-content: center; }
+  .stage iframe { width: 100%; height: 100vh; border: 0; display: block; }
+  .side { background: #10101e; padding: 20px;
+          border-left: 1px solid rgba(255,255,255,0.06);
+          overflow-y: auto; max-height: 100vh; }
+  .side h1 { margin: 0 0 4px; font-size: 20px;
+             white-space: nowrap; overflow: hidden;
+             text-overflow: ellipsis; }
+  .side .author { font-size: 13px; opacity: 0.5;
+                  margin-bottom: 16px; }
+  .row { display: flex; gap: 8px; margin-bottom: 20px; }
+  .btn { padding: 10px 14px; border: 0; border-radius: 8px;
+         background: rgba(255,255,255,0.08); color: #fff;
+         font-weight: 600; font-size: 13px; cursor: pointer; }
+  .btn:hover { background: rgba(255,255,255,0.15); }
+  .btn.liked { background: #f44; }
+  .section { border-top: 1px solid rgba(255,255,255,0.06);
+             padding-top: 16px; margin-top: 16px; }
+  .section h2 { font-size: 14px; text-transform: uppercase;
+                letter-spacing: 0.5px; opacity: 0.6;
+                margin: 0 0 12px; font-weight: 600; }
+  .comment { padding: 10px 0;
+             border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .comment .who { font-size: 12px; font-weight: 700;
+                  color: #4af; margin-bottom: 2px; }
+  .comment .body { font-size: 14px; line-height: 1.4;
+                   white-space: pre-wrap; word-break: break-word; }
+  .comment .when { font-size: 11px; opacity: 0.4; margin-top: 4px; }
+  .comment-form { display: flex; gap: 6px; margin-top: 12px; }
+  .comment-form input { flex: 1; padding: 10px;
+                        background: #1a1a2e;
+                        border: 1px solid rgba(255,255,255,0.1);
+                        border-radius: 8px; color: #fff;
+                        font-size: 14px; }
+  .comment-form button { padding: 10px 16px; border: 0;
+                         border-radius: 8px; background: #4af;
+                         color: #fff; font-weight: 600;
+                         cursor: pointer; }
+  .loading { color: #fff; font-family: monospace;
+             padding: 40px; opacity: 0.5; }
+  .err { color: #f66; font-family: monospace;
+         padding: 40px; white-space: pre-wrap; }
+  @media (max-width: 800px) {
+    .wrap { grid-template-columns: 1fr; }
+    .side { max-height: none; border-left: 0;
+            border-top: 1px solid rgba(255,255,255,0.06); }
+    .stage iframe { height: 60vh; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="stage" id="stage">
+    <div class="loading">Loading game...</div>
+  </div>
+  <aside class="side" id="side" style="display:none">
+    <h1 id="title">...</h1>
+    <div class="author" id="author">...</div>
+    <div class="row">
+      <button class="btn" id="likeBtn">♥ <span id="likeCount">0</span></button>
+      <button class="btn" id="shareBtn">🔗 Share</button>
+      <button class="btn" id="forkBtn">✎ Fork</button>
+    </div>
+    <div class="section">
+      <h2>Comments</h2>
+      <div id="comments"><div class="loading">Loading...</div></div>
+      <div class="comment-form">
+        <input id="commentInput" placeholder="Add a comment..." maxlength="200">
+        <button id="commentSubmit">Send</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+const supabase = createClient(
+  'https://pjtpesdhjfvcidfkxord.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38'
+);
+
+const slug = new URLSearchParams(location.search).get('slug');
+const stage = document.getElementById('stage');
+
+if (!slug) {
+  stage.innerHTML = '<div class="err">No game specified.</div>';
+} else {
+  const { data, error } = await supabase
+    .from('games')
+    .select('id, slug, title, author_name, code, engine_code, plays')
+    .eq('slug', slug)
+    .single();
+
+  if (error || !data) {
+    stage.innerHTML = '<div class="err">Game not found.</div>';
+  } else {
+    document.title = data.title + ' — Arcade';
+    document.getElementById('title').textContent = data.title;
+    document.getElementById('author').textContent =
+      'by ' + (data.author_name || 'anonymous');
+    document.getElementById('side').style.display = 'block';
+
+    const engine = data.engine_code || '';
+    const userCode = data.code || '';
+
+    const page = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>${escapeHtml(data.title)}</title>
+<style>html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%}
+canvas{display:block;margin:0 auto}</style>
+</head>
+<body>
+<script>${engine}<\/script>
+<script>
+try {
+${userCode}
+} catch(e) {
+  document.body.innerHTML = '<pre style="color:#f66;padding:20px;font-family:monospace">' +
+    e.message + '\\n\\n' + (e.stack || '') + '</pre>';
+}
+<\/script>
+</body>
+</html>`;
+
+    stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" id="gameFrame"></iframe>';
+    document.getElementById('gameFrame').srcdoc = page;
+
+    supabase.from('games').update({ plays: (data.plays || 0) + 1 })
+      .eq('id', data.id).then(() => {});
+
+    loadLikes(data.id);
+    loadComments(data.id);
+
+    document.getElementById('shareBtn').onclick = async () => {
+      const url = location.origin + '/arcade/game.html?slug=' + slug;
+      try { await navigator.clipboard.writeText(url); alert('Link copied'); }
+      catch(e) { prompt('Copy this link:', url); }
+    };
+
+    document.getElementById('forkBtn').onclick = () => {
+      localStorage.setItem('limn_fork_code', data.code || '');
+      localStorage.setItem('limn_fork_title', data.title || 'forked');
+      location.href = '/editor/?fork=1';
+    };
+
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session ? session.user : null;
+
+    document.getElementById('commentSubmit').onclick = async () => {
+      const input = document.getElementById('commentInput');
+      const body = input.value.trim();
+      if (!body) return;
+      if (!user) { alert('Log in to comment.'); return; }
+      const { error: cErr } = await supabase.from('comments').insert([{
+        game_id: data.id,
+        user_id: user.id,
+        user_name: user.email || 'anonymous',
+        body: body
+      }]);
+      if (cErr) { alert('Failed: ' + cErr.message); return; }
+      input.value = '';
+      loadComments(data.id);
+    };
+
+    document.getElementById('likeBtn').onclick = async () => {
+      if (!user) { alert('Log in to like.'); return; }
+      const { data: existing } = await supabase
+        .from('likes').select('id')
+        .eq('game_id', data.id).eq('user_id', user.id).maybeSingle();
+      if (existing) {
+        await supabase.from('likes').delete().eq('id', existing.id);
+      } else {
+        await supabase.from('likes').insert([{ game_id: data.id, user_id: user.id }]);
+      }
+      loadLikes(data.id, user.id);
+    };
+  }
+}
+
+async function loadLikes(gameId, currentUserId) {
+  const { count } = await supabase
+    .from('likes').select('*', { count: 'exact', head: true })
+    .eq('game_id', gameId);
+  document.getElementById('likeCount').textContent = count || 0;
+  if (currentUserId) {
+    const { data } = await supabase
+      .from('likes').select('id')
+      .eq('game_id', gameId).eq('user_id', currentUserId).maybeSingle();
+    document.getElementById('likeBtn').classList.toggle('liked', !!data);
+  }
+}
+
+async function loadComments(gameId) {
+  const { data } = await supabase
+    .from('comments')
+    .select('user_name, body, created_at')
+    .eq('game_id', gameId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  const box = document.getElementById('comments');
+  if (!data || data.length === 0) {
+    box.innerHTML = '<div style="opacity:0.4;font-size:13px">No comments yet.</div>';
+    return;
+  }
+  box.innerHTML = data.map(c => `
+    <div class="comment">
+      <div class="who">${escapeHtml(c.user_name || 'anon')}</div>
+      <div class="body">${escapeHtml(c.body)}</div>
+      <div class="when">${timeAgo(c.created_at)}</div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
+}
+
+function timeAgo(iso) {
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return Math.floor(s/86400) + 'd ago';
+}
+</script>
+
+</body>
+</html>
