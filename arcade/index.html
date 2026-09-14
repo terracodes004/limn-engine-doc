@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcade — Limn</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0a0a14; color: #fff;
+         font-family: system-ui, -apple-system, sans-serif;
+         min-height: 100vh; }
+  header { padding: 24px 32px; display: flex;
+           justify-content: space-between; align-items: center;
+           border-bottom: 1px solid rgba(255,255,255,0.06); }
+  header h1 { margin: 0; font-size: 22px; letter-spacing: -0.5px; }
+  header a { color: #4af; text-decoration: none; font-weight: 600;
+             padding: 10px 20px; border-radius: 8px;
+             background: rgba(68,170,255,0.1); }
+  header a:hover { background: rgba(68,170,255,0.2); }
+  main { padding: 32px; display: grid;
+         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+         gap: 20px; max-width: 1400px; margin: 0 auto; }
+  .card { background: linear-gradient(180deg,#15152a,#10101e);
+          border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 14px; overflow: hidden;
+          transition: transform 0.15s, border-color 0.15s;
+          text-decoration: none; color: inherit; display: block; }
+  .card:hover { transform: translateY(-2px);
+                border-color: rgba(68,170,255,0.4); }
+  .thumb { width: 100%; aspect-ratio: 4/3; display: block; }
+  .info { padding: 14px 16px; }
+  .info h3 { margin: 0 0 4px; font-size: 16px;
+             white-space: nowrap; overflow: hidden;
+             text-overflow: ellipsis; }
+  .info p { margin: 0; font-size: 13px; opacity: 0.5; }
+  .empty { grid-column: 1/-1; text-align: center;
+           padding: 80px 20px; opacity: 0.5; }
+  .empty a { color: #4af; text-decoration: none; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Arcade</h1>
+  <a href="/editor/">+ Make a game</a>
+</header>
+
+<main id="grid"><div class="empty"><h2>Loading...</h2></div></main>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+const supabase = createClient(
+  'https://pjtpesdhjfvcidfkxord.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38'
+);
+
+const { data, error } = await supabase
+  .from('games')
+  .select('slug, title, author_name, config')
+  .order('created_at', { ascending: false })
+  .limit(60);
+
+const grid = document.getElementById('grid');
+
+if (error || !data || data.length === 0) {
+  grid.innerHTML = `<div class="empty">
+    <h2>No games yet.</h2>
+    <p><a href="/editor/">Make the first one →</a></p>
+  </div>`;
+} else {
+  grid.innerHTML = '';
+  for (const g of data) {
+    const a = document.createElement('a');
+    a.className = 'card';
+    a.href = '/arcade/game.html?slug=' + encodeURIComponent(g.slug);
+    a.innerHTML = `
+      ${thumbSVG(g.config)}
+      <div class="info">
+        <h3>${esc(g.title)}</h3>
+        <p>by ${esc(g.author_name || 'anonymous')}</p>
+      </div>`;
+    grid.appendChild(a);
+  }
+}
+
+function thumbSVG(config) {
+  const w = 300, h = 225;
+  const world = (config && config.world) || { w: 800, h: 600, bg: '#0d0d2a' };
+  const slots = (config && config.slots) || [];
+  const sx = w / world.w, sy = h / world.h;
+  let rects = '';
+  for (const s of slots) {
+    rects += `<rect x="${s.x*sx}" y="${s.y*sy}"
+                    width="${s.w*sx}" height="${s.h*sy}"
+                    fill="${s.color||'#4af'}" />`;
+  }
+  if (!rects) rects = `<text x="${w/2}" y="${h/2}" text-anchor="middle"
+                             fill="#4af" font-size="40">▶</text>`;
+  return `<svg class="thumb" viewBox="0 0 ${w} ${h}"
+               preserveAspectRatio="xMidYMid slice"
+               style="background:${world.bg||'#0d0d2a'}">${rects}</svg>`;
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
+}
+</script>
+
+</body>
+</html>
