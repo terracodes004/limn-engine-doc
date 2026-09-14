@@ -144,11 +144,11 @@ if (!slug) {
       '</head><body>' +
       '<script>' + engine + '<\/script>' +
       '<script>' +
-      'try {\n' +
-      safeUserCode + '\n' +
-      '} catch(e) {' +
-      'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">" + e.message + "\\n\\n" + (e.stack || "") + "</pre>";' +
-      '}' +
+      'window.onerror = function(msg, src, line, col, err) {' +
+      'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">ERROR: " + msg + "\\n\\n" + (err && err.stack ? err.stack : "") + "</pre>";' +
+      'return true;' +
+      '};' +
+      safeUserCode +
       '<\/script>' +
       '</body></html>';
 
@@ -257,4 +257,4 @@ function timeAgo(iso) {
 </script>
 
 </body>
-     </html>
+ </html>
