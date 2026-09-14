@@ -78,13 +78,35 @@ const supabase = createClient(
 
 const { data, error } = await supabase
   .from('games')
-  .select('slug, title, author_name, config')
+  .select('slug, title, author_id, author_name, config')
   .order('created_at', { ascending: false })
   .limit(200);
 
+const games = data || [];
+
+const userIds = [...new Set(games.map(g => g.author_id).filter(Boolean))];
+
+const profileMap = {};
+if (userIds.length > 0) {
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('user_id, username, display_name')
+    .in('user_id', userIds);
+
+  for (const p of profiles || []) profileMap[p.user_id] = p;
+}
+
+function creatorLabel(game) {
+  const profile = profileMap[game.author_id];
+  if (profile && profile.username) return '@' + profile.username;
+  if (profile && profile.display_name) return profile.display_name;
+  if (game.author_name) return game.author_name.split('@')[0];
+  return 'anonymous';
+}
+
 const grid = document.getElementById('grid');
 const searchInput = document.getElementById('search');
-let allGames = data || [];
+const allGames = games;
 
 function render(list) {
   if (error) {
@@ -110,7 +132,7 @@ function render(list) {
       ${thumbSVG(g.config)}
       <div class="info">
         <h3>${esc(g.title)}</h3>
-        <p>by ${esc(g.author_name || 'anonymous')}</p>
+        <p>by ${esc(creatorLabel(g))}</p>
       </div>`;
     grid.appendChild(a);
   }
@@ -119,10 +141,11 @@ function render(list) {
 searchInput.addEventListener('input', () => {
   const q = searchInput.value.trim().toLowerCase();
   if (!q) { render(allGames); return; }
-  const filtered = allGames.filter(g =>
-    (g.title || '').toLowerCase().includes(q) ||
-    (g.author_name || '').toLowerCase().includes(q)
-  );
+  const filtered = allGames.filter(g => {
+    const label = creatorLabel(g).toLowerCase();
+    return (g.title || '').toLowerCase().includes(q) ||
+           label.includes(q);
+  });
   render(filtered);
 });
 
@@ -154,4 +177,4 @@ function esc(s) {
 </script>
 
 </body>
-                                     </html>
+</html>
