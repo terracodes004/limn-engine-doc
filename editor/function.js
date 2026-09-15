@@ -79,12 +79,13 @@ function runn() {
             }
         };
 
-        try {
-            ${userEditorCode}
-        } catch (e) {
+        window.onerror = function(msg, src, line, col, err) {
             document.body.innerHTML = '<pre style="color:#f66;padding:20px;font-family:monospace">ERROR: ' +
-                e.message + '\\n\\n' + (e.stack || '') + '</pre>';
-        }
+                msg + '\\n\\n' + (err && err.stack ? err.stack : '') + '</pre>';
+            return true;
+        };
+
+${userEditorCode}
     <\/script>
 </body>
 </html>`;
@@ -92,4 +93,4 @@ function runn() {
     if (iframe) {
         iframe.srcdoc = code;
     }
-    }
+           }
