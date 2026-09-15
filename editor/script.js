@@ -18,6 +18,16 @@ async function getActiveUser() {
     }
 }
 
+function getDescriptionField() {
+    const el = document.getElementById('gameDescription');
+    return el ? el.value.trim() : '';
+}
+
+function setDescriptionField(value) {
+    const el = document.getElementById('gameDescription');
+    if (el) el.value = value || '';
+}
+
 async function loadUserData() {
     const params = new URLSearchParams(window.location.search);
     const snippetId = params.get('id');
@@ -229,6 +239,8 @@ window.shareProject = async function() {
         return;
     }
 
+    const editSlug = localStorage.getItem('limn_edit_slug');
+
     const versionDropdown = document.querySelector('#version');
     const selectedVersion = versionDropdown ? versionDropdown.value.toLowerCase() : 'v4';
     const engineCode = selectedVersion.includes('v2') ? v2t
@@ -243,17 +255,47 @@ window.shareProject = async function() {
         title = window.currentConfig.title;
     }
 
-    const slug = (title.toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '')
-        .slice(0, 30) || 'game') + '-' + Math.random().toString(36).slice(2, 6);
-
     const config = window.currentConfig || {
         title: title,
         world: { w: 800, h: 600, bg: '#0d0d2a' },
         slots: [],
         palette: []
     };
+
+    const description = getDescriptionField();
+
+    if (editSlug) {
+        const { error } = await supabase
+            .from('games')
+            .update({
+                code: liveCode,
+                config: config,
+                engine_version: selectedVersion,
+                engine_code: engineCode,
+                description: description || null
+            })
+            .eq('slug', editSlug)
+            .eq('author_id', user ? user.id : null);
+
+        if (error) {
+            console.error("Update error:", error.message);
+            alert("⚠️ Failed to update: " + error.message);
+            return;
+        }
+
+        localStorage.removeItem('limn_edit_slug');
+
+        const playUrl = `${window.location.origin}/arcade/game.html?slug=${editSlug}`;
+        try { await navigator.clipboard.writeText(playUrl); } catch (e) {}
+
+        alert("✅ Game updated! Play link:\n" + playUrl);
+        return;
+    }
+
+    const slug = (title.toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 30) || 'game') + '-' + Math.random().toString(36).slice(2, 6);
 
     const { data, error } = await supabase
         .from('games')
@@ -265,7 +307,8 @@ window.shareProject = async function() {
             config: config,
             code: liveCode,
             engine_version: selectedVersion,
-            engine_code: engineCode
+            engine_code: engineCode,
+            description: description || null
         }])
         .select('slug')
         .single();
@@ -349,20 +392,63 @@ window.down = function(filename) {
     URL.revokeObjectURL(url);
 };
 
-(function forkLoader() {
+(function editAndForkLoader() {
     const params = new URLSearchParams(location.search);
-    if (params.get('fork') !== '1') return;
 
-    const code = localStorage.getItem('limn_fork_code');
-    const title = localStorage.getItem('limn_fork_title') || 'forked';
+    const editSlug = params.get('edit');
+    const forkFlag = params.get('fork');
 
-    if (!code) return;
+    if (forkFlag === '1') {
+        const code = localStorage.getItem('limn_fork_code');
+        const title = localStorage.getItem('limn_fork_title') || 'forked';
 
-    const textarea = document.querySelector('textarea');
-    const h5 = document.querySelector('h5');
-    if (textarea) textarea.value = code;
-    if (h5) h5.innerText = 'forked-' + title + '.js';
+        if (code) {
+            const textarea = document.querySelector('textarea');
+            const h5 = document.querySelector('h5');
+            if (textarea) textarea.value = code;
+            if (h5) h5.innerText = 'forked-' + title + '.js';
 
-    localStorage.removeItem('limn_fork_code');
-    localStorage.removeItem('limn_fork_title');
+            localStorage.removeItem('limn_fork_code');
+            localStorage.removeItem('limn_fork_title');
+        }
+        return;
+    }
+
+    if (!editSlug) return;
+
+    localStorage.setItem('limn_edit_slug', editSlug);
+
+    (async () => {
+        try {
+            const { data, error } = await supabase
+                .from('games')
+                .select('title, description, code, config, engine_version')
+                .eq('slug', editSlug)
+                .maybeSingle();
+
+            if (error || !data) {
+                console.log('Edit load failed:', error);
+                return;
+            }
+
+            const textarea = document.querySelector('textarea');
+            const h5 = document.querySelector('h5');
+            if (textarea) textarea.value = data.code || '';
+            if (h5) h5.innerText = data.title + '.js';
+
+            if (data.config) window.currentConfig = data.config;
+            if (data.description) setDescriptionField(data.description);
+
+            const versionSelect = document.querySelector('#version');
+            if (versionSelect && data.engine_version) {
+                const match = ['v2', 'v3', 'v4'].find(v => data.engine_version.includes(v));
+                if (match) versionSelect.value = match;
+            }
+
+            const headerTitle = document.querySelector('header h1');
+            if (headerTitle) headerTitle.textContent = 'LIMN STUDIO — Editing';
+        } catch (e) {
+            console.log('Edit loader error:', e.message);
+        }
+    })();
 })();
