@@ -8,6 +8,14 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let files = {};
 let filesName = [];
 
+function getCodeTextarea() {
+    return document.getElementById('js');
+}
+
+function getTitleEl() {
+    return document.querySelector('h5');
+}
+
 async function getActiveUser() {
     try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -54,8 +62,8 @@ async function loadUserData() {
 
                     if (filesName.length > 0) {
                         const firstFile = filesName[0];
-                        const textarea = document.querySelector('textarea');
-                        const h5 = document.querySelector('h5');
+                        const textarea = getCodeTextarea();
+                        const h5 = getTitleEl();
                         if (textarea) textarea.value = files[firstFile] || "";
                         if (h5) h5.innerText = firstFile;
                     }
@@ -133,8 +141,8 @@ function createFileUI(name) {
     btn.title = "Click to open. Double click to delete";
 
     btn.addEventListener('click', () => {
-        const textarea = document.querySelector('textarea');
-        const h5 = document.querySelector('h5');
+        const textarea = getCodeTextarea();
+        const h5 = getTitleEl();
         if (textarea) textarea.value = files[name] || "";
         if (h5) h5.innerText = name;
     });
@@ -186,8 +194,8 @@ window.saveAs = async function() {
         return;
     }
 
-    const h5 = document.querySelector('h5');
-    const textarea = document.querySelector('textarea');
+    const h5 = getTitleEl();
+    const textarea = getCodeTextarea();
 
     if (h5) h5.innerText = name;
     if (textarea) files[name] = textarea.value;
@@ -209,8 +217,8 @@ window.save = async function() {
         return;
     }
 
-    const h5 = document.querySelector('h5');
-    const textarea = document.querySelector('textarea');
+    const h5 = getTitleEl();
+    const textarea = getCodeTextarea();
     let currentFileName = h5 ? h5.innerText : "*Untitled*";
 
     if (currentFileName === "*Untitled*" || !currentFileName) {
@@ -225,8 +233,8 @@ window.save = async function() {
 window.shareProject = async function() {
     const user = await getActiveUser();
 
-    const h5 = document.querySelector('h5');
-    const textarea = document.querySelector('textarea');
+    const h5 = getTitleEl();
+    const textarea = getCodeTextarea();
     let currentFileName = h5 ? h5.innerText : "";
     if (currentFileName && currentFileName !== "*Untitled*" && textarea) {
         files[currentFileName] = textarea.value;
@@ -339,7 +347,7 @@ async function del(name, element) {
     }
 }
 
-const textareaEl = document.querySelector("textarea");
+const textareaEl = document.getElementById("js");
 if (textareaEl) {
     textareaEl.addEventListener("keydown", (e) => {
         if (e.ctrlKey) {
@@ -355,7 +363,7 @@ if (textareaEl) {
 }
 
 window.down = function(filename) {
-    const textarea = document.querySelector("textarea");
+    const textarea = getCodeTextarea();
     const codeData = textarea ? textarea.value : "";
 
     const versionDropdown = document.querySelector('#version');
@@ -403,8 +411,8 @@ window.down = function(filename) {
         const title = localStorage.getItem('limn_fork_title') || 'forked';
 
         if (code) {
-            const textarea = document.querySelector('textarea');
-            const h5 = document.querySelector('h5');
+            const textarea = getCodeTextarea();
+            const h5 = getTitleEl();
             if (textarea) textarea.value = code;
             if (h5) h5.innerText = 'forked-' + title + '.js';
 
@@ -431,8 +439,8 @@ window.down = function(filename) {
                 return;
             }
 
-            const textarea = document.querySelector('textarea');
-            const h5 = document.querySelector('h5');
+            const textarea = getCodeTextarea();
+            const h5 = getTitleEl();
             if (textarea) textarea.value = data.code || '';
             if (h5) h5.innerText = data.title + '.js';
 
