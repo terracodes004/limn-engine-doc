@@ -73,26 +73,23 @@ async function checkUserRouting() {
     const userBanner = document.getElementById('user-banner');
 
     if (session) {
-        const userMetadata = session.user.user_metadata;
         const userEmail = session.user.email;
-        
-        let fullName = userMetadata?.full_name || userMetadata?.name || session.user.email.split('@')[0];
-        let userAvatarUrl = userMetadata?.avatar_url || userMetadata?.picture || 'img/logo.png';
 
-        const { data: userData } = await supabase
-            .from('users')
-            .select('name, avatar_url, subscribed')
-            .eq('id', session.user.id)
+        let userAvatarUrl = 'img/logo.png';
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('username, display_name, avatar_url')
+            .eq('user_id', session.user.id)
             .maybeSingle();
 
-        if (userData) {
-            if (userData.name) fullName = userData.name;
-            if (userData.avatar_url) userAvatarUrl = userData.avatar_url;
+        if (profile && profile.avatar_url) {
+            userAvatarUrl = profile.avatar_url;
+            localStorage.setItem('limn_avatar', profile.avatar_url);
         }
 
-        if (userBanner) {
-            userBanner.innerHTML = `<span>👋 Welcome back, <strong id="persistent-name">${fullName}</strong>!</span>`;
-            userBanner.style.display = 'inline-flex';
+        if (profile && profile.display_name) {
+            localStorage.setItem('limn_username', profile.display_name);
         }
 
         if (authButtons) authButtons.style.display = 'none';
@@ -103,12 +100,6 @@ async function checkUserRouting() {
 
         const avatarImg = document.getElementById('user-avatar');
         if (avatarImg) avatarImg.src = userAvatarUrl;
-
-        const currentPath = window.location.pathname;
-        if (userData && userData.subscribed && currentPath !== '/' && currentPath !== '/index.html' && currentPath !== '') {
-            window.location.href = homeRedirect;
-            return;
-        }
 
         const stepGoogle = document.getElementById('step-google');
         const stepEmail = document.getElementById('step-email');
@@ -187,4 +178,4 @@ if (verifyEmailBtn) {
             showMessage('❌ ' + error.message, 'error');
         }
     });
-    }
+}
