@@ -109,6 +109,22 @@
             padding: 4px;
             cursor: pointer;
         }
+        .build-field textarea {
+            width: 100%;
+            padding: 8px;
+            background: #1a1a2e;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 60px;
+        }
+        .build-field textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
         .build-label {
             display: block;
             font-size: 12px;
@@ -225,6 +241,11 @@
                     </select>
 
                     <div id="templateFields"></div>
+
+                    <div class="build-field">
+                        <label>Description (optional)</label>
+                        <textarea id="gameDescription" rows="3" placeholder="Tell people what your game is about..." maxlength="200"></textarea>
+                    </div>
 
                     <button id="buildReset" class="build-reset">↻ Reset from template</button>
                 </div>
