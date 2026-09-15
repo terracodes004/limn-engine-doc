@@ -246,83 +246,72 @@ header {
 }
 
 #user-banner {
-  position: absolute;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 90;
+  position: absolute !important;
+  top: 80px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 90 !important;
 
-  background:
-    radial-gradient(circle at 20% 0%, rgba(139, 92, 246, 0.35), transparent 55%),
-    radial-gradient(circle at 80% 100%, rgba(236, 72, 153, 0.28), transparent 55%),
-    linear-gradient(135deg,
-      rgba(15, 23, 42, 0.98) 0%,
-      rgba(30, 27, 75, 0.98) 50%,
-      rgba(88, 28, 135, 0.95) 100%
-    );
+  background: linear-gradient(
+    90deg,
+    #ff0080 0%,
+    #ff8800 16%,
+    #ffdd00 32%,
+    #39ff14 48%,
+    #00ccff 64%,
+    #7c3aed 82%,
+    #ff0080 100%
+  ) !important;
+  background-size: 200% 100% !important;
 
-  color: #e2e8f0 !important;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 100px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.2px;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 6px 14px !important;
+  border-radius: 100px !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.3px !important;
   text-decoration: none !important;
 
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-
-  backdrop-filter: blur(14px) saturate(160%);
-  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
 
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.12) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.3) inset,
-    0 2px 10px rgba(0, 0, 0, 0.45),
-    0 0 12px rgba(139, 92, 246, 0.35);
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.25) inset,
+    0 2px 10px rgba(0, 0, 0, 0.4),
+    0 0 12px rgba(255, 0, 128, 0.4) !important;
 
-  transition: transform 0.25s ease;
-  overflow: hidden;
-  isolation: isolate;
-  white-space: nowrap;
-  max-width: 90vw;
+  transition: transform 0.25s ease !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+  white-space: nowrap !important;
+  max-width: 90vw !important;
 
-  animation: pulseGlow 3s ease-in-out infinite;
+  animation: rainbowSlide 6s linear infinite, pulseGlow 3s ease-in-out infinite !important;
 }
 
 #user-banner::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  background: conic-gradient(
-    from 0deg,
-    #0066ff,
-    #7c3aed,
-    #ec4899,
-    #f59e0b,
-    #22d3ee,
-    #0066ff
-  );
-  z-index: -1;
-  padding: 1.5px;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box,
-                linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0.9;
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: 100px !important;
+  background: rgba(15, 23, 42, 0.55) !important;
+  z-index: 0 !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  pointer-events: none !important;
 }
 
-
 #user-banner::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -120%;
-  width: 120%;
-  height: 100%;
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -120% !important;
+  width: 120% !important;
+  height: 100% !important;
+  border-radius: 100px !important;
   background: linear-gradient(
     90deg,
     transparent 0%,
@@ -332,90 +321,76 @@ header {
     rgba(255, 255, 255, 0.05) 55%,
     transparent 65%,
     transparent 100%
-  );
-  z-index: 3;
-  pointer-events: none;
-  animation: lightSweep 4.5s ease-in-out infinite;
-  animation-delay: 0.5s;
-  border-radius: inherit;
+  ) !important;
+  z-index: 3 !important;
+  pointer-events: none !important;
+  animation: lightSweep 4.5s ease-in-out infinite !important;
 }
 
 #user-banner > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  position: relative;
-  z-index: 2;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  position: relative !important;
+  z-index: 2 !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
 }
 
 #user-banner strong {
-  font-weight: 800;
-  letter-spacing: 0.2px;
-
-  background: linear-gradient(
-    135deg,
-    #fef3c7 0%,
-    #fcd34d 35%,
-    #fbbf24 65%,
-    #f59e0b 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+  font-weight: 900 !important;
+  letter-spacing: 0.3px !important;
+  color: #ffffff !important;
+  background: transparent !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow:
+    0 0 4px rgba(0, 0, 0, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.4) !important;
 }
 
 #user-banner:hover {
-  transform: translateX(-50%) translateY(-1px) scale(1.03);
-  animation-play-state: paused;
+  transform: translateX(-50%) translateY(-1px) scale(1.04) !important;
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
     0 -1px 0 rgba(0, 0, 0, 0.3) inset,
     0 4px 14px rgba(0, 0, 0, 0.5),
-    0 0 24px rgba(139, 92, 246, 0.7),
-    0 0 40px rgba(236, 72, 153, 0.4);
+    0 0 24px rgba(255, 0, 128, 0.7),
+    0 0 40px rgba(0, 204, 255, 0.5) !important;
 }
 
+@keyframes rainbowSlide {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
 
 @keyframes lightSweep {
-  0% {
-    left: -120%;
-  }
-  40% {
-    left: -120%;
-  }
-  60% {
-    left: 100%;
-  }
-  100% {
-    left: 100%;
-  }
+  0%, 40%   { left: -120%; }
+  60%, 100% { left: 100%; }
 }
-
 
 @keyframes pulseGlow {
   0%, 100% {
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.12) inset,
-      0 -1px 0 rgba(0, 0, 0, 0.3) inset,
-      0 2px 10px rgba(0, 0, 0, 0.45),
-      0 0 12px rgba(139, 92, 246, 0.35);
+      0 1px 0 rgba(255, 255, 255, 0.35) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.25) inset,
+      0 2px 10px rgba(0, 0, 0, 0.4),
+      0 0 12px rgba(255, 0, 128, 0.4);
   }
   50% {
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.18) inset,
+      0 1px 0 rgba(255, 255, 255, 0.4) inset,
       0 -1px 0 rgba(0, 0, 0, 0.3) inset,
-      0 2px 12px rgba(0, 0, 0, 0.5),
-      0 0 22px rgba(139, 92, 246, 0.6),
-      0 0 36px rgba(236, 72, 153, 0.3);
+      0 2px 12px rgba(0, 0, 0, 0.45),
+      0 0 22px rgba(255, 136, 0, 0.55),
+      0 0 36px rgba(0, 204, 255, 0.35);
   }
 }
 
-
 #user-banner .greeting-emoji.emoji-sun {
-  display: inline-block;
-  animation: sunSpin 8s linear infinite;
-  transform-origin: center;
+  display: inline-block !important;
+  animation: sunSpin 8s linear infinite !important;
+  transform-origin: center !important;
 }
 
 @keyframes sunSpin {
@@ -424,8 +399,8 @@ header {
 }
 
 #user-banner .greeting-emoji.emoji-cloud {
-  display: inline-block;
-  animation: cloudFloat 3s ease-in-out infinite;
+  display: inline-block !important;
+  animation: cloudFloat 3s ease-in-out infinite !important;
 }
 
 @keyframes cloudFloat {
@@ -434,9 +409,9 @@ header {
 }
 
 #user-banner .greeting-emoji.emoji-sunset {
-  display: inline-block;
-  animation: sunsetTilt 4s ease-in-out infinite;
-  transform-origin: center bottom;
+  display: inline-block !important;
+  animation: sunsetTilt 4s ease-in-out infinite !important;
+  transform-origin: center bottom !important;
 }
 
 @keyframes sunsetTilt {
@@ -446,8 +421,8 @@ header {
 }
 
 #user-banner .greeting-emoji.emoji-moon {
-  display: inline-block;
-  animation: moonGlow 3s ease-in-out infinite;
+  display: inline-block !important;
+  animation: moonGlow 3s ease-in-out infinite !important;
 }
 
 @keyframes moonGlow {
@@ -458,22 +433,6 @@ header {
   50% {
     filter: drop-shadow(0 0 8px rgba(200, 220, 255, 0.9));
     transform: scale(1.08);
-  }
-}
-
-@media (max-width: 480px) {
-  #user-banner {
-    top: 72px;
-    font-size: 0.66rem;
-    padding: 5px 12px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #user-banner,
-  #user-banner::after,
-  #user-banner .greeting-emoji {
-    animation: none;
   }
 }
 #installAppBtn {
