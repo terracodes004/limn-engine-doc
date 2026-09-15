@@ -315,7 +315,7 @@ header {
   opacity: 0.9;
 }
 
-/* ===== Light streak that passes through ===== */
+
 #user-banner::after {
   content: "";
   position: absolute;
@@ -376,7 +376,7 @@ header {
     0 0 40px rgba(236, 72, 153, 0.4);
 }
 
-/* ===== Light streak animation ===== */
+
 @keyframes lightSweep {
   0% {
     left: -120%;
@@ -392,7 +392,7 @@ header {
   }
 }
 
-/* ===== Pulse glow ===== */
+
 @keyframes pulseGlow {
   0%, 100% {
     box-shadow:
@@ -411,7 +411,7 @@ header {
   }
 }
 
-/* ===== Animated emoji ===== */
+
 #user-banner .greeting-emoji.emoji-sun {
   display: inline-block;
   animation: sunSpin 8s linear infinite;
