@@ -841,10 +841,6 @@ footer {
     font-size: 0.75rem;
   }
 
-  #user-banner {
-    display: none;
-  }
-
   .con {
     width: 100%;
     padding: 0 10px;
