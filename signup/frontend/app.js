@@ -14,8 +14,6 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange(
           user_id: session.user.id
         });
         console.log('✅ GA4 sign_up event sent for:', session.user.email);
-      } else {
-        console.warn('⚠️ gtag not found – GA4 script might not be loaded.');
       }
     }
   }
@@ -61,9 +59,40 @@ function showMessage(text, type = 'error') {
     }
 }
 
+function getGreeting(name) {
+    const hour = new Date().getHours();
+    let prefix, emoji;
+    if (hour < 12) { prefix = 'Good morning'; emoji = '☀️'; }
+    else if (hour < 17) { prefix = 'Good afternoon'; emoji = '🌤'; }
+    else if (hour < 21) { prefix = 'Good evening'; emoji = '🌆'; }
+    else { prefix = 'Good night'; emoji = '🌙'; }
+    return { emoji, text: prefix, name: name || '' };
+}
+
+function renderBanner(userBanner, displayName) {
+    if (!userBanner) return;
+    const g = getGreeting(displayName);
+    const nameHtml = g.name
+        ? ' <strong style="color:#fbbf24; font-weight:700;">' + g.name + '</strong>'
+        : '';
+    userBanner.innerHTML =
+        '<span style="display:inline-flex; align-items:center; gap:10px;' +
+        'padding:10px 18px;' +
+        'background:linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.15));' +
+        'border:1px solid rgba(139,92,246,0.35);' +
+        'border-radius:12px;' +
+        'font-size:15px; font-weight:600; color:#e2e8f0;' +
+        'box-shadow:0 4px 20px rgba(139,92,246,0.15);' +
+        'backdrop-filter:blur(8px);">' +
+        '<span style="font-size:20px;">' + g.emoji + '</span>' +
+        '<span>' + g.text + ',' + nameHtml + '</span>' +
+        '</span>';
+    userBanner.style.display = 'inline-flex';
+}
+
 async function checkUserRouting() {
     let { data: { session }, error } = await supabase.auth.getSession();
-    
+
     if (!session) {
         await new Promise(resolve => setTimeout(resolve, 300));
         const retryResult = await supabase.auth.getSession();
@@ -74,7 +103,7 @@ async function checkUserRouting() {
 
     if (session) {
         const userEmail = session.user.email;
-
+        let displayName = '';
         let userAvatarUrl = 'img/logo.png';
 
         const { data: profile } = await supabase
@@ -83,14 +112,17 @@ async function checkUserRouting() {
             .eq('user_id', session.user.id)
             .maybeSingle();
 
+        if (profile && profile.display_name) {
+            displayName = profile.display_name;
+            localStorage.setItem('limn_username', profile.display_name);
+        }
+
         if (profile && profile.avatar_url) {
             userAvatarUrl = profile.avatar_url;
             localStorage.setItem('limn_avatar', profile.avatar_url);
         }
 
-        if (profile && profile.display_name) {
-            localStorage.setItem('limn_username', profile.display_name);
-        }
+        renderBanner(userBanner, displayName);
 
         if (authButtons) authButtons.style.display = 'none';
         if (userDropdown) userDropdown.style.display = 'block';
@@ -100,6 +132,12 @@ async function checkUserRouting() {
 
         const avatarImg = document.getElementById('user-avatar');
         if (avatarImg) avatarImg.src = userAvatarUrl;
+
+        const profileLink = document.getElementById('my-profile-link');
+        if (profileLink && profile && profile.username) {
+            profileLink.href = '/u/?u=' + encodeURIComponent(profile.username);
+            profileLink.textContent = '👤 My Profile (@' + profile.username + ')';
+        }
 
         const stepGoogle = document.getElementById('step-google');
         const stepEmail = document.getElementById('step-email');
@@ -144,7 +182,7 @@ if (sendEmailBtn) {
             email: email,
             options: { emailRedirectTo: callbackPath }
         });
-        
+
         if (!error) {
             showMessage('✅ Verification code sent to your email!', 'success');
             const otpSection = document.getElementById('otp-section');
@@ -170,7 +208,7 @@ if (verifyEmailBtn) {
             token: token,
             type: 'email'
         });
-        
+
         if (!error) {
             showMessage('🎉 Email verified! Redirecting...', 'success');
             setTimeout(() => { window.location.href = homeRedirect; }, 1500);
