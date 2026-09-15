@@ -22,6 +22,8 @@
           grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
           gap: 18px; }
 
+  .card-wrap { position: relative; }
+
   .card {
     background: linear-gradient(180deg,#15152a,#10101e);
     border: 1px solid rgba(255,255,255,0.12);
@@ -32,7 +34,7 @@
     display: block;
     transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
   }
-  .card:hover {
+  .card-wrap:hover .card {
     transform: translateY(-2px);
     border-color: rgba(68,170,255,0.6);
     box-shadow: 0 8px 24px rgba(68,170,255,0.15);
@@ -41,15 +43,70 @@
   .thumb { width: 100%; aspect-ratio: 4/3; display: block; }
 
   .info { padding: 14px 16px; }
-  .info h3 { margin: 0 0 6px; font-size: 15px;
-             white-space: nowrap; overflow: hidden;
-             text-overflow: ellipsis; }
+  .info h3 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .info .desc {
+    margin: 0 0 8px;
+    font-size: 12px;
+    opacity: 0.55;
+    line-height: 1.4;
+    max-height: 2.8em;
+    overflow: hidden;
+  }
 
-  .stats { font-size: 12px; opacity: 0.85;
-           display: flex; gap: 14px;
-           font-weight: 600;
-           color: #fbbf24; }
+  .stats {
+    font-size: 12px;
+    opacity: 0.85;
+    display: flex;
+    gap: 14px;
+    font-weight: 600;
+    color: #fbbf24;
+  }
   .stats span { display: inline-flex; align-items: center; gap: 4px; }
+
+  .actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .card-wrap:hover .actions,
+  .card-wrap:focus-within .actions {
+    opacity: 1;
+  }
+
+  .action-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(10,10,20,0.85);
+    backdrop-filter: blur(8px);
+    color: #ffffff;
+    font-size: 15px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.15s;
+    padding: 0;
+  }
+  .action-btn:hover {
+    background: rgba(68,170,255,0.3);
+    transform: scale(1.08);
+  }
+  .action-btn.danger:hover {
+    background: rgba(239,68,68,0.35);
+  }
 
   .empty {
     grid-column: 1 / -1;
@@ -64,14 +121,6 @@
     font-weight: 700;
   }
   .empty a:hover { text-decoration: underline; }
-
-  .err {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 80px 20px;
-    color: #f87171;
-    font-size: 14px;
-  }
 </style>
 </head>
 <body>
@@ -115,13 +164,13 @@ async function boot() {
 
   const { data: games, error } = await supabase
     .from('games')
-    .select('id, slug, title, config, plays, created_at')
+    .select('id, slug, title, description, config, plays, created_at')
     .eq('author_id', user.id)
     .order('created_at', { ascending: false });
 
   if (error) {
     subtitle.textContent = 'Failed to load games.';
-    grid.innerHTML = '<div class="err">' + esc(error.message) + '</div>';
+    grid.innerHTML = '<div class="empty" style="color:#f87171">' + esc(error.message) + '</div>';
     return;
   }
 
@@ -139,15 +188,10 @@ async function boot() {
 
   const ids = list.map(g => g.id);
 
-  const likesRes = await supabase
-    .from('likes')
-    .select('game_id')
-    .in('game_id', ids);
-
-  const commentsRes = await supabase
-    .from('comments')
-    .select('game_id')
-    .in('game_id', ids);
+  const [likesRes, commentsRes] = await Promise.all([
+    supabase.from('likes').select('game_id').in('game_id', ids),
+    supabase.from('comments').select('game_id').in('game_id', ids)
+  ]);
 
   const lc = {}, cc = {};
   for (const l of likesRes.data || []) lc[l.game_id] = (lc[l.game_id] || 0) + 1;
@@ -155,21 +199,63 @@ async function boot() {
 
   grid.innerHTML = '';
   for (const g of list) {
-    const a = document.createElement('a');
-    a.className = 'card';
-    a.href = '/arcade/game.html?slug=' + encodeURIComponent(g.slug);
-    a.innerHTML =
-      thumbSVG(g.config) +
-      '<div class="info">' +
-        '<h3>' + esc(g.title) + '</h3>' +
-        '<div class="stats">' +
-          '<span>♥ ' + (lc[g.id] || 0) + '</span>' +
-          '<span>💬 ' + (cc[g.id] || 0) + '</span>' +
-          '<span>▶ ' + (g.plays || 0) + '</span>' +
+    const wrap = document.createElement('div');
+    wrap.className = 'card-wrap';
+
+    const descHtml = g.description
+      ? '<p class="desc">' + esc(g.description) + '</p>'
+      : '';
+
+    wrap.innerHTML =
+      '<a class="card" href="/arcade/game.html?slug=' + encodeURIComponent(g.slug) + '">' +
+        thumbSVG(g.config) +
+        '<div class="info">' +
+          '<h3>' + esc(g.title) + '</h3>' +
+          descHtml +
+          '<div class="stats">' +
+            '<span>♥ ' + (lc[g.id] || 0) + '</span>' +
+            '<span>💬 ' + (cc[g.id] || 0) + '</span>' +
+            '<span>▶ ' + (g.plays || 0) + '</span>' +
+          '</div>' +
         '</div>' +
+      '</a>' +
+      '<div class="actions">' +
+        '<a class="action-btn" href="/editor/?edit=' + encodeURIComponent(g.slug) + '" title="Edit">✏️</a>' +
+        '<button class="action-btn danger" data-delete="' + g.slug + '" data-title="' + esc(g.title) + '" title="Delete">🗑️</button>' +
       '</div>';
-    grid.appendChild(a);
+
+    grid.appendChild(wrap);
   }
+
+  grid.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const slug = btn.dataset.delete;
+      const title = btn.dataset.title;
+
+      if (!confirm('Delete "' + title + '"?\n\nThis cannot be undone.')) return;
+
+      btn.textContent = '⏳';
+      btn.disabled = true;
+
+      const { error } = await supabase
+        .from('games')
+        .delete()
+        .eq('slug', slug)
+        .eq('author_id', user.id);
+
+      if (error) {
+        alert('Failed to delete: ' + error.message);
+        btn.textContent = '🗑️';
+        btn.disabled = false;
+        return;
+      }
+
+      const wrap = btn.closest('.card-wrap');
+      if (wrap) wrap.remove();
+    });
+  });
 }
 
 function thumbSVG(config) {
@@ -177,31 +263,24 @@ function thumbSVG(config) {
   const world = (config && config.world) || { w: 800, h: 600, bg: '#0d0d2a' };
   const slots = (config && config.slots) || [];
   const sx = w / world.w, sy = h / world.h;
-
   let rects = '';
   for (const s of slots) {
-    rects += '<rect x="' + (s.x * sx) + '" y="' + (s.y * sy) +
-             '" width="' + (s.w * sx) + '" height="' + (s.h * sy) +
-             '" fill="' + (s.color || '#4af') + '" />';
+    rects += '<rect x="' + (s.x*sx) + '" y="' + (s.y*sy) +
+             '" width="' + (s.w*sx) + '" height="' + (s.h*sy) +
+             '" fill="' + (s.color||'#4af') + '" />';
   }
-
   if (!rects) {
-    rects = '<text x="' + (w / 2) + '" y="' + (h / 2) +
+    rects = '<text x="' + (w/2) + '" y="' + (h/2) +
             '" text-anchor="middle" fill="#4af" font-size="40">▶</text>';
   }
-
   return '<svg class="thumb" viewBox="0 0 ' + w + ' ' + h +
     '" preserveAspectRatio="xMidYMid slice" style="background:' +
-    (world.bg || '#0d0d2a') + '">' + rects + '</svg>';
+    (world.bg||'#0d0d2a') + '">' + rects + '</svg>';
 }
 
 function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   })[c]);
 }
 
@@ -209,4 +288,4 @@ boot();
 </script>
 
 </body>
-     </html>
+</html>
