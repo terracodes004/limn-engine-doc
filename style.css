@@ -254,14 +254,7 @@ header {
 
   background: linear-gradient(
     90deg,
-    #ff0080 0%,
-    #ff4500 14%,
-    #ffdd00 28%,
-    #39ff14 43%,
-    #00ccff 57%,
-    #7c3aed 71%,
-    #ff0080 85%,
-    #ff0080 100%
+    #ff0080, #7c3aed
   ) !important;
 
   color: #ffffff !important;
