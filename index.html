@@ -118,13 +118,10 @@ window.addEventListener('appinstalled', () => {
     </div>
   </div>
 
-  <div id="user-banner" style="display: none;">
-    <span>👤 Signed in as <strong id="persistent-name"></strong></span>
-  </div>
+  <div id="user-banner" style="display: none;"></div>
   <img src="img/logo.png" id="logo" alt="Limn Engine">
   <div class="con">
     <h1>Limn Engine</h1>
-    <p id="greeting-text" style="font-size: 16px; opacity: 0.85; margin: 10px 0 0 0; font-weight: 500;"></p>
     <center><p class="hero-text">A zero-config 2D game engine for the browser. One file. No npm. Just creativity.</p></center>
     <div class="con-btns">
       <a href="tutorial.html" class="btn-secondary">Learn the Engine →</a>
@@ -284,83 +281,6 @@ function update(dt) {
 
 <script type="module" src="signup/frontend/app.js"></script>
 <script src="bugTrackerSystem.js"></script>
-
-<script>
-window.addEventListener('DOMContentLoaded', async () => {
-
-  function getGreeting(name) {
-    const hour = new Date().getHours();
-    let prefix;
-    if (hour < 12) prefix = '☀️ Good morning';
-    else if (hour < 17) prefix = '🌤 Good afternoon';
-    else if (hour < 21) prefix = '🌆 Good evening';
-    else prefix = '🌙 Good night';
-    return prefix + (name ? ', ' + name : '');
-  }
-
-  const greetingEl = document.getElementById('greeting-text');
-  const savedName = localStorage.getItem('limn_username');
-  const savedAvatar = localStorage.getItem('limn_avatar');
-
-  if (greetingEl) {
-    greetingEl.textContent = getGreeting(savedName || '');
-  }
-
-  if (savedAvatar) {
-    const avatarEl = document.getElementById('user-avatar');
-    if (avatarEl) avatarEl.src = savedAvatar;
-  }
-
-  const nameEl = document.getElementById('persistent-name');
-  if (nameEl && savedName) {
-    nameEl.textContent = savedName;
-  }
-
-  const profileLink = document.getElementById('my-profile-link');
-  if (!profileLink) return;
-
-  try {
-    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-    const supabase = createClient(
-      'https://pjtpesdhjfvcidfkxord.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38'
-    );
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('username, display_name, avatar_url')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (profile) {
-      if (profile.display_name) {
-        localStorage.setItem('limn_username', profile.display_name);
-        if (greetingEl) greetingEl.textContent = getGreeting(profile.display_name);
-        if (nameEl) nameEl.textContent = profile.display_name;
-      }
-
-      if (profile.avatar_url) {
-        localStorage.setItem('limn_avatar', profile.avatar_url);
-        const avatarEl = document.getElementById('user-avatar');
-        if (avatarEl) avatarEl.src = profile.avatar_url;
-      }
-
-      if (profile.username) {
-        profileLink.href = '/u/?u=' + encodeURIComponent(profile.username);
-        profileLink.textContent = '👤 My Profile (@' + profile.username + ')';
-      } else {
-        profileLink.href = '/settings.html';
-        profileLink.textContent = '👤 Set up profile';
-      }
-    }
-  } catch (e) {
-    console.log('Profile link setup skipped:', e.message);
-  }
-});
-</script>
 <script src="search.js"></script>
 <script type="module" src="script.js"></script>
 </body>
