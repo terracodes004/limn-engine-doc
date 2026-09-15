@@ -11,49 +11,134 @@
          min-height: 100vh; }
   header { padding: 20px 32px; display: flex;
            justify-content: space-between; align-items: center;
-           border-bottom: 1px solid rgba(255,255,255,0.06);
+           border-bottom: 1px solid rgba(255,255,255,0.1);
            gap: 16px; flex-wrap: wrap; }
   header h1 { margin: 0; font-size: 22px; letter-spacing: -0.5px; }
   .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
   .nav-links a { color: #4af; text-decoration: none; font-weight: 600;
                  padding: 8px 16px; border-radius: 8px;
                  background: rgba(68,170,255,0.1);
+                 border: 1px solid rgba(68,170,255,0.25);
                  font-size: 14px; }
   .nav-links a:hover { background: rgba(68,170,255,0.2); }
   .search-bar { padding: 16px 32px 0;
                 max-width: 1400px; margin: 0 auto; }
   .search-bar input { width: 100%; padding: 14px 18px;
                       background: #15152a;
-                      border: 1px solid rgba(255,255,255,0.08);
+                      border: 1px solid rgba(255,255,255,0.12);
                       border-radius: 10px; color: #fff;
                       font-size: 15px; font-family: inherit; }
   .search-bar input:focus { outline: none;
-                            border-color: rgba(68,170,255,0.5); }
+                            border-color: rgba(68,170,255,0.6);
+                            box-shadow: 0 0 0 3px rgba(68,170,255,0.15); }
   .featured-wrap { padding: 20px 32px 0;
                    max-width: 1400px; margin: 0 auto; }
   main { padding: 24px 32px 32px; display: grid;
          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
          gap: 20px; max-width: 1400px; margin: 0 auto; }
   .card { background: linear-gradient(180deg,#15152a,#10101e);
-          border: 1px solid rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.12);
           border-radius: 14px; overflow: hidden;
-          transition: transform 0.15s, border-color 0.15s;
+          transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
           text-decoration: none; color: inherit; display: block; }
   .card:hover { transform: translateY(-2px);
-                border-color: rgba(68,170,255,0.4); }
+                border-color: rgba(68,170,255,0.6);
+                box-shadow: 0 8px 24px rgba(68,170,255,0.15); }
   .thumb { width: 100%; aspect-ratio: 4/3; display: block; }
   .info { padding: 14px 16px; }
   .info h3 { margin: 0 0 4px; font-size: 16px;
              white-space: nowrap; overflow: hidden;
              text-overflow: ellipsis; }
-  .info p { margin: 0; font-size: 13px; opacity: 0.5;
+  .info p { margin: 0; font-size: 13px; opacity: 0.7;
             white-space: nowrap; overflow: hidden;
             text-overflow: ellipsis; }
-  .info a { color: inherit; text-decoration: none; }
-  .info a:hover { color: #4af; opacity: 1 !important; }
+  .info a { color: #fbbf24; text-decoration: none; font-weight: 600; }
+  .info a:hover { color: #fde68a; text-decoration: underline; }
   .empty { grid-column: 1/-1; text-align: center;
            padding: 80px 20px; opacity: 0.5; }
   .empty a { color: #4af; text-decoration: none; font-weight: 600; }
+
+  .featured {
+    border-radius: 18px;
+    padding: 32px;
+    display: flex; align-items: center; gap: 24px;
+    flex-wrap: wrap;
+    position: relative;
+    overflow: hidden;
+    background:
+      linear-gradient(135deg,
+        #ec4899 0%,
+        #f97316 25%,
+        #facc15 50%,
+        #22d3ee 75%,
+        #6366f1 100%);
+    box-shadow: 0 12px 40px rgba(236,72,153,0.3),
+                0 4px 16px rgba(34,211,238,0.2);
+  }
+  .featured::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg,
+      rgba(0,0,0,0.15) 0%,
+      rgba(0,0,0,0.35) 100%);
+    pointer-events: none;
+  }
+  .featured > * { position: relative; z-index: 1; }
+  .featured-tag {
+    font-size: 12px; font-weight: 900;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    margin-bottom: 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .featured-title {
+    margin: 0 0 8px; font-size: 30px;
+    letter-spacing: -0.7px;
+    color: #ffffff;
+    font-weight: 900;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    line-height: 1.1;
+  }
+  .featured-sub {
+    margin: 0; font-size: 15px;
+    color: rgba(255,255,255,0.95);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  }
+  .featured-sub a {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 800;
+    border-bottom: 2px solid rgba(255,255,255,0.6);
+    padding-bottom: 1px;
+  }
+  .featured-sub a:hover {
+    border-bottom-color: #ffffff;
+  }
+  .featured-hearts {
+    display: inline-flex; align-items: center; gap: 4px;
+    color: #ffffff;
+    font-weight: 800;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  }
+  .featured-play {
+    padding: 16px 32px;
+    background: #0a0a14;
+    color: #ffffff;
+    border-radius: 12px;
+    font-weight: 800;
+    text-decoration: none;
+    font-size: 16px;
+    border: 2px solid rgba(255,255,255,0.8);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    transition: transform 0.15s, background 0.15s;
+  }
+  .featured-play:hover {
+    transform: scale(1.05);
+    background: #1a1a2e;
+  }
 </style>
 </head>
 <body>
@@ -114,7 +199,15 @@ function creatorLabel(game) {
 function creatorLink(game) {
   const profile = profileMap[game.author_id];
   if (profile && profile.username) {
-    return '<a href="/u/?u=' + encodeURIComponent(profile.username) + '" style="opacity:0.7">@' + esc(profile.username) + '</a>';
+    return '<a href="/u/?u=' + encodeURIComponent(profile.username) + '">@' + esc(profile.username) + '</a>';
+  }
+  return esc(creatorLabel(game));
+}
+
+function creatorLinkFeatured(game) {
+  const profile = profileMap[game.author_id];
+  if (profile && profile.username) {
+    return '<a href="/u/?u=' + encodeURIComponent(profile.username) + '">@' + esc(profile.username) + '</a>';
   }
   return esc(creatorLabel(game));
 }
@@ -192,25 +285,22 @@ async function loadFeatured() {
   const wrap = document.getElementById('featuredWrap');
   wrap.style.display = 'block';
   wrap.innerHTML = `
-    <div style="background: linear-gradient(135deg, #1e3a8a, #7c3aed);
-                border-radius: 16px; padding: 28px;
-                display: flex; align-items: center; gap: 24px;
-                flex-wrap: wrap;">
+    <div class="featured">
       <div style="flex: 1; min-width: 200px;">
-        <div style="font-size: 12px; font-weight: 800;
-                    letter-spacing: 2px; opacity: 0.8;
-                    margin-bottom: 6px;">🏆 GAME OF THE WEEK</div>
-        <h2 style="margin: 0 0 6px; font-size: 26px;
-                   letter-spacing: -0.5px; color:#fff;">${esc(top.title)}</h2>
-        <p style="margin: 0; opacity: 0.85; font-size: 14px;">
-          by ${creatorLink(top)} · ♥ ${counts[topId]}
+        <div class="featured-tag">
+          <span>🏆</span>
+          <span>Game of the Week</span>
+        </div>
+        <h2 class="featured-title">${esc(top.title)}</h2>
+        <p class="featured-sub">
+          by ${creatorLinkFeatured(top)}
+          &nbsp;·&nbsp;
+          <span class="featured-hearts">♥ ${counts[topId]}</span>
         </p>
       </div>
       <a href="/arcade/game.html?slug=${encodeURIComponent(top.slug)}"
-         style="padding: 14px 28px; background: #fff; color: #1e3a8a;
-                border-radius: 12px; font-weight: 800;
-                text-decoration: none; font-size: 15px;">
-        Play Now →
+         class="featured-play">
+        ▶ Play Now
       </a>
     </div>`;
 }
