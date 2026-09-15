@@ -106,10 +106,14 @@
         .maybeSingle();
 
       if (data) {
-        if (data.display_name) nameInput.value = data.display_name;
+        if (data.display_name) {
+          nameInput.value = data.display_name;
+          localStorage.setItem('limn_username', data.display_name);
+        }
         if (data.avatar_url) {
           avatarInput.value = data.avatar_url;
           avatarPreview.src = data.avatar_url;
+          localStorage.setItem('limn_avatar', data.avatar_url);
         }
         if (data.username) {
           usernameInput.value = data.username;
@@ -187,6 +191,11 @@
         statusMsg.style.color = '#f87171';
         statusMsg.textContent = '⚠️ ' + error.message;
         return;
+      }
+
+      localStorage.setItem('limn_username', newName);
+      if (newAvatarUrl) {
+        localStorage.setItem('limn_avatar', newAvatarUrl);
       }
 
       if (!usernameIsLocked && upsertData.username) {
