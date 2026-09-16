@@ -248,7 +248,7 @@ header {
 #user-banner {
   position: fixed !important;
   top: 0px !important;
-  left: 0 !important;
+  left: 50% !important;
   transform: translateX(-50%) !important;
   z-index: 90 !important;
   opacity:0;
