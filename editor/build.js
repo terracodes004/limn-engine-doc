@@ -11,6 +11,14 @@
 
     var lastGenerated = '';
 
+    // One-shot flag: skip only the very first auto-regenerate
+    // (used so fork/edit code isn't clobbered on page load)
+    var params = new URLSearchParams(location.search);
+    var isForkOrEdit = params.get('fork') === '1' 
+                || params.get('edit') 
+                || params.get('id');    
+    var skipNextRegenerate = isForkOrEdit;   // ← the flag
+
     function currentTemplate() {
       return window.LimnTemplates[select.value];
     }
@@ -32,6 +40,13 @@
       window.currentConfig = tpl.config ? tpl.config(cfg) : null;
 
       lastGenerated = tpl.generate(cfg);
+
+      // Skip only the first auto-run in fork/edit mode
+      if (skipNextRegenerate) {
+        skipNextRegenerate = false;
+        return;
+      }
+
       textarea.value = lastGenerated;
     }
 
@@ -64,9 +79,7 @@
     select.addEventListener('change', renderFields);
 
     if (resetBtn) {
-      resetBtn.addEventListener('click', function () {
-        regenerate();
-      });
+      resetBtn.addEventListener('click', regenerate);
     }
 
     var tabs = document.querySelectorAll('.tab');
