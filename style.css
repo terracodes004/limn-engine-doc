@@ -284,15 +284,15 @@ header {
 
   /* Combined animations: fade in/out + pulse glow */
   animation: 
-    fadeInOut 12s ease-in-out,
+    fadeInOut 30s ease-in-out,
     pulseGlow 3s ease-in-out infinite !important;
 }
 
 /* Visible → Invisible → Visible */
 @keyframes fadeInOut {
-  0%   { opacity: 1; }
-  50%  { opacity: 0; }
-  100% { opacity: 1; }
+  0%   { opacity: 0; }
+  50%  { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 /* Keep your existing pulse glow (in case it wasn't defined) */
