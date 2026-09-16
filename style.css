@@ -251,7 +251,7 @@ header {
   left: 50% !important;
   transform: translateX(-50%) !important;
   z-index: 90 !important;
-
+  opacity:1;
   background: linear-gradient(
     90deg,
     #ff0080, #7c3aed
@@ -284,7 +284,7 @@ header {
 
   /* Combined animations: fade in/out + pulse glow */
   animation: 
-    fadeInOut 30s ease-in-out,
+    fadeInOut 20s ease-in-out,
     pulseGlow 3s ease-in-out infinite !important;
 }
 
