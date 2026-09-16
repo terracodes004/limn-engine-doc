@@ -271,10 +271,10 @@ header {
   gap: 5px !important;
 
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.35) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.25) inset,
-    0 2px 10px rgba(0, 0, 0, 0.4),
-    0 0 12px rgba(255, 0, 128, 0.4) !important;
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.15) inset,
+    0 2px 10px rgba(0, 0, 0, 0.3),
+    0 0 12px rgba(255, 0, 128, 0.3) !important;
 
   transition: all !important;
   overflow: hidden !important;
@@ -284,7 +284,7 @@ header {
 
   /* Combined animations: fade in/out + pulse glow */
   animation: 
-    fadeInOut 15s ease-in-out,
+    fadeInOut 10s ease-in-out,
     pulseGlow 3s ease-in-out infinite !important;
 }
 
