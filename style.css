@@ -261,8 +261,8 @@ header {
   border: none !important;
   padding: 6px 14px !important;
   border-radius: 100px !important;
-  font-size: 0.7rem !important;
-  font-weight: 700 !important;
+  font-size: 0.5rem !important;
+  font-weight: 500 !important;
   letter-spacing: 0.3px !important;
   text-decoration: none !important;
 
@@ -276,14 +276,42 @@ header {
     0 2px 10px rgba(0, 0, 0, 0.4),
     0 0 12px rgba(255, 0, 128, 0.4) !important;
 
-  transition: transform 0.25s ease !important;
+  transition: all !important;
   overflow: hidden !important;
   isolation: isolate !important;
   white-space: nowrap !important;
   max-width: 90vw !important;
 
-  animation: pulseGlow 3s ease-in-out infinite !important;
+  /* Combined animations: fade in/out + pulse glow */
+  animation: 
+    fadeInOut 4s ease-in-out infinite,
+    pulseGlow 3s ease-in-out infinite !important;
 }
+
+/* Visible → Invisible → Visible */
+@keyframes fadeInOut {
+  0%   { opacity: 1; }
+  50%  { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Keep your existing pulse glow (in case it wasn't defined) */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.35) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.25) inset,
+      0 2px 10px rgba(0, 0, 0, 0.4),
+      0 0 12px rgba(255, 0, 128, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.35) inset,
+      0 -1px 0 rgba(0, 0, 0, 0.25) inset,
+      0 2px 10px rgba(0, 0, 0, 0.4),
+      0 0 22px rgba(124, 58, 237, 0.7);
+  }
+    }
  
 #installAppBtn {
   background: transparent;
