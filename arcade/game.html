@@ -103,6 +103,7 @@
       <button class="btn" id="likeBtn">♥ <span id="likeCount">0</span></button>
       <button class="btn" id="shareBtn">🔗 Share</button>
       <button class="btn" id="forkBtn">✎ Fork</button>
+      <button class="btn" id="fsBtn">⛶ Fullscreen</button>
       <a class="btn" href="/arcade/">← Arcade</a>
     </div>
     <div class="section">
@@ -203,7 +204,7 @@ function renderGame(data) {
 
   html += '</body></html>';
 
-  stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" id="gameFrame"></iframe>';
+  stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" allowfullscreen id="gameFrame"></iframe>';
   document.getElementById('gameFrame').srcdoc = html;
 }
 
@@ -253,6 +254,42 @@ function wireButtons(data) {
     localStorage.setItem('limn_fork_title', data.title || 'forked');
     location.href = '/editor/?fork=1';
   };
+
+  document.getElementById('fsBtn').onclick = () => {
+    const frame = document.getElementById('gameFrame');
+    if (!frame) return;
+
+    const el = document.fullscreenElement || document.webkitFullscreenElement;
+
+    if (el) {
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    } else {
+      const req = frame.requestFullscreen
+               || frame.webkitRequestFullscreen
+               || frame.msRequestFullscreen;
+      if (req) {
+        req.call(frame).catch(err => console.warn('Fullscreen failed:', err));
+      } else {
+        alert('Fullscreen not supported on this browser.');
+      }
+    }
+  };
+
+  document.addEventListener('fullscreenchange', () => {
+    const btn = document.getElementById('fsBtn');
+    if (btn) btn.textContent = document.fullscreenElement ? '⛶ Exit' : '⛶ Fullscreen';
+  });
+
+  // Keyboard shortcut: F for fullscreen (ignored when typing in inputs)
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+    if (tag === 'input' || tag === 'textarea' || e.target.isContentEditable) return;
+    if (e.key === 'f' || e.key === 'F') {
+      e.preventDefault();
+      const btn = document.getElementById('fsBtn');
+      if (btn) btn.click();
+    }
+  });
 
   document.getElementById('commentSubmit').onclick = () => submitComment(null);
   document.getElementById('likeBtn').onclick = () => toggleLike();
@@ -411,4 +448,4 @@ boot();
 </script>
 
 </body>
- </html>
+</html>
