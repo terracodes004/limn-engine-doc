@@ -39,7 +39,71 @@ function setDescriptionField(value) {
 async function loadUserData() {
     const params = new URLSearchParams(window.location.search);
     const snippetId = params.get('id');
+    const editSlug = params.get('edit');
+    const forkFlag = params.get('fork');
 
+    // ---------- 1. FORK (highest priority) ----------
+    if (forkFlag === '1') {
+        console.log('[loadUserData] fork mode');
+        const code = localStorage.getItem('limn_fork_code');
+        const title = localStorage.getItem('limn_fork_title') || 'forked';
+        console.log('[loadUserData] fork code length:', code ? code.length : 0);
+
+        if (code) {
+            const textarea = getCodeTextarea();
+            const h5 = getTitleEl();
+            if (textarea) textarea.value = code;
+            if (h5) h5.innerText = 'forked-' + title + '.js';
+
+            localStorage.removeItem('limn_fork_code');
+            localStorage.removeItem('limn_fork_title');
+        }
+
+        await loadFilesFromCloudOrLocal();
+        return;
+    }
+
+    // ---------- 2. EDIT ----------
+    if (editSlug) {
+        console.log('[loadUserData] edit mode:', editSlug);
+        localStorage.setItem('limn_edit_slug', editSlug);
+
+        try {
+            const { data, error } = await supabase
+                .from('games')
+                .select('title, description, code, config, engine_version')
+                .eq('slug', editSlug)
+                .maybeSingle();
+
+            if (!error && data) {
+                const textarea = getCodeTextarea();
+                const h5 = getTitleEl();
+                if (textarea) textarea.value = data.code || '';
+                if (h5) h5.innerText = data.title + '.js';
+
+                if (data.config) window.currentConfig = data.config;
+                if (data.description) setDescriptionField(data.description);
+
+                const versionSelect = document.querySelector('#version');
+                if (versionSelect && data.engine_version) {
+                    const match = ['v2', 'v3', 'v4'].find(v => data.engine_version.includes(v));
+                    if (match) versionSelect.value = match;
+                }
+
+                const headerTitle = document.querySelector('header h1');
+                if (headerTitle) headerTitle.textContent = 'LIMN STUDIO — Editing';
+            } else {
+                console.log('Edit load failed:', error);
+            }
+        } catch (e) {
+            console.log('Edit loader error:', e.message);
+        }
+
+        await loadFilesFromCloudOrLocal();
+        return;
+    }
+
+    // ---------- 3. SHARED SNIPPET (?id=) ----------
     if (snippetId) {
         try {
             const { data, error } = await supabase
@@ -56,9 +120,7 @@ async function loadUserData() {
 
                     const fileContainer = document.getElementById('file');
                     if (fileContainer) fileContainer.innerHTML = '';
-                    filesName.forEach(e => {
-                        if (e) createFileUI(e);
-                    });
+                    filesName.forEach(e => { if (e) createFileUI(e); });
 
                     if (filesName.length > 0) {
                         const firstFile = filesName[0];
@@ -75,6 +137,11 @@ async function loadUserData() {
         }
     }
 
+    // ---------- 4. DEFAULT ----------
+    await loadFilesFromCloudOrLocal();
+}
+
+async function loadFilesFromCloudOrLocal() {
     const user = await getActiveUser();
 
     if (user) {
@@ -108,12 +175,8 @@ async function loadUserData() {
 
     const fileContainer = document.getElementById('file');
     if (fileContainer) fileContainer.innerHTML = '';
-
-    filesName.forEach(e => {
-        if (e) createFileUI(e);
-    });
+    filesName.forEach(e => { if (e) createFileUI(e); });
 }
-
 loadUserData();
 
 const editor = document.getElementById("js");
@@ -400,63 +463,3 @@ window.down = function(filename) {
     URL.revokeObjectURL(url);
 };
 
-(function editAndForkLoader() {
-    const params = new URLSearchParams(location.search);
-
-    const editSlug = params.get('edit');
-    const forkFlag = params.get('fork');
-
-    if (forkFlag === '1') {
-        const code = localStorage.getItem('limn_fork_code');
-        const title = localStorage.getItem('limn_fork_title') || 'forked';
-
-        if (code) {
-            const textarea = getCodeTextarea();
-            const h5 = getTitleEl();
-            if (textarea) textarea.value = code;
-            if (h5) h5.innerText = 'forked-' + title + '.js';
-
-            localStorage.removeItem('limn_fork_code');
-            localStorage.removeItem('limn_fork_title');
-        }
-        return;
-    }
-
-    if (!editSlug) return;
-
-    localStorage.setItem('limn_edit_slug', editSlug);
-
-    (async () => {
-        try {
-            const { data, error } = await supabase
-                .from('games')
-                .select('title, description, code, config, engine_version')
-                .eq('slug', editSlug)
-                .maybeSingle();
-
-            if (error || !data) {
-                console.log('Edit load failed:', error);
-                return;
-            }
-
-            const textarea = getCodeTextarea();
-            const h5 = getTitleEl();
-            if (textarea) textarea.value = data.code || '';
-            if (h5) h5.innerText = data.title + '.js';
-
-            if (data.config) window.currentConfig = data.config;
-            if (data.description) setDescriptionField(data.description);
-
-            const versionSelect = document.querySelector('#version');
-            if (versionSelect && data.engine_version) {
-                const match = ['v2', 'v3', 'v4'].find(v => data.engine_version.includes(v));
-                if (match) versionSelect.value = match;
-            }
-
-            const headerTitle = document.querySelector('header h1');
-            if (headerTitle) headerTitle.textContent = 'LIMN STUDIO — Editing';
-        } catch (e) {
-            console.log('Edit loader error:', e.message);
-        }
-    })();
-})();
