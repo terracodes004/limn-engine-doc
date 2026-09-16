@@ -36,6 +36,43 @@ function setDescriptionField(value) {
     if (el) el.value = value || '';
 }
 
+async function copyText(text) {
+    // 1. Try modern Clipboard API first
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return true;
+        }
+    } catch (e) {
+        // fall through to legacy method
+    }
+
+    // 2. Fallback: hidden textarea + execCommand('copy')
+    try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '0';
+        ta.style.left = '0';
+        ta.style.width = '1px';
+        ta.style.height = '1px';
+        ta.style.opacity = '0';
+        ta.style.pointerEvents = 'none';
+        document.body.appendChild(ta);
+
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+    } catch (e) {
+        return false;
+    }
+}
+
 async function loadUserData() {
     const params = new URLSearchParams(window.location.search);
     const snippetId = params.get('id');
@@ -177,6 +214,7 @@ async function loadFilesFromCloudOrLocal() {
     if (fileContainer) fileContainer.innerHTML = '';
     filesName.forEach(e => { if (e) createFileUI(e); });
 }
+
 loadUserData();
 
 const editor = document.getElementById("js");
@@ -371,9 +409,10 @@ window.shareProject = async function() {
         localStorage.removeItem('limn_edit_slug');
 
         const playUrl = `${window.location.origin}/arcade/game.html?slug=${editSlug}`;
-        try { await navigator.clipboard.writeText(playUrl); } catch (e) {}
-
-        alert("✅ Game updated! Play link:\n" + playUrl);
+        const copied = await copyText(playUrl);
+        alert((copied
+            ? "✅ Game updated! Play link copied:\n"
+            : "✅ Game updated! Copy this link manually:\n") + playUrl);
         return;
     }
 
@@ -405,11 +444,13 @@ window.shareProject = async function() {
     }
 
     const playUrl = `${window.location.origin}/arcade/game.html?slug=${data.slug}`;
-    try { await navigator.clipboard.writeText(playUrl); } catch (e) {}
+    const copied = await copyText(playUrl);
     window.history.pushState({}, '', `?id=${data.slug}`);
-
-    alert("🎮 Published! Play link copied:\n" + playUrl);
+    alert((copied
+        ? "🎮 Published! Play link copied:\n"
+        : "🎮 Published! Copy this link manually:\n") + playUrl);
 };
+
 async function shareAsLink() {
     const h5 = getTitleEl();
     const textarea = getCodeTextarea();
@@ -438,9 +479,12 @@ async function shareAsLink() {
     }
 
     const shareUrl = `${window.location.origin}/editor/?id=${data.id}`;
-    try { await navigator.clipboard.writeText(shareUrl); } catch (e) {}
-    alert("🔗 Share link copied!\n" + shareUrl);
-                  }
+    const copied = await copyText(shareUrl);
+    alert((copied
+        ? "🔗 Share link copied!\n"
+        : "🔗 Share link ready — copy manually:\n") + shareUrl);
+}
+
 async function del(name, element) {
     let con = confirm("⚠️ Are you sure you want to delete this file?");
     if (con) {
@@ -506,4 +550,3 @@ window.down = function(filename) {
     a.click();
     URL.revokeObjectURL(url);
 };
-
