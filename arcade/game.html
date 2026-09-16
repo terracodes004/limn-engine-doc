@@ -104,6 +104,8 @@
       <button class="btn" id="shareBtn">🔗 Share</button>
       <button class="btn" id="forkBtn">✎ Fork</button>
       <button class="btn" id="fsBtn">⛶ Fullscreen</button>
+      <button class="btn" id="zoomOut">−</button>
+      <button class="btn" id="zoomIn">+</button>
       <a class="btn" href="/arcade/">← Arcade</a>
     </div>
     <div class="section">
@@ -129,6 +131,7 @@ const slug = new URLSearchParams(location.search).get('slug');
 const stage = document.getElementById('stage');
 let currentGameId = null;
 let currentUserId = null;
+let zoomLevel = 1;
 
 async function boot() {
   if (!slug) {
@@ -205,7 +208,28 @@ function renderGame(data) {
   html += '</body></html>';
 
   stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" allowfullscreen id="gameFrame"></iframe>';
-  document.getElementById('gameFrame').srcdoc = html;
+  const frame = document.getElementById('gameFrame');
+
+  // Apply zoom each time the iframe finishes loading its srcdoc
+  frame.addEventListener('load', applyZoom);
+
+  frame.srcdoc = html;
+
+  // Reset zoom on new game load
+  zoomLevel = 1;
+}
+
+function applyZoom() {
+  const frame = document.getElementById('gameFrame');
+  if (!frame) return;
+  try {
+    const doc = frame.contentDocument;
+    if (!doc || !doc.body) return;
+    doc.body.style.zoom = zoomLevel;
+  } catch (e) {
+    // cross-origin fallback — apply to iframe element itself
+    frame.style.zoom = zoomLevel;
+  }
 }
 
 async function renderAuthor(data) {
@@ -280,16 +304,39 @@ function wireButtons(data) {
     if (btn) btn.textContent = document.fullscreenElement ? '⛶ Exit' : '⛶ Fullscreen';
   });
 
-  // Keyboard shortcut: F for fullscreen (ignored when typing in inputs)
+  // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
     const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
     if (tag === 'input' || tag === 'textarea' || e.target.isContentEditable) return;
+
     if (e.key === 'f' || e.key === 'F') {
       e.preventDefault();
       const btn = document.getElementById('fsBtn');
       if (btn) btn.click();
+    } else if (e.key === '+' || e.key === '=') {
+      e.preventDefault();
+      zoomLevel = Math.min(3, +(zoomLevel + 0.1).toFixed(2));
+      applyZoom();
+    } else if (e.key === '-' || e.key === '_') {
+      e.preventDefault();
+      zoomLevel = Math.max(0.3, +(zoomLevel - 0.1).toFixed(2));
+      applyZoom();
+    } else if (e.key === '0') {
+      e.preventDefault();
+      zoomLevel = 1;
+      applyZoom();
     }
   });
+
+  // Zoom buttons
+  document.getElementById('zoomIn').onclick = () => {
+    zoomLevel = Math.min(3, +(zoomLevel + 0.1).toFixed(2));
+    applyZoom();
+  };
+  document.getElementById('zoomOut').onclick = () => {
+    zoomLevel = Math.max(0.3, +(zoomLevel - 0.1).toFixed(2));
+    applyZoom();
+  };
 
   document.getElementById('commentSubmit').onclick = () => submitComment(null);
   document.getElementById('likeBtn').onclick = () => toggleLike();
