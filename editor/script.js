@@ -310,6 +310,20 @@ window.shareProject = async function() {
         return;
     }
 
+    // Ask user what they want to do
+    const wantToPublish = confirm(
+        "How do you want to share?\n\n" +
+        "OK — Publish to the Arcade (public game, anyone can play)\n\n" +
+        "Cancel — Just get a share link (send the code to someone)"
+    );
+
+    // ---- Share link only ----
+    if (!wantToPublish) {
+        await shareAsLink();
+        return;
+    }
+
+    // ---- Publish to arcade (existing behavior) ----
     const editSlug = localStorage.getItem('limn_edit_slug');
 
     const versionDropdown = document.querySelector('#version');
@@ -396,7 +410,37 @@ window.shareProject = async function() {
 
     alert("🎮 Published! Play link copied:\n" + playUrl);
 };
+async function shareAsLink() {
+    const h5 = getTitleEl();
+    const textarea = getCodeTextarea();
 
+    // Make sure the current file's code is stored in `files`
+    let currentFileName = h5 ? h5.innerText : "";
+    if (currentFileName && currentFileName !== "*Untitled*" && textarea) {
+        files[currentFileName] = textarea.value;
+    }
+
+    const payload = JSON.stringify({
+        files: files,
+        filesName: filesName
+    });
+
+    const { data, error } = await supabase
+        .from('snippets')
+        .insert([{ code: payload }])
+        .select('id')
+        .single();
+
+    if (error) {
+        console.error("Snippet save failed:", error.message);
+        alert("⚠️ Failed to create share link: " + error.message);
+        return;
+    }
+
+    const shareUrl = `${window.location.origin}/editor/?id=${data.id}`;
+    try { await navigator.clipboard.writeText(shareUrl); } catch (e) {}
+    alert("🔗 Share link copied!\n" + shareUrl);
+                  }
 async function del(name, element) {
     let con = confirm("⚠️ Are you sure you want to delete this file?");
     if (con) {
