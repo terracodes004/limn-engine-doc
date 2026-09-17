@@ -9,9 +9,10 @@
   body { margin: 0; background: #0a0a14; color: #fff;
          font-family: system-ui, -apple-system, sans-serif;
          min-height: 100vh; }
+
   header { padding: 20px 32px; display: flex;
            justify-content: space-between; align-items: center;
-           border-bottom: 1px solid rgba(255,255,255,0.1);
+           border-bottom: 1px solid rgba(255,255,255,0.12);
            gap: 16px; flex-wrap: wrap; }
   header h1 { margin: 0; font-size: 22px; letter-spacing: -0.5px; }
   .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -21,8 +22,9 @@
                  border: 1px solid rgba(68,170,255,0.25);
                  font-size: 14px; }
   .nav-links a:hover { background: rgba(68,170,255,0.2); }
+
   .search-bar { padding: 16px 32px 0;
-                max-width: 1400px; margin: 0 auto; }
+                max-width: 900px; margin: 0 auto; }
   .search-bar input { width: 100%; padding: 14px 18px;
                       background: #15152a;
                       border: 1px solid rgba(255,255,255,0.12);
@@ -31,49 +33,179 @@
   .search-bar input:focus { outline: none;
                             border-color: rgba(68,170,255,0.6);
                             box-shadow: 0 0 0 3px rgba(68,170,255,0.15); }
+
   .featured-wrap { padding: 20px 32px 0;
-                   max-width: 1400px; margin: 0 auto; }
-  main { padding: 24px 32px 32px; display: grid;
-         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-         gap: 20px; max-width: 1400px; margin: 0 auto; }
-  .card { background: linear-gradient(180deg,#15152a,#10101e);
-          border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 14px; overflow: hidden;
-          transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
-          text-decoration: none; color: inherit; display: block; }
-  .card:hover { transform: translateY(-2px);
-                border-color: rgba(68,170,255,0.6);
-                box-shadow: 0 8px 24px rgba(68,170,255,0.15); }
-  .thumb { width: 100%; aspect-ratio: 4/3; display: block; }
-  .info { padding: 14px 16px; }
-  .info h3 { margin: 0 0 4px; font-size: 16px;
-             white-space: nowrap; overflow: hidden;
-             text-overflow: ellipsis; }
-  .info p { margin: 0; font-size: 13px; opacity: 0.7;
-            white-space: nowrap; overflow: hidden;
-            text-overflow: ellipsis; }
-  .info a { color: #fbbf24; text-decoration: none; font-weight: 600; }
-  .info a:hover { color: #fde68a; text-decoration: underline; }
-  .empty { grid-column: 1/-1; text-align: center;
-           padding: 80px 20px; opacity: 0.5; }
+                   max-width: 900px; margin: 0 auto; }
+
+  main { padding: 24px 32px 32px;
+         max-width: 900px; margin: 0 auto; }
+
+  .section-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.5;
+    margin: 32px 0 12px;
+    font-weight: 700;
+  }
+  .section-title:first-child { margin-top: 0; }
+
+  .creator-card {
+    background: linear-gradient(180deg, #15152a, #10101e);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .creator-card:hover { border-color: rgba(68,170,255,0.3); }
+  .creator-card.expanded { border-color: rgba(68,170,255,0.5); }
+
+  .creator-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .creator-head:hover { background: rgba(255,255,255,0.02); }
+
+  .creator-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #202040;
+    border: 2px solid rgba(68,170,255,0.3);
+    flex-shrink: 0;
+  }
+
+  .creator-info { flex: 1; min-width: 0; }
+  .creator-info h3 {
+    margin: 0 0 2px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fbbf24;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .creator-info p {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .see-more-btn {
+    padding: 8px 16px;
+    border: 1px solid rgba(68,170,255,0.4);
+    background: rgba(68,170,255,0.08);
+    color: #4af;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .see-more-btn:hover {
+    background: rgba(68,170,255,0.18);
+    border-color: rgba(68,170,255,0.7);
+  }
+
+  .creator-games {
+    display: none;
+    padding: 4px 18px 18px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: 0;
+  }
+  .creator-card.expanded .creator-games {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    padding-top: 16px;
+  }
+
+  .game-tile {
+    background: #0a0a18;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .game-tile:hover {
+    transform: translateY(-2px);
+    border-color: rgba(68,170,255,0.5);
+  }
+  .game-tile .tile-thumb {
+    width: 100%;
+    aspect-ratio: 16/10;
+    display: block;
+  }
+  .game-tile .tile-name {
+    padding: 8px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .load-more-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 24px 0 12px;
+  }
+  .load-more-btn {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #4af, #7c3aed);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 4px 16px rgba(68,170,255,0.3);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .load-more-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(68,170,255,0.5);
+  }
+  .load-more-btn.secondary {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: none;
+    font-weight: 600;
+  }
+  .load-more-btn.secondary:hover {
+    background: rgba(255,255,255,0.05);
+    box-shadow: none;
+  }
+
+  .empty { text-align: center; padding: 60px 20px; opacity: 0.5; }
   .empty a { color: #4af; text-decoration: none; font-weight: 600; }
 
   .featured {
-    border-radius: 18px;
-    padding: 32px;
-    display: flex; align-items: center; gap: 24px;
+    border-radius: 14px;
+    padding: 22px;
+    display: flex; align-items: center; gap: 18px;
     flex-wrap: wrap;
     position: relative;
     overflow: hidden;
-    background:
-      linear-gradient(135deg,
-        #ec4899 0%,
-        #f97316 25%,
-        #facc15 50%,
-        #22d3ee 75%,
-        #6366f1 100%);
-    box-shadow: 0 12px 40px rgba(236,72,153,0.3),
-                0 4px 16px rgba(34,211,238,0.2);
+    background: linear-gradient(135deg,
+      #ec4899 0%, #f97316 25%, #facc15 50%, #22d3ee 75%, #6366f1 100%);
+    box-shadow: 0 8px 30px rgba(236,72,153,0.25),
+                0 3px 12px rgba(34,211,238,0.15);
   }
   .featured::before {
     content: '';
@@ -86,24 +218,24 @@
   }
   .featured > * { position: relative; z-index: 1; }
   .featured-tag {
-    font-size: 12px; font-weight: 900;
-    letter-spacing: 3px;
+    font-size: 11px; font-weight: 900;
+    letter-spacing: 2px;
     text-transform: uppercase;
     color: #ffffff;
     text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-    margin-bottom: 8px;
-    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 6px;
   }
   .featured-title {
-    margin: 0 0 8px; font-size: 30px;
-    letter-spacing: -0.7px;
+    margin: 0 0 6px; font-size: 22px;
+    letter-spacing: -0.5px;
     color: #ffffff;
     font-weight: 900;
     text-shadow: 0 2px 6px rgba(0,0,0,0.4);
     line-height: 1.1;
   }
   .featured-sub {
-    margin: 0; font-size: 15px;
+    margin: 0; font-size: 13px;
     color: rgba(255,255,255,0.95);
     text-shadow: 0 1px 3px rgba(0,0,0,0.4);
   }
@@ -114,30 +246,46 @@
     border-bottom: 2px solid rgba(255,255,255,0.6);
     padding-bottom: 1px;
   }
-  .featured-sub a:hover {
-    border-bottom-color: #ffffff;
-  }
-  .featured-hearts {
-    display: inline-flex; align-items: center; gap: 4px;
-    color: #ffffff;
-    font-weight: 800;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-  }
   .featured-play {
-    padding: 16px 32px;
+    padding: 12px 24px;
     background: #0a0a14;
     color: #ffffff;
-    border-radius: 12px;
+    border-radius: 10px;
     font-weight: 800;
     text-decoration: none;
-    font-size: 16px;
+    font-size: 14px;
     border: 2px solid rgba(255,255,255,0.8);
     box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     transition: transform 0.15s, background 0.15s;
   }
-  .featured-play:hover {
-    transform: scale(1.05);
-    background: #1a1a2e;
+  .featured-play:hover { transform: scale(1.05); background: #1a1a2e; }
+
+  @media (max-width: 750px) {
+    header { padding: 14px 16px; }
+    header h1 { font-size: 18px; }
+    .nav-links a { padding: 6px 12px; font-size: 12px; }
+    .search-bar { padding: 12px 16px 0; }
+    .search-bar input { padding: 11px 14px; font-size: 14px; }
+    .featured-wrap { padding: 12px 16px 0; }
+    main { padding: 16px; }
+
+    .creator-head { padding: 12px 14px; gap: 10px; }
+    .creator-avatar { width: 44px; height: 44px; }
+    .creator-info h3 { font-size: 14px; }
+    .creator-info p { font-size: 11px; }
+    .see-more-btn { padding: 6px 12px; font-size: 11px; }
+
+    .creator-games {
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 8px;
+      padding: 12px 14px 14px;
+    }
+    .game-tile .tile-name { font-size: 10px; padding: 6px 8px; }
+
+    .featured { padding: 16px; gap: 12px; }
+    .featured-title { font-size: 18px; }
+    .featured-sub { font-size: 12px; }
+    .featured-play { padding: 10px 18px; font-size: 13px; }
   }
 </style>
 </head>
@@ -153,7 +301,7 @@
 </header>
 
 <div class="search-bar">
-  <input type="text" id="search" placeholder="Search games or creators...">
+  <input type="text" id="search" placeholder="Search creators...">
 </div>
 
 <div class="featured-wrap" id="featuredWrap" style="display:none"></div>
@@ -168,96 +316,230 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38'
 );
 
-const { data, error } = await supabase
-  .from('games')
-  .select('id, slug, title, author_id, author_name, config')
-  .order('created_at', { ascending: false })
-  .limit(200);
+const CREATORS_PER_PAGE = 24;
 
-const games = data || [];
+let creators = [];
+let anonymousGames = [];
+let allGames = [];
+let visibleCreatorCount = CREATORS_PER_PAGE;
+let currentFilter = '';
 
-const userIds = [...new Set(games.map(g => g.author_id).filter(Boolean))];
+async function boot() {
+  const { data, error } = await supabase
+    .from('games')
+    .select('id, slug, title, author_id, author_name, config')
+    .order('created_at', { ascending: false })
+    .limit(500);
 
-const profileMap = {};
-if (userIds.length > 0) {
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('user_id, username, display_name')
-    .in('user_id', userIds);
-
-  for (const p of profiles || []) profileMap[p.user_id] = p;
-}
-
-function creatorLabel(game) {
-  const profile = profileMap[game.author_id];
-  if (profile && profile.username) return '@' + profile.username;
-  if (profile && profile.display_name) return profile.display_name;
-  if (game.author_name) return game.author_name.split('@')[0];
-  return 'anonymous';
-}
-
-function creatorLink(game) {
-  const profile = profileMap[game.author_id];
-  if (profile && profile.username) {
-    return '<a href="/u/?u=' + encodeURIComponent(profile.username) + '">@' + esc(profile.username) + '</a>';
-  }
-  return esc(creatorLabel(game));
-}
-
-function creatorLinkFeatured(game) {
-  const profile = profileMap[game.author_id];
-  if (profile && profile.username) {
-    return '<a href="/u/?u=' + encodeURIComponent(profile.username) + '">@' + esc(profile.username) + '</a>';
-  }
-  return esc(creatorLabel(game));
-}
-
-const grid = document.getElementById('grid');
-const searchInput = document.getElementById('search');
-const allGames = games;
-
-function render(list) {
   if (error) {
-    grid.innerHTML = '<div class="empty"><h2>Failed to load games.</h2></div>';
+    document.getElementById('grid').innerHTML =
+      '<div class="empty"><h2>Failed to load.</h2></div>';
     return;
   }
-  if (!list || list.length === 0) {
-    const msg = searchInput.value.trim()
-      ? 'No games match your search.'
-      : 'No games yet.';
-    grid.innerHTML = `<div class="empty">
-      <h2>${msg}</h2>
-      ${searchInput.value.trim() ? '' : '<p><a href="/editor/">Make the first one →</a></p>'}
-    </div>`;
+
+  allGames = data || [];
+
+  const userIds = [...new Set(allGames.map(g => g.author_id).filter(Boolean))];
+
+  const profileMap = {};
+  if (userIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('user_id, username, display_name, avatar_url')
+      .in('user_id', userIds);
+    for (const p of profiles || []) profileMap[p.user_id] = p;
+  }
+
+  const likeCountMap = {};
+  const gameIds = allGames.map(g => g.id);
+  if (gameIds.length > 0) {
+    const { data: likes } = await supabase
+      .from('likes')
+      .select('game_id')
+      .in('game_id', gameIds);
+    for (const l of likes || []) {
+      likeCountMap[l.game_id] = (likeCountMap[l.game_id] || 0) + 1;
+    }
+  }
+
+  const creatorMap = {};
+  const anonymous = [];
+
+  for (const g of allGames) {
+    if (g.author_id && profileMap[g.author_id]) {
+      const p = profileMap[g.author_id];
+      if (!creatorMap[g.author_id]) {
+        creatorMap[g.author_id] = {
+          user_id: g.author_id,
+          username: p.username || null,
+          display_name: p.display_name || null,
+          avatar_url: p.avatar_url || null,
+          games: [],
+          totalLikes: 0
+        };
+      }
+      creatorMap[g.author_id].games.push(g);
+      creatorMap[g.author_id].totalLikes += likeCountMap[g.id] || 0;
+    } else {
+      anonymous.push(g);
+    }
+  }
+
+  creators = Object.values(creatorMap)
+    .filter(c => c.games.length > 0)
+    .sort((a, b) => b.games.length - a.games.length);
+
+  anonymousGames = anonymous;
+
+  render();
+  loadFeatured();
+}
+
+function matchesFilter(c) {
+  if (!currentFilter) return true;
+  const q = currentFilter.toLowerCase();
+  const name = (c.username || '').toLowerCase();
+  const display = (c.display_name || '').toLowerCase();
+  return name.includes(q) || display.includes(q);
+}
+
+function render() {
+  const grid = document.getElementById('grid');
+  const filtered = creators.filter(matchesFilter);
+
+  if (filtered.length === 0 && anonymousGames.length === 0) {
+    const msg = currentFilter ? 'No creators match your search.' : 'No games yet.';
+    grid.innerHTML = '<div class="empty"><h2>' + msg + '</h2>' +
+      (currentFilter ? '' : '<p><a href="/editor/">Make the first one →</a></p>') +
+      '</div>';
     return;
   }
-  grid.innerHTML = '';
-  for (const g of list) {
-    const a = document.createElement('a');
-    a.className = 'card';
-    a.href = '/arcade/game.html?slug=' + encodeURIComponent(g.slug);
-    a.innerHTML = `
-      ${thumbSVG(g.config)}
-      <div class="info">
-        <h3>${esc(g.title)}</h3>
-        <p>by ${creatorLink(g)}</p>
-      </div>`;
-    grid.appendChild(a);
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty"><h2>No creators match your search.</h2></div>';
+    return;
+  }
+
+  const visible = filtered.slice(0, visibleCreatorCount);
+
+  let html = '<div class="section-title">Creators</div>';
+
+  for (const c of visible) {
+    html += renderCreatorCard(c);
+  }
+
+  if (visibleCreatorCount < filtered.length) {
+    const remaining = filtered.length - visibleCreatorCount;
+    html += '<div class="load-more-wrap">' +
+      '<button class="load-more-btn" id="loadMoreBtn">' +
+        'See More Creators (' + remaining + ' remaining)' +
+      '</button>' +
+    '</div>';
+  } else if (filtered.length > CREATORS_PER_PAGE) {
+    html += '<div class="load-more-wrap">' +
+      '<button class="load-more-btn secondary" id="loadLessBtn">' +
+        '↑ See Less' +
+      '</button>' +
+    '</div>';
+  }
+
+  grid.innerHTML = html;
+
+  bindCardEvents();
+}
+
+function renderCreatorCard(c) {
+  const displayName = c.display_name || (c.username ? '@' + c.username : 'Creator');
+  const username = c.username ? '@' + c.username : 'anonymous';
+  const avatar = c.avatar_url || 'https://via.placeholder.com/60';
+  const gameCount = c.games.length;
+  const stat = gameCount + ' game' + (gameCount === 1 ? '' : 's') +
+               ' · ♥ ' + c.totalLikes;
+
+  const profileUrl = c.username ? '/u/?u=' + encodeURIComponent(c.username) : '#';
+
+  let html = '<div class="creator-card" data-user="' + c.user_id + '">';
+
+  html += '<div class="creator-head">';
+  html += '<img class="creator-avatar" src="' + escapeHtml(avatar) + '" alt="" ' +
+          'onclick="window.location.href=\'' + profileUrl + '\'" ' +
+          'style="cursor:pointer">';
+  html += '<div class="creator-info" onclick="window.location.href=\'' + profileUrl + '\'">';
+  html += '<h3>' + escapeHtml(displayName) + '</h3>';
+  html += '<p>' + escapeHtml(username) + ' · ' + stat + '</p>';
+  html += '</div>';
+
+  if (gameCount > 1) {
+    html += '<button class="see-more-btn" data-action="toggle">See More ▾</button>';
+  }
+
+  html += '</div>';
+
+  if (gameCount > 1) {
+    html += '<div class="creator-games">';
+    for (const g of c.games) {
+      html += '<a class="game-tile" href="/arcade/game.html?slug=' +
+              encodeURIComponent(g.slug) + '">' +
+              thumbSVG(g.config, true) +
+              '<div class="tile-name">' + escapeHtml(g.title) + '</div>' +
+              '</a>';
+    }
+    html += '</div>';
+  } else {
+    html += '<div class="creator-games" style="display:grid">';
+    const g = c.games[0];
+    html += '<a class="game-tile" href="/arcade/game.html?slug=' +
+            encodeURIComponent(g.slug) + '">' +
+            thumbSVG(g.config, true) +
+            '<div class="tile-name">' + escapeHtml(g.title) + '</div>' +
+            '</a>';
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function bindCardEvents() {
+  document.querySelectorAll('[data-action="toggle"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const card = btn.closest('.creator-card');
+      if (!card) return;
+      const isExpanded = card.classList.contains('expanded');
+      if (isExpanded) {
+        card.classList.remove('expanded');
+        btn.textContent = 'See More ▾';
+      } else {
+        card.classList.add('expanded');
+        btn.textContent = 'See Less ▴';
+      }
+    });
+  });
+
+  const moreBtn = document.getElementById('loadMoreBtn');
+  if (moreBtn) {
+    moreBtn.addEventListener('click', () => {
+      visibleCreatorCount += CREATORS_PER_PAGE;
+      render();
+    });
+  }
+
+  const lessBtn = document.getElementById('loadLessBtn');
+  if (lessBtn) {
+    lessBtn.addEventListener('click', () => {
+      visibleCreatorCount = CREATORS_PER_PAGE;
+      render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   }
 }
 
-searchInput.addEventListener('input', () => {
-  const q = searchInput.value.trim().toLowerCase();
-  if (!q) { render(allGames); return; }
-  const filtered = allGames.filter(g => {
-    const label = creatorLabel(g).toLowerCase();
-    return (g.title || '').toLowerCase().includes(q) ||
-           label.includes(q);
-  });
-  render(filtered);
+document.getElementById('search').addEventListener('input', (e) => {
+  currentFilter = e.target.value.trim();
+  visibleCreatorCount = CREATORS_PER_PAGE;
+  render();
 });
-
-render(allGames);
 
 async function loadFeatured() {
   const now = new Date();
@@ -279,58 +561,52 @@ async function loadFeatured() {
   if (sorted.length === 0) return;
 
   const topId = sorted[0][0];
-  const top = games.find(g => g.id === topId);
+  const top = allGames.find(g => g.id === topId);
   if (!top) return;
 
   const wrap = document.getElementById('featuredWrap');
   wrap.style.display = 'block';
-  wrap.innerHTML = `
-    <div class="featured">
-      <div style="flex: 1; min-width: 200px;">
-        <div class="featured-tag">
-          <span>🏆</span>
-          <span>Game of the Week</span>
-        </div>
-        <h2 class="featured-title">${esc(top.title)}</h2>
-        <p class="featured-sub">
-          by ${creatorLinkFeatured(top)}
-          &nbsp;·&nbsp;
-          <span class="featured-hearts">♥ ${counts[topId]}</span>
-        </p>
-      </div>
-      <a href="/arcade/game.html?slug=${encodeURIComponent(top.slug)}"
-         class="featured-play">
-        ▶ Play Now
-      </a>
-    </div>`;
+  wrap.innerHTML =
+    '<div class="featured">' +
+      '<div style="flex: 1; min-width: 180px;">' +
+        '<div class="featured-tag"><span>🏆</span><span>Game of the Week</span></div>' +
+        '<h2 class="featured-title">' + escapeHtml(top.title) + '</h2>' +
+        '<p class="featured-sub">♥ ' + counts[topId] + '</p>' +
+      '</div>' +
+      '<a href="/arcade/game.html?slug=' + encodeURIComponent(top.slug) +
+        '" class="featured-play">▶ Play Now</a>' +
+    '</div>';
 }
 
-loadFeatured();
-
-function thumbSVG(config) {
-  const w = 300, h = 225;
+function thumbSVG(config, small) {
+  const w = 300, h = small ? 187 : 225;
   const world = (config && config.world) || { w: 800, h: 600, bg: '#0d0d2a' };
   const slots = (config && config.slots) || [];
   const sx = w / world.w, sy = h / world.h;
   let rects = '';
   for (const s of slots) {
-    rects += `<rect x="${s.x*sx}" y="${s.y*sy}"
-                    width="${s.w*sx}" height="${s.h*sy}"
-                    fill="${s.color||'#4af'}" />`;
+    rects += '<rect x="' + (s.x*sx) + '" y="' + (s.y*sy) +
+             '" width="' + (s.w*sx) + '" height="' + (s.h*sy) +
+             '" fill="' + (s.color||'#4af') + '" />';
   }
-  if (!rects) rects = `<text x="${w/2}" y="${h/2}" text-anchor="middle"
-                             fill="#4af" font-size="40">▶</text>`;
-  return `<svg class="thumb" viewBox="0 0 ${w} ${h}"
-               preserveAspectRatio="xMidYMid slice"
-               style="background:${world.bg||'#0d0d2a'}">${rects}</svg>`;
+  if (!rects) {
+    rects = '<text x="' + (w/2) + '" y="' + (h/2) +
+            '" text-anchor="middle" fill="#4af" font-size="40">▶</text>';
+  }
+  const cls = small ? 'tile-thumb' : 'thumb';
+  return '<svg class="' + cls + '" viewBox="0 0 ' + w + ' ' + h +
+    '" preserveAspectRatio="xMidYMid slice" style="background:' +
+    (world.bg||'#0d0d2a') + '">' + rects + '</svg>';
 }
 
-function esc(s) {
+function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   })[c]);
 }
+
+boot();
 </script>
 
 </body>
- </html>
+</html>
