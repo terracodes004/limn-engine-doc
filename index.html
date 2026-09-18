@@ -32,7 +32,6 @@
 
 <meta name="theme-color" content="#000321">
 
-<!-- Hero CTA slider styles -->
 <style>
   .cta-slider {
     position: relative;
@@ -96,7 +95,7 @@
   #installAppBtn {
     display: none;
     margin: 14px auto 0;
-    padding:3mm 5mm;
+    padding: 3mm 5mm;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -176,12 +175,18 @@ window.addEventListener('appinstalled', () => {
             <span>Search Docs</span>
           </a>
           <a href="/my-games.html" class="dropdown-item">🎮 My Games</a>
-          <a href="/settings.html" id="my-profile-link" class="dropdown-item">👤 My Profile</a>
-          <a href="/inbox.html" class="dropdown-item" style="display: flex; justify-content: space-between; align-items: center;">
-            <span>Inbox</span>
-            <span id="inbox-badge" style="background: #3b82f6; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 10px; display: none;">New</span>
+          <a href="#" id="my-profile-link" class="dropdown-item" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>👤 My Profile</span>
+            <span id="profile-badge" style="display: none; background: #ef4444; color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; line-height: 1.4;">!</span>
           </a>
-          <a href="/settings.html" class="dropdown-item">Settings</a>
+          <a href="/inbox.html" id="inbox-link" class="dropdown-item" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Inbox</span>
+            <span id="inbox-badge" style="display: none; background: #ef4444; color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; line-height: 1.4;">!</span>
+          </a>
+          <a href="/settings.html" id="settings-link" class="dropdown-item" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>⚙️ Settings</span>
+            <span id="settings-badge" style="display: none; background: #ef4444; color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; line-height: 1.4;">!</span>
+          </a>
         </div>
 
         <div style="border-top: 1px solid #1e293b; margin: 4px 0;"></div>
@@ -363,94 +368,5 @@ function update(dt) {
 <script src="search.js"></script>
 <script type="module" src="script.js"></script>
 
-<!-- Hero CTA slider behaviour -->
-<script>
-(function () {
-  const slider = document.getElementById('ctaSlider');
-  const track = document.getElementById('ctaTrack');
-  const dotsEl = document.getElementById('ctaDots');
-  if (!slider || !track || !dotsEl) return;
-
-  const slides = Array.from(track.children);
-  const total = slides.length;
-  if (total === 0) return;
-
-  let current = 0;
-  let timer = null;
-  const INTERVAL = 3500;
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  slides.forEach((_, i) => {
-    const dot = document.createElement('button');
-    dot.className = 'cta-dot';
-    dot.setAttribute('role', 'tab');
-    dot.setAttribute('aria-label', 'Show call to action ' + (i + 1));
-    dot.addEventListener('click', () => goTo(i, true));
-    dotsEl.appendChild(dot);
-  });
-  const dots = Array.from(dotsEl.children);
-
-  function goTo(index, userAction) {
-    current = (index + total) % total;
-    track.style.transform = 'translateX(-' + (current * 100) + '%)';
-    dots.forEach((d, i) => {
-      d.classList.toggle('active', i === current);
-      d.setAttribute('aria-selected', i === current ? 'true' : 'false');
-    });
-    slides.forEach((s, i) => {
-      s.setAttribute('aria-hidden', i === current ? 'false' : 'true');
-      s.tabIndex = i === current ? 0 : -1;
-    });
-    if (userAction) restartAuto();
-  }
-
-  function next() { goTo(current + 1, false); }
-
-  function startAuto() {
-    if (reduceMotion) return;
-    stopAuto();
-    timer = setInterval(next, INTERVAL);
-  }
-  function stopAuto() {
-    if (timer) { clearInterval(timer); timer = null; }
-  }
-  function restartAuto() {
-    stopAuto();
-    startAuto();
-  }
-
-  slider.addEventListener('mouseenter', stopAuto);
-  slider.addEventListener('mouseleave', startAuto);
-  slider.addEventListener('focusin', stopAuto);
-  slider.addEventListener('focusout', startAuto);
-
-  let touchStartX = 0;
-  let touchDeltaX = 0;
-  slider.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-    touchDeltaX = 0;
-    stopAuto();
-  }, { passive: true });
-  slider.addEventListener('touchmove', (e) => {
-    touchDeltaX = e.touches[0].clientX - touchStartX;
-  }, { passive: true });
-  slider.addEventListener('touchend', () => {
-    if (Math.abs(touchDeltaX) > 40) {
-      if (touchDeltaX < 0) goTo(current + 1, false);
-      else goTo(current - 1, false);
-    }
-    restartAuto();
-  });
-
-  slider.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft')  { e.preventDefault(); goTo(current - 1, true); }
-    if (e.key === 'ArrowRight') { e.preventDefault(); goTo(current + 1, true); }
-  });
-
-  goTo(0, false);
-  startAuto();
-})();
-</script>
-
 </body>
-</html>
+  </html>
