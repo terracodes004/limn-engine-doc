@@ -4,37 +4,85 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export default async function handler(req, res) {
-    const { data: users, error } = await supabaseAdmin
-        .from('users')
-        .select('email')
-        .eq('subscribed', true);
+    try {
+        const { data: subscribed, error: subError } = await supabaseAdmin
+            .from('users')
+            .select('id, subscribed')
+            .eq('subscribed', true);
 
-    if (error) return res.status(500).json({ error: error.message });
+        if (subError) {
+            return res.status(500).json({ error: 'users query: ' + subError.message });
+        }
 
-    const subject = 'Limn Engine Weekly Update';
-    const htmlContent = '<p>Check out what\'s new in game creation this week!</p>';
-
-    await supabaseAdmin
-        .from('notifications')
-        .insert([{ title: subject, content: htmlContent }]);
-
-    let successCount = 0;
-    for (const user of users) {
-        if (!user.email) continue;
-        
-        try {
-            await resend.emails.send({
-                from: 'Limn Engine <onboarding@resend.dev>',
-                to: user.email,
-                subject: subject,
-                html: htmlContent,
+        if (!subscribed || subscribed.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: 'No subscribed users',
+                subscribed: 0,
+                sent: 0
             });
-            successCount++;
-        } catch (err) {
-            console.error(`Failed to send to ${user.email}:`, err.message);
         }
-    }
 
-    return res.status(200).json({ success: true, sent: successCount });
+        const allAuthUsers = [];
+        let page = 1;
+        const perPage = 1000;
+
+        while (true) {
+            const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+                page: page,
+                perPage: perPage
+            });
+
+            if (error) {
+                return res.status(500).json({ error: 'listUsers: ' + error.message });
+            }
+
+            allAuthUsers.push(...data.users);
+
+            if (data.users.length < perPage) break;
+            page++;
         }
-    
+
+        const emailById = {};
+        for (const u of allAuthUsers) {
+            if (u.email) emailById[u.id] = u.email;
+        }
+
+        const recipients = subscribed
+            .map(s => ({ id: s.id, email: emailById[s.id] }))
+            .filter(r => r.email);
+
+        const subject = 'Limn Engine Weekly Update';
+        const htmlContent = '<p>Check out what\'s new in game creation this week!</p>';
+
+        await supabaseAdmin
+            .from('notifications')
+            .insert([{ title: subject, content: htmlContent }]);
+
+        let successCount = 0;
+        const failures = [];
+
+        for (const r of recipients) {
+            try {
+                await resend.emails.send({
+                    from: 'Limn Engine <onboarding@resend.dev>',
+                    to: r.email,
+                    subject: subject,
+                    html: htmlContent,
+                });
+                successCount++;
+            } catch (err) {
+                failures.push({ email: r.email, error: err.message });
+            }
+        }
+
+        return res.status(200).json({
+            success: true,
+            subscribed: subscribed.length,
+            sent: successCount,
+            failures: failures
+        });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
+    }
+}
