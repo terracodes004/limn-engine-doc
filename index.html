@@ -31,6 +31,78 @@
 <meta property="twitter:image" content="img/logo.png">
 
 <meta name="theme-color" content="#000321">
+
+<!-- Hero CTA slider styles -->
+<style>
+  .cta-slider {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 10px;
+  }
+
+  .cta-track {
+    display: flex;
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+
+  .cta-slide {
+    flex: 0 0 100%;
+    min-width: 100%;
+    padding: 14px 20px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 15px;
+    border-radius: 10px;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .cta-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .cta-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .cta-dot:hover { background: rgba(255, 255, 255, 0.45); }
+
+  .cta-dot.active {
+    background: var(--accent, #ff638c);
+    width: 22px;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(255, 99, 140, 0.6);
+  }
+
+  #installAppBtn {
+    display: none;
+    margin: 14px auto 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta-track { transition: none; }
+  }
+</style>
+
 <script src="head.js" defer></script>
 <script>
 if ('serviceWorker' in navigator) {
@@ -87,9 +159,9 @@ window.addEventListener('appinstalled', () => {
 
     <div id="user-dropdown" style="display: none; position: relative;">
       <button id="dropdown-toggle" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 0; position: relative;">
-  <img id="user-avatar" src="img/logo.png" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6;" />
-  <span id="avatar-badge" style="position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; background: #ef4444; border-radius: 50%; border: 2px solid #0f172a; display: none; box-shadow: 0 0 8px rgba(239,68,68,0.5); align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: white; padding: 0 4px; box-sizing: border-box;"></span>
-</button>
+        <img id="user-avatar" src="img/logo.png" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #3b82f6;" />
+        <span id="avatar-badge" style="position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; background: #ef4444; border-radius: 50%; border: 2px solid #0f172a; display: none; box-shadow: 0 0 8px rgba(239,68,68,0.5); align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: white; padding: 0 4px; box-sizing: border-box;"></span>
+      </button>
 
       <div id="dropdown-menu" class="hidden" style="position: absolute; right: 0; top: 120%; width: 220px; background-color: #0f172a; border: 1px solid #1e293b; border-radius: 8px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); z-index: 100; text-align: left;">
         <div style="padding: 12px 16px; border-bottom: 1px solid #1e293b; background: #020617; border-top-left-radius: 8px; border-top-right-radius: 8px;">
@@ -123,13 +195,18 @@ window.addEventListener('appinstalled', () => {
   <div class="con">
     <h1>Limn Engine</h1>
     <center><p class="hero-text">A zero-config 2D game engine for the browser. One file. No npm. Just creativity.</p></center>
-    <div class="con-btns">
-      <a href="tutorial.html" class="btn-secondary">Learn the Engine →</a>
-      <a href="asset/epic.js" download class="btn-primary">⬇ Download epic.js</a>
-      <a href="editor/" class="btn-secondary">🚀 Build a Game</a>
-      <a href="/arcade/" class="btn-primary">🎮 Enter the Arcade</a>
-      <button id="installAppBtn" class="btn-secondary" style="display: none;">📱 Install App</button>
+
+    <div class="cta-slider" id="ctaSlider">
+      <div class="cta-track" id="ctaTrack">
+        <a href="/arcade/" class="btn-primary cta-slide">🎮 Enter the Arcade</a>
+        <a href="editor/" class="btn-secondary cta-slide">🚀 Build a Game</a>
+        <a href="tutorial.html" class="btn-secondary cta-slide">📚 Learn the Engine →</a>
+        <a href="asset/epic.js" download class="btn-primary cta-slide">⬇ Download epic.js</a>
+      </div>
+      <div class="cta-dots" id="ctaDots" role="tablist" aria-label="Call to action"></div>
     </div>
+
+    <button id="installAppBtn" class="btn-secondary">📱 Install App</button>
   </div>
 </header>
 
@@ -259,29 +336,120 @@ function update(dt) {
     </article>
   </fieldset>
 </main>
+
 <footer>
-    <span class="footer-logo"><img id="fl" src="img/logo.png" alt="">Limn Engine</span>
-    <span>TCJSGame v4 · Created by Owolabi Kehinde</span>
-    <span style="font-family:'Space Mono',monospace;font-size:11px;">v4.0 · 2026</span>
-    <span>| <a href="/privacy.html" style="color: inherit; text-decoration: underline;">Privacy Policy</a></span>
+  <span class="footer-logo"><img id="fl" src="img/logo.png" alt="">Limn Engine</span>
+  <span>TCJSGame v4 · Created by Owolabi Kehinde</span>
+  <span style="font-family:'Space Mono',monospace;font-size:11px;">v4.0 · 2026</span>
+  <span>| <a href="/privacy.html" style="color: inherit; text-decoration: underline;">Privacy Policy</a></span>
 </footer>
 
 <div id="universal-search-overlay">
-    <div class="search-modal-box">
-        <div class="search-modal-header">
-            <span style="font-size: 18px; margin-right: 12px;">🔍</span>
-            <input type="text" id="overlay-search-input" class="search-modal-input" placeholder="Type to search documentation, tutorials, and updates...">
-            <button id="close-search-overlay" class="search-modal-close">ESC</button>
-        </div>
-        <div id="overlay-search-results" class="search-modal-results">
-            <div style="padding: 20px; text-align: center; color: #64748b; font-size: 14px;">Start typing to search across Limn Engine...</div>
-        </div>
+  <div class="search-modal-box">
+    <div class="search-modal-header">
+      <span style="font-size: 18px; margin-right: 12px;">🔍</span>
+      <input type="text" id="overlay-search-input" class="search-modal-input" placeholder="Type to search documentation, tutorials, and updates...">
+      <button id="close-search-overlay" class="search-modal-close">ESC</button>
     </div>
+    <div id="overlay-search-results" class="search-modal-results">
+      <div style="padding: 20px; text-align: center; color: #64748b; font-size: 14px;">Start typing to search across Limn Engine...</div>
+    </div>
+  </div>
 </div>
 
 <script type="module" src="signup/frontend/app.js"></script>
 <script src="bugTrackerSystem.js"></script>
 <script src="search.js"></script>
 <script type="module" src="script.js"></script>
+
+<!-- Hero CTA slider behaviour -->
+<script>
+(function () {
+  const slider = document.getElementById('ctaSlider');
+  const track = document.getElementById('ctaTrack');
+  const dotsEl = document.getElementById('ctaDots');
+  if (!slider || !track || !dotsEl) return;
+
+  const slides = Array.from(track.children);
+  const total = slides.length;
+  if (total === 0) return;
+
+  let current = 0;
+  let timer = null;
+  const INTERVAL = 3500;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  slides.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'cta-dot';
+    dot.setAttribute('role', 'tab');
+    dot.setAttribute('aria-label', 'Show call to action ' + (i + 1));
+    dot.addEventListener('click', () => goTo(i, true));
+    dotsEl.appendChild(dot);
+  });
+  const dots = Array.from(dotsEl.children);
+
+  function goTo(index, userAction) {
+    current = (index + total) % total;
+    track.style.transform = 'translateX(-' + (current * 100) + '%)';
+    dots.forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+      d.setAttribute('aria-selected', i === current ? 'true' : 'false');
+    });
+    slides.forEach((s, i) => {
+      s.setAttribute('aria-hidden', i === current ? 'false' : 'true');
+      s.tabIndex = i === current ? 0 : -1;
+    });
+    if (userAction) restartAuto();
+  }
+
+  function next() { goTo(current + 1, false); }
+
+  function startAuto() {
+    if (reduceMotion) return;
+    stopAuto();
+    timer = setInterval(next, INTERVAL);
+  }
+  function stopAuto() {
+    if (timer) { clearInterval(timer); timer = null; }
+  }
+  function restartAuto() {
+    stopAuto();
+    startAuto();
+  }
+
+  slider.addEventListener('mouseenter', stopAuto);
+  slider.addEventListener('mouseleave', startAuto);
+  slider.addEventListener('focusin', stopAuto);
+  slider.addEventListener('focusout', startAuto);
+
+  let touchStartX = 0;
+  let touchDeltaX = 0;
+  slider.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchDeltaX = 0;
+    stopAuto();
+  }, { passive: true });
+  slider.addEventListener('touchmove', (e) => {
+    touchDeltaX = e.touches[0].clientX - touchStartX;
+  }, { passive: true });
+  slider.addEventListener('touchend', () => {
+    if (Math.abs(touchDeltaX) > 40) {
+      if (touchDeltaX < 0) goTo(current + 1, false);
+      else goTo(current - 1, false);
+    }
+    restartAuto();
+  });
+
+  slider.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); goTo(current - 1, true); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); goTo(current + 1, true); }
+  });
+
+  goTo(0, false);
+  startAuto();
+})();
+</script>
+
 </body>
 </html>
