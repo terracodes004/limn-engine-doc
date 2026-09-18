@@ -22,7 +22,6 @@
 
   canvas {
     display: block;
-    /* Responsive: scale canvas via CSS without changing resolution */
     max-width: 100vw;
     max-height: 100vh;
     image-rendering: pixelated;
@@ -32,304 +31,233 @@
 <body>
 <script>
 // ═══════════════════════════════════════════════════════
-// G SWITCH — Limn Engine
-// Commandment  1: perform() BEFORE start()
-// Commandment  2: Instance named 'display'
-// Commandment  3: perform() before TileMap
-// Commandment  4: deltaTime for all movement
-// Commandment  5: Diagonal normalisation (N/A — 2D runner)
-// Commandment  6: display.add() for every component
-// Commandment  8: destroy() for permanent removal
-// Commandment  9: hide() for temporary invisibility
-// Commandment 10: Tctxt for all UI text
-// Commandment 11: fixed() every frame for UI
-// Commandment 12: move.bound() / move.boundTo()
-// Commandment 14: fake canvas for static platforms
-// Commandment 15: fake.refresh() after changes
-// Commandment 16: worldWidth / worldHeight set
-// Commandment 18: camera.follow() every frame
-// Commandment 24: clearMargin optimised
+// G SWITCH — Limn Engine (FIXED)
 // ═══════════════════════════════════════════════════════
 
-// ── CONSTANTS ──────────────────────────────────────────
+// ── CONSTANTS ──
 const W            = 800;
 const H            = 400;
-const GRAVITY      = 1800;   // px/s²
-const PLAYER_SPEED = 320;    // px/s horizontal
-const WORLD_W      = 999999; // effectively infinite runner
+const GRAVITY      = 1800;
+const PLAYER_SPEED = 320;
+const WORLD_W      = 999999;
 const PLATFORM_H   = 24;
-const PLATFORM_GAP = 180;    // px between platforms
+const PLATFORM_GAP = 180;
 
-// ── SCENE NUMBERS ──────────────────────────────────────
+// ── SCENES ──
 const SCENE_MENU   = 0;
 const SCENE_GAME   = 1;
 const SCENE_DEAD   = 2;
 const SCENE_PAUSE  = 3;
 
-// ─────────────────────────────────────────────────────
-// Commandment 1 & 2: perform() first, named 'display'
-// ─────────────────────────────────────────────────────
+// ── DISPLAY ──
 const display = new Display();
 display.perform();
 display.start(W, H);
-
-// ── Commandment 24: clearMargin to canvas size ─────────
 display.clearMargin = [WORLD_W, H];
-
-// ── Commandment 16: world bounds ───────────────────────
 display.camera.worldWidth  = WORLD_W;
 display.camera.worldHeight = H;
 
-// ─────────────────────────────────────────────────────
-// RESPONSIVE SCALING via CSS transform
-// ─────────────────────────────────────────────────────
+// ── RESPONSIVE SCALING ──
 function scaleCanvas() {
-  const scaleX = window.innerWidth  / W;
-  const scaleY = window.innerHeight / H;
-  const scale  = Math.min(scaleX, scaleY);
+  const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
   display.canvas.style.width  = (W * scale) + "px";
   display.canvas.style.height = (H * scale) + "px";
 }
 scaleCanvas();
 window.addEventListener("resize", scaleCanvas);
 
-// ─────────────────────────────────────────────────────
-// GAME STATE
-// ─────────────────────────────────────────────────────
-let gravityDir    = 1;   //  1 = down,  -1 = up
-let velY          = 0;
-let score         = 0;
-let bestScore     = 0;
+// ── GAME STATE ──
+let gravityDir = 1;
+let velY = 0;
+let score = 0;
+let bestScore = 0;
 let distanceTravelled = 0;
-let platforms     = [];  // array of Component refs
-let particles_ps;        // ParticleSystem
-let gameRunning   = false;
-particles_ps = new ParticleSystem(display);
-// ─────────────────────────────────────────────────────
-// FAKE CANVAS — static background (Commandment 14)
-// ─────────────────────────────────────────────────────
-// Stars background on fake canvas
-const bg = new Component(W, H, "#0a0a0f", 0, 0, "rect");
-fake.add(bg);
+let platforms = [];
+let gameRunning = false;
+let frameCounter = 0;          // ← FIX 3: replaces display.frameNo
+let cameraX = 0;               // ← FIX 4: smooth follow in local var
+let shakeOffsetX = 0;          // ← FIX 4: shake offset
+let shakeOffsetY = 0;
+let shakeTimeout = null;
 
-// Draw starfield into fake canvas manually
-fake.context.fillStyle = "#0a0a0f";
-fake.context.fillRect(0, 0, W, H);
+const particles_ps = new ParticleSystem(display);
+
+// ═══════════════════════════════════════════════════════
+// FIX 1: Particles must go to the current scene
+// ═══════════════════════════════════════════════════════
+particles_ps.emit = function(x, y, options) {
+  const p = new Particle(x, y, options);
+  this.particles.push(p);
+  display.add(p, SCENE_GAME);
+  return p;
+};
+
+// ═══════════════════════════════════════════════════════
+// FIX 2: Starfield as a screen-space component
+// ═══════════════════════════════════════════════════════
+const stars = [];
 for (let i = 0; i < 120; i++) {
-  const sx = Math.random() * W;
-  const sy = Math.random() * H;
-  const ss = Math.random() * 2 + 0.5;
-  const alpha = Math.random() * 0.8 + 0.2;
-  fake.context.globalAlpha = alpha;
-  fake.context.fillStyle = "#ffffff";
-  fake.context.beginPath();
-  fake.context.arc(sx, sy, ss, 0, Math.PI * 2);
-  fake.context.fill();
+  stars.push({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    size: Math.random() * 2 + 0.5,
+    alpha: Math.random() * 0.8 + 0.2,
+  });
 }
-fake.context.globalAlpha = 1;
 
-// ─────────────────────────────────────────────────────
-// PLAYER (Scene 1)
-// ─────────────────────────────────────────────────────
+const starfield = new Component(W, H, "#0a0a0f", 0, 0, "rect");
+starfield.aX = 0;
+starfield.aY = 0;
+starfield.changeAngle = false;
+starfield.move = function() {};
+starfield.update = function(ctx) {
+  // Solid background
+  ctx.fillStyle = "#0a0a0f";
+  ctx.fillRect(this.x, this.y, this.width, this.height);
+
+  // Parallax stars
+  const parallaxX = cameraX * 0.15;
+
+  for (let i = 0; i < stars.length; i++) {
+    const s = stars[i];
+    let sx = s.x - parallaxX;
+    sx = ((sx % W) + W) % W;
+
+    ctx.globalAlpha = s.alpha;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(this.x + sx, this.y + s.y, s.size, s.size);
+  }
+  ctx.globalAlpha = 1;
+};
+display.add(starfield, SCENE_GAME);
+
+// ═══════════════════════════════════════════════════════
+// PLAYER
+// ═══════════════════════════════════════════════════════
 const player = new Component(28, 28, "#7fffb2", 120, H / 2 - 14, "rect");
 display.add(player, SCENE_GAME);
 
-// ─────────────────────────────────────────────────────
-// PARTICLE SYSTEM (Scene 1)
-// ─────────────────────────────────────────────────────
-
-
-// ─────────────────────────────────────────────────────
-// UI — GAME SCENE (Commandment 10 & 11)
-// ─────────────────────────────────────────────────────
-const scoreUI = new Tctxt(
-  "20px", "Segoe UI", "white",
-  14, 32,
-  "left", false, "alphabetic",
-  "rgba(0,0,0,0.55)", 10, 4
-);
+// ═══════════════════════════════════════════════════════
+// UI — GAME SCENE
+// ═══════════════════════════════════════════════════════
+const scoreUI = new Tctxt("20px", "Segoe UI", "white", 14, 32,
+  "left", false, "alphabetic", "rgba(0,0,0,0.55)", 10, 4);
 scoreUI.setText("Score: 0");
 display.add(scoreUI, SCENE_GAME);
 
-const bestUI = new Tctxt(
-  "14px", "Segoe UI", "#aaa",
-  14, 58,
-  "left", false, "alphabetic",
-  "rgba(0,0,0,0.4)", 8, 3
-);
+const bestUI = new Tctxt("14px", "Segoe UI", "#aaa", 14, 58,
+  "left", false, "alphabetic", "rgba(0,0,0,0.4)", 8, 3);
 bestUI.setText("Best: 0");
 display.add(bestUI, SCENE_GAME);
 
-const fpsUI = new Tctxt(
-  "12px", "Segoe UI", "#555",
-  W - 14, 20,
-  "right", false, "alphabetic",
-  null, 0, 0
-);
+const fpsUI = new Tctxt("12px", "Segoe UI", "#555", W - 14, 20,
+  "right", false, "alphabetic", null, 0, 0);
 fpsUI.setText("60 fps");
 display.add(fpsUI, SCENE_GAME);
 
-const pauseHint = new Tctxt(
-  "12px", "Segoe UI", "#444",
-  W / 2, H - 12,
-  "center", false, "alphabetic",
-  null, 0, 0
-);
+const pauseHint = new Tctxt("12px", "Segoe UI", "#444", W / 2, H - 12,
+  "center", false, "alphabetic", null, 0, 0);
 pauseHint.setText("P = Pause");
 display.add(pauseHint, SCENE_GAME);
 
-// ─────────────────────────────────────────────────────
-// UI — MENU SCENE (Scene 0)
-// ─────────────────────────────────────────────────────
-const menuTitle = new Tctxt(
-  "52px", "Segoe UI", "#7fffb2",
-  W / 2, H / 2 - 80,
-  "center", false, "alphabetic",
-  "rgba(0,0,0,0.6)", 20, 10
-);
+// ═══════════════════════════════════════════════════════
+// UI — MENU SCENE
+// ═══════════════════════════════════════════════════════
+const menuTitle = new Tctxt("52px", "Segoe UI", "#7fffb2", W / 2, H / 2 - 80,
+  "center", false, "alphabetic", "rgba(0,0,0,0.6)", 20, 10);
 menuTitle.setText("G SWITCH");
 display.add(menuTitle, SCENE_MENU);
 
-const menuSub = new Tctxt(
-  "16px", "Segoe UI", "#aaa",
-  W / 2, H / 2 - 30,
-  "center", false, "alphabetic",
-  null, 0, 0
-);
+const menuSub = new Tctxt("16px", "Segoe UI", "#aaa", W / 2, H / 2 - 30,
+  "center", false, "alphabetic", null, 0, 0);
 menuSub.setText("Tap, Click or Press SPACE to flip gravity");
 display.add(menuSub, SCENE_MENU);
 
-// Play button
 const playBtn = new Component(200, 54, "#7fffb2", W / 2 - 100, H / 2 + 10, "rect");
 display.add(playBtn, SCENE_MENU);
 
-const playBtnText = new Tctxt(
-  "22px", "Segoe UI", "#0a0a0f",
-  W / 2, H / 2 + 44,
-  "center", false, "alphabetic",
-  null, 0, 0
-);
+const playBtnText = new Tctxt("22px", "Segoe UI", "#0a0a0f", W / 2, H / 2 + 44,
+  "center", false, "alphabetic", null, 0, 0);
 playBtnText.setText("▶  PLAY");
 display.add(playBtnText, SCENE_MENU);
 
-const menuBest = new Tctxt(
-  "15px", "Segoe UI", "#666",
-  W / 2, H / 2 + 92,
-  "center", false, "alphabetic",
-  null, 0, 0
-);
+const menuBest = new Tctxt("15px", "Segoe UI", "#666", W / 2, H / 2 + 92,
+  "center", false, "alphabetic", null, 0, 0);
 menuBest.setText("Best: 0");
 display.add(menuBest, SCENE_MENU);
 
-const madeWith = new Tctxt(
-  "12px", "Segoe UI", "#333",
-  W / 2, H - 10,
-  "center", false, "alphabetic",
-  null, 0, 0
-);
+const madeWith = new Tctxt("12px", "Segoe UI", "#333", W / 2, H - 10,
+  "center", false, "alphabetic", null, 0, 0);
 madeWith.setText("Made with Limn Engine");
 display.add(madeWith, SCENE_MENU);
 
-// ─────────────────────────────────────────────────────
-// UI — DEAD SCENE (Scene 2)
-// ─────────────────────────────────────────────────────
-const deadTitle = new Tctxt(
-  "44px", "Segoe UI", "#ff6b6b",
-  W / 2, H / 2 - 70,
-  "center", false, "alphabetic",
-  "rgba(0,0,0,0.7)", 20, 10
-);
+// ═══════════════════════════════════════════════════════
+// UI — DEAD SCENE
+// ═══════════════════════════════════════════════════════
+const deadTitle = new Tctxt("44px", "Segoe UI", "#ff6b6b", W / 2, H / 2 - 70,
+  "center", false, "alphabetic", "rgba(0,0,0,0.7)", 20, 10);
 deadTitle.setText("GAME OVER");
 display.add(deadTitle, SCENE_DEAD);
 
-const deadScore = new Tctxt(
-  "22px", "Segoe UI", "white",
-  W / 2, H / 2 - 18,
-  "center", false, "alphabetic",
-  "rgba(0,0,0,0.5)", 14, 6
-);
+const deadScore = new Tctxt("22px", "Segoe UI", "white", W / 2, H / 2 - 18,
+  "center", false, "alphabetic", "rgba(0,0,0,0.5)", 14, 6);
 deadScore.setText("Score: 0");
 display.add(deadScore, SCENE_DEAD);
 
-const deadBest = new Tctxt(
-  "16px", "Segoe UI", "#7fffb2",
-  W / 2, H / 2 + 14,
-  "center", false, "alphabetic",
-  null, 0, 0
-);
+const deadBest = new Tctxt("16px", "Segoe UI", "#7fffb2", W / 2, H / 2 + 14,
+  "center", false, "alphabetic", null, 0, 0);
 deadBest.setText("Best: 0");
 display.add(deadBest, SCENE_DEAD);
 
 const restartBtn = new Component(220, 54, "#7fffb2", W / 2 - 110, H / 2 + 38, "rect");
 display.add(restartBtn, SCENE_DEAD);
 
-const restartText = new Tctxt(
-  "20px", "Segoe UI", "#0a0a0f",
-  W / 2, H / 2 + 72,
-  "center", false, "alphabetic",
-  null, 0, 0
-);
+const restartText = new Tctxt("20px", "Segoe UI", "#0a0a0f", W / 2, H / 2 + 72,
+  "center", false, "alphabetic", null, 0, 0);
 restartText.setText("↺  PLAY AGAIN");
 display.add(restartText, SCENE_DEAD);
 
 const menuBtn = new Component(180, 44, "#333", W / 2 - 90, H / 2 + 106, "rect");
 display.add(menuBtn, SCENE_DEAD);
 
-const menuBtnText = new Tctxt(
-  "16px", "Segoe UI", "#aaa",
-  W / 2, H / 2 + 134,
-  "center", false, "alphabetic",
-  null, 0, 0
-);
+const menuBtnText = new Tctxt("16px", "Segoe UI", "#aaa", W / 2, H / 2 + 134,
+  "center", false, "alphabetic", null, 0, 0);
 menuBtnText.setText("⬅  MENU");
 display.add(menuBtnText, SCENE_DEAD);
 
-// ─────────────────────────────────────────────────────
-// UI — PAUSE SCENE (Scene 3)
-// ─────────────────────────────────────────────────────
-const pauseTitle = new Tctxt(
-  "40px", "Segoe UI", "#ffbb6b",
-  W / 2, H / 2 - 60,
-  "center", false, "alphabetic",
-  "rgba(0,0,0,0.8)", 20, 10
-);
+// ═══════════════════════════════════════════════════════
+// UI — PAUSE SCENE
+// ═══════════════════════════════════════════════════════
+const pauseTitle = new Tctxt("40px", "Segoe UI", "#ffbb6b", W / 2, H / 2 - 60,
+  "center", false, "alphabetic", "rgba(0,0,0,0.8)", 20, 10);
 pauseTitle.setText("PAUSED");
 display.add(pauseTitle, SCENE_PAUSE);
 
 const resumeBtn = new Component(200, 52, "#7fffb2", W / 2 - 100, H / 2, "rect");
 display.add(resumeBtn, SCENE_PAUSE);
 
-const resumeText = new Tctxt(
-  "20px", "Segoe UI", "#0a0a0f",
-  W / 2, H / 2 + 34,
-  "center", false, "alphabetic",
-  null, 0, 0
-);
+const resumeText = new Tctxt("20px", "Segoe UI", "#0a0a0f", W / 2, H / 2 + 34,
+  "center", false, "alphabetic", null, 0, 0);
 resumeText.setText("▶  RESUME");
 display.add(resumeText, SCENE_PAUSE);
 
 const pauseMenuBtn = new Component(180, 44, "#333", W / 2 - 90, H / 2 + 68, "rect");
 display.add(pauseMenuBtn, SCENE_PAUSE);
 
-const pauseMenuText = new Tctxt(
-  "16px", "Segoe UI", "#aaa",
-  W / 2, H / 2 + 96,
-  "center", false, "alphabetic",
-  null, 0, 0
-);
+const pauseMenuText = new Tctxt("16px", "Segoe UI", "#aaa", W / 2, H / 2 + 96,
+  "center", false, "alphabetic", null, 0, 0);
 pauseMenuText.setText("⬅  MENU");
 display.add(pauseMenuText, SCENE_PAUSE);
 
-// ─────────────────────────────────────────────────────
-// PLATFORM POOL — Commandment 9 & 22
-// Pre-create 20 platform Components and recycle them
-// ─────────────────────────────────────────────────────
-const POOL_SIZE   = 20;
+// ═══════════════════════════════════════════════════════
+// PLATFORM POOL
+// ═══════════════════════════════════════════════════════
+const POOL_SIZE = 20;
 const platformPool = [];
 for (let i = 0; i < POOL_SIZE; i++) {
   const p = new Component(200, PLATFORM_H, "#5b8cff", -500, -500, "rect");
   display.add(p, SCENE_GAME);
-  p.hide(); // Commandment 9 — hidden until placed
+  p.hide();
   platformPool.push({ comp: p, active: false });
 }
 
@@ -337,42 +265,41 @@ function getPooledPlatform() {
   for (let slot of platformPool) {
     if (!slot.active) return slot;
   }
-  return null; // pool exhausted (won't happen with 20)
+  return null;
 }
 
 function returnToPool(slot) {
   slot.active = false;
-  slot.comp.hide(); // Commandment 9
+  slot.comp.hide();
   slot.comp.x = -500;
   slot.comp.y = -500;
 }
 
-// ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
 // PLATFORM MANAGEMENT
-// ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
 let nextPlatformX = 0;
 
 function spawnPlatform(x) {
   const slot = getPooledPlatform();
   if (!slot) return;
 
-  const isTop    = Math.random() > 0.5;
-  const pWidth   = 140 + Math.floor(Math.random() * 180);
-  const pY       = isTop ? 0 : H - PLATFORM_H;
+  const isTop  = Math.random() > 0.5;
+  const pWidth = 140 + Math.floor(Math.random() * 180);
+  const pY     = isTop ? 0 : H - PLATFORM_H;
 
-  slot.comp.x     = x;
-  slot.comp.y     = pY;
-  slot.comp.width = pWidth;
+  slot.comp.x      = x;
+  slot.comp.y      = pY;
+  slot.comp.width  = pWidth;
   slot.comp.speedX = 0;
   slot.comp.speedY = 0;
   slot.comp.setColor("#5b8cff");
-  slot.comp.show(); // Commandment 9
+  slot.comp.show();
   slot.active = true;
   platforms.push(slot);
 }
 
 function spawnInitialPlatforms() {
-  // Guaranteed safe starting platform
   const startSlot = getPooledPlatform();
   startSlot.comp.x = 40;
   startSlot.comp.y = H - PLATFORM_H;
@@ -383,7 +310,6 @@ function spawnInitialPlatforms() {
 
   nextPlatformX = 380;
 
-  // Pre-generate ahead
   for (let i = 0; i < 10; i++) {
     spawnPlatform(nextPlatformX);
     nextPlatformX += PLATFORM_GAP + Math.random() * 120;
@@ -391,44 +317,55 @@ function spawnInitialPlatforms() {
 }
 
 function recyclePlatforms() {
-  // Return platforms that are far behind the camera
   for (let i = platforms.length - 1; i >= 0; i--) {
     const slot = platforms[i];
-    if (slot.comp.x + slot.comp.width < display.camera.x - 200) {
+    if (slot.comp.x + slot.comp.width < cameraX - 200) {
       returnToPool(slot);
-      platforms.splice(i, 1); // Commandment 23
+      platforms.splice(i, 1);
     }
   }
 
-  // Spawn ahead
-  while (nextPlatformX < display.camera.x + W + 400) {
+  while (nextPlatformX < cameraX + W + 400) {
     spawnPlatform(nextPlatformX);
     nextPlatformX += PLATFORM_GAP + Math.random() * 100;
   }
 }
 
-// ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// FIX 4: Shake via offset variables (not camera.shake)
+// ═══════════════════════════════════════════════════════
+function triggerShake(x, y) {
+  shakeOffsetX = x;
+  shakeOffsetY = y;
+  if (shakeTimeout) clearTimeout(shakeTimeout);
+  shakeTimeout = setTimeout(() => {
+    shakeOffsetX = 0;
+    shakeOffsetY = 0;
+  }, 1000 / 24);
+}
+
+// ═══════════════════════════════════════════════════════
 // GAME INIT / RESET
-// ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
 function initGame() {
-  // Return all platforms to pool
   for (let slot of platforms) returnToPool(slot);
   platforms = [];
   nextPlatformX = 0;
 
-  // Reset player
-  player.x         = 120;
-  player.y         = H / 2 - 14;
-  player.speedX    = 0;
-  player.speedY    = 0;
+  player.x      = 120;
+  player.y      = H / 2 - 14;
+  player.speedX = 0;
+  player.speedY = 0;
+  player.angle  = 0;
 
-  velY             = 0;
-  gravityDir       = 1;
-  score            = 0;
+  velY = 0;
+  gravityDir = 1;
+  score = 0;
   distanceTravelled = 0;
-  gameRunning      = true;
+  gameRunning = true;
+  cameraX = 0;
+  frameCounter = 0;
 
-  // Camera
   display.camera.x = 0;
   display.camera.y = 0;
 
@@ -436,26 +373,25 @@ function initGame() {
   spawnInitialPlatforms();
 }
 
-// ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
 // FLIP GRAVITY
-// ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
 function flipGravity() {
   if (display.scene !== SCENE_GAME || !gameRunning) return;
   gravityDir *= -1;
-  velY        = 0;
+  velY = 0;
 
-  // Particle burst on flip (Commandment 6 — particles auto-added)
   move.particles.sparkle(particles_ps, player.x + 14, player.y + 14);
   display.camera.shakeRotation(0.025);
-  display.camera.shake(0, gravityDir * 4);
+  triggerShake(0, gravityDir * 4);   // ← FIX 4
 }
 
-// ─────────────────────────────────────────────────────
-// INPUT — Space / Tap / Click to flip
-// ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// INPUT
+// ═══════════════════════════════════════════════════════
 window.addEventListener("keydown", (e) => {
   if (e.keyCode === 32) { e.preventDefault(); flipGravity(); }
-  if (e.keyCode === 80) { // P — pause
+  if (e.keyCode === 80) {
     if (display.scene === SCENE_GAME && gameRunning) {
       gameRunning = false;
       display.scene = SCENE_PAUSE;
@@ -463,65 +399,52 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
-// Touch flip (Commandment: responsive — works on Android)
 display.canvas.addEventListener("touchstart", (e) => {
   e.preventDefault();
   if (display.scene === SCENE_GAME) flipGravity();
 }, { passive: false });
 
-// ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
 // DEATH
-// ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
 function killPlayer() {
   if (!gameRunning) return;
   gameRunning = false;
 
   if (score > bestScore) bestScore = score;
 
-  // Big explosion on death
   move.particles.explosion(particles_ps, player.x + 14, player.y + 14, 35);
   move.particles.blood(particles_ps, player.x + 14, player.y + 14, 20);
-  display.camera.shake(14, 10);
+  triggerShake(14, 10);   // ← FIX 4
   display.camera.shakeRotation(0.1);
 
-  // Update dead scene UI
   deadScore.setText("Score: " + score);
   deadBest.setText(
     score >= bestScore ? "🏆 New Best: " + bestScore : "Best: " + bestScore
   );
 
-  // Switch to dead scene after short delay
   setTimeout(() => {
     display.scene = SCENE_DEAD;
   }, 600);
 }
 
-// ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
 // START ON MENU
-// ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
 display.scene = SCENE_MENU;
 
-// ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
 // UPDATE LOOP
-// Commandment 4: ALL speeds multiplied by dt
-// Commandment 18: camera.follow() every frame
-// Commandment 11: fixed() every frame for UI
-// ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
 function update(dt) {
 
-  //[ ── PARTICLE SYSTEM ─────────────────────────────────
- try{
-  
-   particles_ps.update();
- }catch{
-  //fufu
- }
-  // ── MENU SCENE ──────────────────────────────────────
+  // ── FIX 5: No more silent try/catch ──
+  particles_ps.update();
+
+  // ── MENU SCENE ──
   if (display.scene === SCENE_MENU) {
-    // Animate title float
     menuTitle.y = H / 2 - 80 + Math.sin(Date.now() / 600) * 5;
     menuTitle.fixed();
-
     menuSub.fixed();
     playBtnText.fixed();
     playBtn.fixed();
@@ -530,7 +453,6 @@ function update(dt) {
 
     menuBest.setText("Best: " + bestScore);
 
-    // Play button click / touch
     if (display.x && playBtn.clicked()) {
       initGame();
       display.scene = SCENE_GAME;
@@ -538,7 +460,7 @@ function update(dt) {
     return;
   }
 
-  // ── PAUSE SCENE ─────────────────────────────────────
+  // ── PAUSE SCENE ──
   if (display.scene === SCENE_PAUSE) {
     pauseTitle.fixed();
     resumeBtn.fixed();
@@ -556,7 +478,7 @@ function update(dt) {
     return;
   }
 
-  // ── DEAD SCENE ──────────────────────────────────────
+  // ── DEAD SCENE ──
   if (display.scene === SCENE_DEAD) {
     deadTitle.fixed();
     deadScore.fixed();
@@ -576,74 +498,60 @@ function update(dt) {
     return;
   }
 
-  // ── GAME SCENE ──────────────────────────────────────
+  // ── GAME SCENE ──
   if (!gameRunning) return;
 
-  // Commandment 4: deltaTime movement
-  const safeDt = Math.min(dt, 0.05); // cap dt to 50ms to prevent tunnelling
+  const safeDt = Math.min(dt, 0.05);
 
-  // Player horizontal movement
+  // Horizontal movement
   player.speedX = PLAYER_SPEED * safeDt;
 
   // Gravity
   velY += GRAVITY * gravityDir * safeDt;
-  velY  = Math.max(-700, Math.min(700, velY)); // clamp
+  velY  = Math.max(-700, Math.min(700, velY));
   player.y += velY * safeDt;
 
-  // Distance / Score
+  // Score
   distanceTravelled += PLAYER_SPEED * safeDt;
   score = Math.floor(distanceTravelled / 80);
 
-  // ── COLLISION with top/bottom walls ─────────────────
+  // ── Walls ──
   if (player.y <= 0) {
-    if (gravityDir === -1) {
-      player.y = 0;
-      velY = 0;
-    } else {
-      killPlayer(); return;
-    }
+    if (gravityDir === -1) { player.y = 0; velY = 0; }
+    else { killPlayer(); return; }
   }
   if (player.y + player.height >= H) {
-    if (gravityDir === 1) {
-      player.y = H - player.height;
-      velY = 0;
-    } else {
-      killPlayer(); return;
-    }
+    if (gravityDir === 1) { player.y = H - player.height; velY = 0; }
+    else { killPlayer(); return; }
   }
 
-  // ── PLATFORM COLLISION ───────────────────────────────
-  let onPlatform = false;
+  // ── Platform collisions ──
   for (let slot of platforms) {
     if (!slot.active) continue;
     const p = slot.comp;
     if (player.crashWith(p)) {
-      if (gravityDir === 1 && player.y + player.height > p.y &&
-          player.y < p.y) {
+      if (gravityDir === 1 && player.y + player.height > p.y && player.y < p.y) {
         player.y = p.y - player.height;
         velY = 0;
-        onPlatform = true;
-        p.setColor("#7fffb2"); // light up platform on stand
+        p.setColor("#7fffb2");
       } else if (gravityDir === -1 && player.y < p.y + p.height &&
                  player.y + player.height > p.y + p.height) {
         player.y = p.y + p.height;
         velY = 0;
-        onPlatform = true;
         p.setColor("#7fffb2");
       } else {
-        // Side collision — death
         killPlayer(); return;
       }
     } else {
-      p.setColor("#5b8cff"); // reset platform colour
+      p.setColor("#5b8cff");
     }
   }
 
-  // ── RECYCLE PLATFORMS ────────────────────────────────
   recyclePlatforms();
 
-  // ── PLAYER TRAIL PARTICLES ───────────────────────────
-  if (display.frameNo % 3 === 0) {
+  // ── FIX 3: Local frame counter ──
+  frameCounter++;
+  if (frameCounter % 3 === 0) {
     particles_ps.emit(player.x + 14, player.y + 14, {
       width: 4, height: 4,
       color: gravityDir === 1 ? "#5b8cff" : "#ffbb6b",
@@ -655,18 +563,23 @@ function update(dt) {
     });
   }
 
-  // ── CAMERA FOLLOW (Commandment 18) ───────────────────
-  // Custom follow: keep player at 1/3 from left
+  // ── Camera follow (local variable, then apply) ──
   const targetCamX = player.x - W / 3;
-  display.camera.x += (targetCamX - display.camera.x) * 0.12;
-  display.camera.x  = Math.max(0, display.camera.x);
-  display.camera.y  = 0; // no vertical scroll needed
+  cameraX += (targetCamX - cameraX) * 0.12;
+  cameraX = Math.max(0, cameraX);
 
-  // ── PLAYER ROTATION — tilts based on gravity ─────────
+  // ── FIX 4: Apply camera + shake offset ──
+  display.camera.x = cameraX + shakeOffsetX;
+  display.camera.y = shakeOffsetY;
+
+  // ── Starfield follows the camera ──
+  starfield.fixed();
+
+  // ── Player rotation ──
   const targetAngle = gravityDir === 1 ? 0 : Math.PI;
   player.angle += (targetAngle - player.angle) * 0.18;
 
-  // ── UI UPDATE (Commandment 10 & 11) ──────────────────
+  // ── UI ──
   scoreUI.setText("Score: " + score);
   scoreUI.fixed();
 
@@ -678,8 +591,7 @@ function update(dt) {
 
   pauseHint.fixed();
 
-  // ── DRAW GRAVITY INDICATOR ───────────────────────────
-  // Draw an arrow directly on context (no Component needed)
+  // ── Gravity direction indicator ──
   const ctx = display.context;
   const ax  = player.x + 14 + display.camera.x;
   const ay  = player.y + 14 + display.camera.y;
@@ -696,13 +608,6 @@ function update(dt) {
   ctx.globalAlpha = 1;
   ctx.restore();
 }
-
-// ─────────────────────────────────────────────────────
-// TOUCH — flip on any canvas touch during game
-// (handled above in touchstart listener)
-// Also handle menu/dead/pause touch via display.x
-// (handled inside update())
-// ─────────────────────────────────────────────────────
 </script>
 </body>
 </html>
