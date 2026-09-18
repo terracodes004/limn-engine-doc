@@ -10,26 +10,28 @@
          font-family: system-ui, -apple-system, sans-serif;
          min-height: 100vh; }
 
-  header { padding: 20px 32px; display: flex;
+  /* ─── HEADER ─── */
+  header { padding: 14px 20px; display: flex;
            justify-content: space-between; align-items: center;
-           border-bottom: 1px solid rgba(255,255,255,0.12);
-           gap: 16px; flex-wrap: wrap; }
-  header h1 { margin: 0; font-size: 22px; letter-spacing: -0.5px; }
-  .nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+           border-bottom: 1px solid rgba(255,255,255,0.1);
+           gap: 12px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 20px; letter-spacing: -0.5px; }
+  .nav-links { display: flex; gap: 6px; flex-wrap: wrap; }
   .nav-links a { color: #4af; text-decoration: none; font-weight: 600;
-                 padding: 8px 16px; border-radius: 8px;
+                 padding: 7px 12px; border-radius: 8px;
                  background: rgba(68,170,255,0.1);
                  border: 1px solid rgba(68,170,255,0.25);
-                 font-size: 14px; }
+                 font-size: 13px; white-space: nowrap; }
   .nav-links a:hover { background: rgba(68,170,255,0.2); }
 
-  .search-bar { padding: 16px 32px 0;
+  /* ─── SEARCH + TOGGLE ─── */
+  .search-bar { padding: 12px 20px 0;
                 max-width: 900px; margin: 0 auto; }
-  .search-bar input { width: 100%; padding: 14px 18px;
+  .search-bar input { width: 100%; padding: 11px 14px;
                       background: #15152a;
-                      border: 1px solid rgba(255,255,255,0.12);
+                      border: 1px solid rgba(255,255,255,0.1);
                       border-radius: 10px; color: #fff;
-                      font-size: 15px; font-family: inherit; }
+                      font-size: 14px; font-family: inherit; }
   .search-bar input:focus { outline: none;
                             border-color: rgba(68,170,255,0.6);
                             box-shadow: 0 0 0 3px rgba(68,170,255,0.15); }
@@ -37,54 +39,53 @@
   .view-toggle {
     display: flex;
     gap: 6px;
-    padding: 12px 32px 0;
+    padding: 10px 20px 0;
     max-width: 900px;
     margin: 0 auto;
   }
   .view-toggle button {
     flex: 1;
-    padding: 10px 14px;
+    padding: 9px 12px;
     background: #15152a;
-    border: 1px solid rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: 10px;
     color: #888;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     cursor: pointer;
     font-family: inherit;
     transition: all 0.15s;
   }
-  .view-toggle button:hover {
-    background: #1a1a2e;
-    color: #bbb;
-  }
+  .view-toggle button:hover { background: #1a1a2e; color: #bbb; }
   .view-toggle button.active {
     background: rgba(68,170,255,0.15);
     border-color: rgba(68,170,255,0.5);
     color: #4af;
   }
 
-  .featured-wrap { padding: 20px 32px 0;
+  /* ─── FEATURED ─── */
+  .featured-wrap { padding: 14px 20px 0;
                    max-width: 900px; margin: 0 auto; }
 
-  main { padding: 24px 32px 32px;
+  main { padding: 16px 20px 32px;
          max-width: 900px; margin: 0 auto; }
 
   .section-title {
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 2px;
     opacity: 0.5;
-    margin: 32px 0 12px;
+    margin: 20px 0 10px;
     font-weight: 700;
   }
   .section-title:first-child { margin-top: 0; }
 
+  /* ─── CREATOR CARD ─── */
   .creator-card {
     background: linear-gradient(180deg, #15152a, #10101e);
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
-    margin-bottom: 12px;
+    border-radius: 12px;
+    margin-bottom: 10px;
     overflow: hidden;
     transition: border-color 0.2s;
   }
@@ -94,16 +95,15 @@
   .creator-head {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 16px 18px;
+    gap: 12px;
+    padding: 12px 14px;
     cursor: pointer;
-    transition: background 0.15s;
   }
   .creator-head:hover { background: rgba(255,255,255,0.02); }
 
   .creator-avatar {
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     object-fit: cover;
     background: #202040;
@@ -114,7 +114,7 @@
   .creator-info { flex: 1; min-width: 0; }
   .creator-info h3 {
     margin: 0 0 2px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     color: #fbbf24;
     white-space: nowrap;
@@ -123,54 +123,48 @@
   }
   .creator-info p {
     margin: 0;
-    font-size: 12px;
-    opacity: 0.6;
+    font-size: 11px;
+    opacity: 0.55;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .see-more-btn {
-    padding: 8px 16px;
+    padding: 6px 12px;
     border: 1px solid rgba(68,170,255,0.4);
     background: rgba(68,170,255,0.08);
     color: #4af;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     cursor: pointer;
     font-family: inherit;
     white-space: nowrap;
-    transition: background 0.15s, border-color 0.15s;
   }
-  .see-more-btn:hover {
-    background: rgba(68,170,255,0.18);
-    border-color: rgba(68,170,255,0.7);
-  }
+  .see-more-btn:hover { background: rgba(68,170,255,0.18); }
 
+  /* ─── CREATOR'S GAMES (tiles) ─── */
   .creator-games {
     display: none;
-    padding: 4px 18px 18px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    margin-top: 0;
+    padding: 0 14px 14px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+    gap: 8px;
+    padding-top: 12px;
   }
-  .creator-card.expanded .creator-games {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 10px;
-    padding-top: 16px;
-  }
-  .creator-games.always-open {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 10px;
-    padding-top: 16px;
+  .creator-card.expanded .creator-games { display: grid; }
+  .creator-games.always-open { display: grid; }
+
+  /* Single-game card: only 1 tile, capped width */
+  .creator-games.single {
+    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
   }
 
   .game-tile {
     background: #0a0a18;
     border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 10px;
+    border-radius: 8px;
     overflow: hidden;
     text-decoration: none;
     color: inherit;
@@ -187,29 +181,31 @@
     display: block;
   }
   .game-tile .tile-name {
-    padding: 8px 10px;
-    font-size: 11px;
+    padding: 5px 7px;
+    font-size: 10px;
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    opacity: 0.85;
   }
 
-  /* Flat projects grid */
+  /* ─── FLAT PROJECTS GRID ─── */
   .projects-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
     margin-top: 12px;
   }
   .project-card {
     background: linear-gradient(180deg,#15152a,#10101e);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
     overflow: hidden;
     text-decoration: none;
     color: inherit;
-    display: block;
+    display: flex;
+    flex-direction: column;
     transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
   }
   .project-card:hover {
@@ -222,18 +218,22 @@
     aspect-ratio: 4/3;
     display: block;
   }
-  .project-card .p-info { padding: 10px 12px; }
+  .project-card .p-info {
+    padding: 8px 10px;
+  }
   .project-card .p-info h3 {
-    margin: 0 0 3px;
-    font-size: 14px;
+    margin: 0 0 2px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .project-card .p-info p {
     margin: 0;
-    font-size: 12px;
-    opacity: 0.7;
+    font-size: 10px;
+    opacity: 0.55;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -243,27 +243,25 @@
     text-decoration: none;
     font-weight: 600;
   }
-  .project-card .p-info a:hover {
-    text-decoration: underline;
-  }
+  .project-card .p-info a:hover { text-decoration: underline; }
 
+  /* ─── LOAD MORE ─── */
   .load-more-wrap {
     display: flex;
     justify-content: center;
-    padding: 24px 0 12px;
+    padding: 20px 0 12px;
   }
   .load-more-btn {
-    padding: 12px 28px;
+    padding: 11px 24px;
     background: linear-gradient(135deg, #4af, #7c3aed);
     color: #fff;
     border: none;
     border-radius: 10px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     cursor: pointer;
     font-family: inherit;
     box-shadow: 0 4px 16px rgba(68,170,255,0.3);
-    transition: transform 0.15s, box-shadow 0.15s;
   }
   .load-more-btn:hover {
     transform: translateY(-2px);
@@ -275,18 +273,15 @@
     box-shadow: none;
     font-weight: 600;
   }
-  .load-more-btn.secondary:hover {
-    background: rgba(255,255,255,0.05);
-    box-shadow: none;
-  }
 
   .empty { text-align: center; padding: 60px 20px; opacity: 0.5; }
   .empty a { color: #4af; text-decoration: none; font-weight: 600; }
 
+  /* ─── FEATURED BANNER ─── */
   .featured {
     border-radius: 14px;
-    padding: 22px;
-    display: flex; align-items: center; gap: 18px;
+    padding: 20px;
+    display: flex; align-items: center; gap: 16px;
     flex-wrap: wrap;
     position: relative;
     overflow: hidden;
@@ -306,16 +301,16 @@
   }
   .featured > * { position: relative; z-index: 1; }
   .featured-tag {
-    font-size: 11px; font-weight: 900;
+    font-size: 10px; font-weight: 900;
     letter-spacing: 2px;
     text-transform: uppercase;
     color: #ffffff;
     text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-    margin-bottom: 6px;
-    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 4px;
+    display: flex; align-items: center; gap: 5px;
   }
   .featured-title {
-    margin: 0 0 6px; font-size: 22px;
+    margin: 0 0 4px; font-size: 20px;
     letter-spacing: -0.5px;
     color: #ffffff;
     font-weight: 900;
@@ -323,71 +318,69 @@
     line-height: 1.1;
   }
   .featured-sub {
-    margin: 0; font-size: 13px;
+    margin: 0; font-size: 12px;
     color: rgba(255,255,255,0.95);
     text-shadow: 0 1px 3px rgba(0,0,0,0.4);
   }
-  .featured-sub a {
-    color: #ffffff;
-    text-decoration: none;
-    font-weight: 800;
-    border-bottom: 2px solid rgba(255,255,255,0.6);
-    padding-bottom: 1px;
-  }
   .featured-play {
-    padding: 12px 24px;
+    padding: 10px 20px;
     background: #0a0a14;
     color: #ffffff;
     border-radius: 10px;
     font-weight: 800;
     text-decoration: none;
-    font-size: 14px;
+    font-size: 13px;
     border: 2px solid rgba(255,255,255,0.8);
     box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     transition: transform 0.15s, background 0.15s;
   }
   .featured-play:hover { transform: scale(1.05); background: #1a1a2e; }
 
+  /* ─── MOBILE ─── */
   @media (max-width: 750px) {
-    header { padding: 14px 16px; }
-    header h1 { font-size: 18px; }
-    .nav-links a { padding: 6px 12px; font-size: 12px; }
-    .search-bar { padding: 12px 16px 0; }
-    .search-bar input { padding: 11px 14px; font-size: 14px; }
-    .view-toggle { padding: 10px 16px 0; }
-    .view-toggle button { padding: 9px 12px; font-size: 13px; }
-    .featured-wrap { padding: 12px 16px 0; }
-    main { padding: 16px; }
+    header { padding: 12px 14px; }
+    header h1 { font-size: 17px; }
+    .nav-links a { padding: 6px 10px; font-size: 11px; }
+    .search-bar { padding: 10px 14px 0; }
+    .search-bar input { padding: 10px 12px; font-size: 13px; }
+    .view-toggle { padding: 8px 14px 0; }
+    .view-toggle button { padding: 8px 10px; font-size: 12px; }
+    .featured-wrap { padding: 10px 14px 0; }
+    main { padding: 14px; }
 
-    .creator-head { padding: 12px 14px; gap: 10px; }
-    .creator-avatar { width: 44px; height: 44px; }
+    .creator-head { padding: 10px 12px; gap: 10px; }
+    .creator-avatar { width: 38px; height: 38px; }
     .creator-info h3 { font-size: 14px; }
-    .creator-info p { font-size: 11px; }
-    .see-more-btn { padding: 6px 12px; font-size: 11px; }
+    .creator-info p { font-size: 10px; }
+    .see-more-btn { padding: 5px 10px; font-size: 10px; }
 
     .creator-games {
-      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-      gap: 8px;
-      padding: 12px 14px 14px;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 6px;
+      padding: 10px 12px 12px;
     }
-    .creator-games.always-open {
-      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-      gap: 8px;
-      padding: 12px 14px 14px;
+    .creator-games.single {
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     }
-    .game-tile .tile-name { font-size: 10px; padding: 6px 8px; }
 
+    /* Projects: force 2 columns on phones for consistency */
     .projects-grid {
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
     }
-    .project-card .p-info h3 { font-size: 13px; }
-    .project-card .p-info p { font-size: 11px; }
+    .project-card .p-info { padding: 7px 9px; }
+    .project-card .p-info h3 { font-size: 11px; }
+    .project-card .p-info p { font-size: 10px; }
 
-    .featured { padding: 16px; gap: 12px; }
-    .featured-title { font-size: 18px; }
-    .featured-sub { font-size: 12px; }
-    .featured-play { padding: 10px 18px; font-size: 13px; }
+    .featured { padding: 14px; gap: 10px; }
+    .featured-title { font-size: 17px; }
+    .featured-play { padding: 8px 14px; font-size: 12px; }
+  }
+
+  @media (max-width: 380px) {
+    .creator-games {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 </style>
 </head>
@@ -398,10 +391,11 @@
   <div class="nav-links">
     <a href="https://limn-engine-doc.vercel.app/">🏠 Home</a>
     <a href="/my-games.html">📁 My Games</a>
-    <a href="/arcade/leaderboard.html">🏆 Leaderboard</a>
-    <a href="/editor/">+ Make a game</a>
+    <a href="/arcade/leaderboard.html">🏆</a>
+    <a href="/editor/">+ New</a>
   </div>
 </header>
+
 <div class="search-bar">
   <input type="text" id="search" placeholder="Search creators...">
 </div>
@@ -549,26 +543,23 @@ function renderProjects(grid) {
 
   const wrap = document.createElement('div');
   wrap.className = 'projects-grid';
-  wrap.style.marginTop = '20px';
 
   for (const g of list) {
     const profile = g.author_id ? profileMapGlobal[g.author_id] : null;
     let creatorHtml;
     if (profile && profile.username) {
-      creatorHtml = '<a href="/u/?u=' + encodeURIComponent(profile.username) + '">@' +
-                    escapeHtml(profile.username) + '</a>';
+      creatorHtml = '@' + escapeHtml(profile.username);
     } else {
-      const name = (g.author_name || 'anonymous').split('@')[0];
-      creatorHtml = escapeHtml(name);
+      creatorHtml = escapeHtml((g.author_name || 'anon').split('@')[0]);
     }
 
     wrap.insertAdjacentHTML('beforeend',
       '<a class="project-card" href="/arcade/game.html?slug=' +
         encodeURIComponent(g.slug) + '">' +
-        thumbSVG(g.config, true) +
+        thumbSVG(g.config) +
         '<div class="p-info">' +
           '<h3>' + escapeHtml(g.title || 'Untitled') + '</h3>' +
-          '<p>by ' + creatorHtml + '</p>' +
+          '<p>' + creatorHtml + '</p>' +
         '</div>' +
       '</a>');
   }
@@ -598,7 +589,7 @@ function renderCreators(grid) {
     const remaining = filtered.length - visibleCreatorCount;
     html += '<div class="load-more-wrap">' +
       '<button class="load-more-btn" id="loadMoreBtn">' +
-        'See More Creators (' + remaining + ' remaining)' +
+        'See More (' + remaining + ')' +
       '</button>' +
     '</div>';
   } else if (filtered.length > CREATORS_PER_PAGE) {
@@ -640,7 +631,8 @@ function renderCreatorCard(c) {
 
   html += '</div>';
 
-  const openClass = gameCount > 1 ? 'creator-games' : 'creator-games always-open';
+  // Single-game: use `.single` class to cap layout, always shown
+  const openClass = gameCount > 1 ? 'creator-games' : 'creator-games always-open single';
   let gamesHtml = '';
   for (const g of c.games) {
     gamesHtml += '<a class="game-tile" href="/arcade/game.html?slug=' +
@@ -747,13 +739,13 @@ async function loadFeatured() {
   wrap.style.display = 'block';
   wrap.innerHTML =
     '<div class="featured">' +
-      '<div style="flex: 1; min-width: 180px;">' +
+      '<div style="flex: 1; min-width: 160px;">' +
         '<div class="featured-tag"><span>🏆</span><span>Game of the Week</span></div>' +
         '<h2 class="featured-title">' + escapeHtml(top.title) + '</h2>' +
         '<p class="featured-sub">♥ ' + counts[topId] + '</p>' +
       '</div>' +
       '<a href="/arcade/game.html?slug=' + encodeURIComponent(top.slug) +
-        '" class="featured-play">▶ Play Now</a>' +
+        '" class="featured-play">▶ Play</a>' +
     '</div>';
 }
 
