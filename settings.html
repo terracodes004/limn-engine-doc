@@ -51,6 +51,18 @@
           <input type="email" id="email-input" disabled style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.02); border: 1.5px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 1rem; cursor: not-allowed;">
         </div>
 
+        <div style="display: flex; align-items: flex-start; gap: 12px; background: var(--code-bg); padding: 16px; border-radius: 8px; border: 1.5px solid var(--border);">
+          <input type="checkbox" id="subscribe-input" style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent2); cursor: pointer; flex-shrink: 0;">
+          <div>
+            <label for="subscribe-input" style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text); cursor: pointer;">
+              📬 Subscribe to Weekly Updates
+            </label>
+            <p style="font-size: 0.8rem; color: var(--muted); margin-top: 4px; line-height: 1.5;">
+              Get a short email every Monday with top games, new creators, and the week's winner.
+            </p>
+          </div>
+        </div>
+
         <button type="submit" class="btn-primary" style="margin-top: 10px; width: 100%; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer;">Save Changes</button>
       </form>
 
@@ -68,12 +80,15 @@
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    localStorage.setItem('limn_settings_visited', 'true');
+
     const nameInput = document.getElementById('display-name-input');
     const usernameInput = document.getElementById('username-input');
     const usernameHint = document.getElementById('username-hint');
     const emailInput = document.getElementById('email-input');
     const avatarInput = document.getElementById('avatar-input');
     const avatarPreview = document.getElementById('avatar-preview');
+    const subscribeInput = document.getElementById('subscribe-input');
     const form = document.getElementById('settings-form');
     const statusMsg = document.getElementById('status-message');
 
@@ -98,6 +113,7 @@
       avatarInput.value = '';
       avatarPreview.src = 'https://via.placeholder.com/50';
       usernameInput.value = '';
+      subscribeInput.checked = false;
 
       const { data } = await supabase
         .from('profiles')
@@ -133,6 +149,16 @@
         usernameInput.style.cursor = 'text';
         usernameHint.textContent = 'Pick a username. Once saved, it cannot be changed.';
       }
+
+      const { data: userRow } = await supabase
+        .from('users')
+        .select('subscribed')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (userRow && userRow.subscribed) {
+        subscribeInput.checked = true;
+      }
     }
 
     function validateUsername(u) {
@@ -152,6 +178,7 @@
       const newName = nameInput.value.trim();
       const newAvatarUrl = avatarInput.value.trim();
       const rawUsername = usernameInput.value.trim().toLowerCase().replace(/^@/, '');
+      const subscribed = subscribeInput.checked;
 
       const upsertData = {
         user_id: currentUserId,
@@ -193,6 +220,13 @@
         return;
       }
 
+      await supabase
+        .from('users')
+        .upsert({
+          id: currentUserId,
+          subscribed: subscribed
+        }, { onConflict: 'id' });
+
       localStorage.setItem('limn_username', newName);
       if (newAvatarUrl) {
         localStorage.setItem('limn_avatar', newAvatarUrl);
@@ -214,4 +248,4 @@
     fetchUserData();
   </script>
 </body>
-  </html>
+</html>
