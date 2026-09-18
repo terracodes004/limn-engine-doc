@@ -9,15 +9,18 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: #0a0a0f;
+    background: #05050a;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', system-ui, sans-serif;
     overflow: hidden;
     touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   canvas {
@@ -25,31 +28,35 @@
     max-width: 100vw;
     max-height: 100vh;
     image-rendering: pixelated;
+    box-shadow: 0 0 60px rgba(127, 255, 178, 0.15);
   }
 </style>
 </head>
 <body>
 <script>
 // ═══════════════════════════════════════════════════════
-// G SWITCH — Limn Engine (FIXED)
+// G SWITCH — Complete Game with Local Multiplayer
 // ═══════════════════════════════════════════════════════
 
 // ── CONSTANTS ──
-const W            = 800;
-const H            = 400;
-const GRAVITY      = 1800;
-const PLAYER_SPEED = 320;
-const WORLD_W      = 999999;
-const PLATFORM_H   = 24;
-const PLATFORM_GAP = 180;
+const W             = 800;
+const H             = 400;
+const GRAVITY       = 1900;
+const PLAYER_SPEED  = 300;
+const WORLD_W       = 999999;
+const PLATFORM_H    = 22;
+const COIN_SIZE     = 14;
+const MAX_VEL_Y     = 720;
 
 // ── SCENES ──
-const SCENE_MENU   = 0;
-const SCENE_GAME   = 1;
-const SCENE_DEAD   = 2;
-const SCENE_PAUSE  = 3;
+const SCENE_MENU  = 0;
+const SCENE_GAME  = 1;
+const SCENE_DEAD  = 2;
+const SCENE_PAUSE = 3;
+const SCENE_HELP  = 4;
+const SCENE_MULTI = 5;
 
-// ── DISPLAY (start moved to the very end) ──
+// ── DISPLAY ──
 const display = new Display();
 display.perform();
 display.clearMargin = [WORLD_W, H];
@@ -62,26 +69,58 @@ function scaleCanvas() {
   display.canvas.style.width  = (W * scale) + "px";
   display.canvas.style.height = (H * scale) + "px";
 }
-scaleCanvas();
-window.addEventListener("resize", scaleCanvas);
 
-// ── GAME STATE ──
+// ═══════════════════════════════════════════════════════
+// SOUND SYSTEM (silent fallback if files missing)
+// ═══════════════════════════════════════════════════════
+let sndFlip, sndCoin, sndDeath, sndClick, sndBest;
+try {
+  sndFlip  = new Sound("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=", {volume: 0.4});
+  sndCoin  = new Sound("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=", {volume: 0.6});
+  sndDeath = new Sound("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=", {volume: 0.7});
+  sndClick = new Sound("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=", {volume: 0.5});
+  sndBest  = new Sound("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=", {volume: 0.8});
+} catch (e) {}
+
+function playSound(s) {
+  if (s && typeof s.play === "function") {
+    try { s.play(); } catch (e) {}
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// SAVE / LOAD
+// ═══════════════════════════════════════════════════════
+let bestScore = 0;
+try {
+  bestScore = parseInt(localStorage.getItem("gswitch_best") || "0") || 0;
+} catch (e) {}
+
+function saveBest() {
+  try { localStorage.setItem("gswitch_best", String(bestScore)); } catch (e) {}
+}
+
+// ═══════════════════════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════════════════════
 let gravityDir = 1;
 let velY = 0;
 let score = 0;
-let bestScore = 0;
 let distanceTravelled = 0;
+let combo = 0;
+let comboTime = 0;
 let platforms = [];
+let coins = [];
 let gameRunning = false;
 let frameCounter = 0;
 let cameraX = 0;
 let shakeOffsetX = 0;
 let shakeOffsetY = 0;
 let shakeTimeout = null;
+let difficulty = 0;
 
 const particles_ps = new ParticleSystem(display);
 
-// ── FIX 1: Particles must go to the current scene ──
 particles_ps.emit = function(x, y, options) {
   const p = new Particle(x, y, options);
   this.particles.push(p);
@@ -89,225 +128,237 @@ particles_ps.emit = function(x, y, options) {
   return p;
 };
 
-// ── FIX 2: Starfield as a screen-space component ──
-const stars = [];
-for (let i = 0; i < 120; i++) {
-  stars.push({
-    x: Math.random() * W,
-    y: Math.random() * H,
-    size: Math.random() * 2 + 0.5,
-    alpha: Math.random() * 0.8 + 0.2,
-  });
+// ═══════════════════════════════════════════════════════
+// BACKGROUND
+// ═══════════════════════════════════════════════════════
+const starsFar = [];
+const starsNear = [];
+for (let i = 0; i < 140; i++) {
+  starsFar.push({ x: Math.random() * W, y: Math.random() * H, size: Math.random() * 1.5 + 0.3, alpha: Math.random() * 0.5 + 0.15 });
+}
+for (let i = 0; i < 50; i++) {
+  starsNear.push({ x: Math.random() * W, y: Math.random() * H, size: Math.random() * 2 + 1, alpha: Math.random() * 0.6 + 0.3 });
 }
 
-const starfield = new Component(W, H, "#0a0a0f", 0, 0, "rect");
+const starfield = new Component(W, H, "#05050a", 0, 0, "rect");
 starfield.aX = 0;
 starfield.aY = 0;
 starfield.changeAngle = false;
 starfield.move = function() {};
 starfield.update = function(ctx) {
-  ctx.fillStyle = "#0a0a0f";
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, "#05050a");
+  grad.addColorStop(0.5, "#0a0a18");
+  grad.addColorStop(1, "#05050a");
+  ctx.fillStyle = grad;
   ctx.fillRect(this.x, this.y, this.width, this.height);
 
-  const parallaxX = cameraX * 0.15;
-
-  for (let i = 0; i < stars.length; i++) {
-    const s = stars[i];
-    let sx = s.x - parallaxX;
+  const px1 = cameraX * 0.08;
+  for (let i = 0; i < starsFar.length; i++) {
+    const s = starsFar[i];
+    let sx = s.x - px1;
     sx = ((sx % W) + W) % W;
-
     ctx.globalAlpha = s.alpha;
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(this.x + sx, this.y + s.y, s.size, s.size);
   }
+
+  const px2 = cameraX * 0.22;
+  for (let i = 0; i < starsNear.length; i++) {
+    const s = starsNear[i];
+    let sx = s.x - px2;
+    sx = ((sx % W) + W) % W;
+    ctx.globalAlpha = s.alpha;
+    ctx.fillStyle = "#a8d8ff";
+    ctx.fillRect(this.x + sx, this.y + s.y, s.size, s.size);
+  }
+
   ctx.globalAlpha = 1;
 };
 display.add(starfield, SCENE_GAME);
 
-// ── PLAYER ──
-const player = new Component(28, 28, "#7fffb2", 120, H / 2 - 14, "rect");
+// ═══════════════════════════════════════════════════════
+// PLAYER
+// ═══════════════════════════════════════════════════════
+const player = new Component(26, 26, "#7fffb2", 120, H / 2 - 13, "rect");
+player.update = function(ctx) {
+  ctx.save();
+  ctx.shadowColor = "#7fffb2";
+  ctx.shadowBlur = 22;
+
+  ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+  ctx.rotate(this.angle);
+
+  ctx.fillStyle = "#7fffb2";
+  ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(-this.width / 2 + 6, -this.height / 2 + 6, this.width - 12, this.height - 12);
+
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.15;
+  ctx.fillStyle = "#7fffb2";
+  ctx.fillRect(this.x - 12, this.y, this.width, this.height);
+  ctx.globalAlpha = 0.08;
+  ctx.fillRect(this.x - 22, this.y, this.width, this.height);
+  ctx.restore();
+};
 display.add(player, SCENE_GAME);
 
 // ═══════════════════════════════════════════════════════
-// UI — GAME SCENE
+// PLATFORM POOL (single player)
 // ═══════════════════════════════════════════════════════
-const scoreUI = new Tctxt("20px", "Segoe UI", "white", 14, 32,
-  "left", false, "alphabetic", "rgba(0,0,0,0.55)", 10, 4);
-scoreUI.setText("Score: 0");
-display.add(scoreUI, SCENE_GAME);
-
-const bestUI = new Tctxt("14px", "Segoe UI", "#aaa", 14, 58,
-  "left", false, "alphabetic", "rgba(0,0,0,0.4)", 8, 3);
-bestUI.setText("Best: 0");
-display.add(bestUI, SCENE_GAME);
-
-const fpsUI = new Tctxt("12px", "Segoe UI", "#555", W - 14, 20,
-  "right", false, "alphabetic", null, 0, 0);
-fpsUI.setText("60 fps");
-display.add(fpsUI, SCENE_GAME);
-
-const pauseHint = new Tctxt("12px", "Segoe UI", "#444", W / 2, H - 12,
-  "center", false, "alphabetic", null, 0, 0);
-pauseHint.setText("P = Pause");
-display.add(pauseHint, SCENE_GAME);
-
-// ═══════════════════════════════════════════════════════
-// UI — MENU SCENE
-// ═══════════════════════════════════════════════════════
-const menuTitle = new Tctxt("52px", "Segoe UI", "#7fffb2", W / 2, H / 2 - 80,
-  "center", false, "alphabetic", "rgba(0,0,0,0.6)", 20, 10);
-menuTitle.setText("G SWITCH");
-display.add(menuTitle, SCENE_MENU);
-
-const menuSub = new Tctxt("16px", "Segoe UI", "#aaa", W / 2, H / 2 - 30,
-  "center", false, "alphabetic", null, 0, 0);
-menuSub.setText("Tap, Click or Press SPACE to flip gravity");
-display.add(menuSub, SCENE_MENU);
-
-const playBtn = new Component(200, 54, "#7fffb2", W / 2 - 100, H / 2 + 10, "rect");
-display.add(playBtn, SCENE_MENU);
-
-const playBtnText = new Tctxt("22px", "Segoe UI", "#0a0a0f", W / 2, H / 2 + 44,
-  "center", false, "alphabetic", null, 0, 0);
-playBtnText.setText("▶  PLAY");
-display.add(playBtnText, SCENE_MENU);
-
-const menuBest = new Tctxt("15px", "Segoe UI", "#666", W / 2, H / 2 + 92,
-  "center", false, "alphabetic", null, 0, 0);
-menuBest.setText("Best: 0");
-display.add(menuBest, SCENE_MENU);
-
-const madeWith = new Tctxt("12px", "Segoe UI", "#333", W / 2, H - 10,
-  "center", false, "alphabetic", null, 0, 0);
-madeWith.setText("Made with Limn Engine");
-display.add(madeWith, SCENE_MENU);
-
-// ═══════════════════════════════════════════════════════
-// UI — DEAD SCENE
-// ═══════════════════════════════════════════════════════
-const deadTitle = new Tctxt("44px", "Segoe UI", "#ff6b6b", W / 2, H / 2 - 70,
-  "center", false, "alphabetic", "rgba(0,0,0,0.7)", 20, 10);
-deadTitle.setText("GAME OVER");
-display.add(deadTitle, SCENE_DEAD);
-
-const deadScore = new Tctxt("22px", "Segoe UI", "white", W / 2, H / 2 - 18,
-  "center", false, "alphabetic", "rgba(0,0,0,0.5)", 14, 6);
-deadScore.setText("Score: 0");
-display.add(deadScore, SCENE_DEAD);
-
-const deadBest = new Tctxt("16px", "Segoe UI", "#7fffb2", W / 2, H / 2 + 14,
-  "center", false, "alphabetic", null, 0, 0);
-deadBest.setText("Best: 0");
-display.add(deadBest, SCENE_DEAD);
-
-const restartBtn = new Component(220, 54, "#7fffb2", W / 2 - 110, H / 2 + 38, "rect");
-display.add(restartBtn, SCENE_DEAD);
-
-const restartText = new Tctxt("20px", "Segoe UI", "#0a0a0f", W / 2, H / 2 + 72,
-  "center", false, "alphabetic", null, 0, 0);
-restartText.setText("↺  PLAY AGAIN");
-display.add(restartText, SCENE_DEAD);
-
-const menuBtn = new Component(180, 44, "#333", W / 2 - 90, H / 2 + 106, "rect");
-display.add(menuBtn, SCENE_DEAD);
-
-const menuBtnText = new Tctxt("16px", "Segoe UI", "#aaa", W / 2, H / 2 + 134,
-  "center", false, "alphabetic", null, 0, 0);
-menuBtnText.setText("⬅  MENU");
-display.add(menuBtnText, SCENE_DEAD);
-
-// ═══════════════════════════════════════════════════════
-// UI — PAUSE SCENE
-// ═══════════════════════════════════════════════════════
-const pauseTitle = new Tctxt("40px", "Segoe UI", "#ffbb6b", W / 2, H / 2 - 60,
-  "center", false, "alphabetic", "rgba(0,0,0,0.8)", 20, 10);
-pauseTitle.setText("PAUSED");
-display.add(pauseTitle, SCENE_PAUSE);
-
-const resumeBtn = new Component(200, 52, "#7fffb2", W / 2 - 100, H / 2, "rect");
-display.add(resumeBtn, SCENE_PAUSE);
-
-const resumeText = new Tctxt("20px", "Segoe UI", "#0a0a0f", W / 2, H / 2 + 34,
-  "center", false, "alphabetic", null, 0, 0);
-resumeText.setText("▶  RESUME");
-display.add(resumeText, SCENE_PAUSE);
-
-const pauseMenuBtn = new Component(180, 44, "#333", W / 2 - 90, H / 2 + 68, "rect");
-display.add(pauseMenuBtn, SCENE_PAUSE);
-
-const pauseMenuText = new Tctxt("16px", "Segoe UI", "#aaa", W / 2, H / 2 + 96,
-  "center", false, "alphabetic", null, 0, 0);
-pauseMenuText.setText("⬅  MENU");
-display.add(pauseMenuText, SCENE_PAUSE);
-
-// ═══════════════════════════════════════════════════════
-// PLATFORM POOL
-// ═══════════════════════════════════════════════════════
-const POOL_SIZE = 20;
+const POOL_SIZE = 24;
 const platformPool = [];
 for (let i = 0; i < POOL_SIZE; i++) {
   const p = new Component(200, PLATFORM_H, "#5b8cff", -500, -500, "rect");
+  p.changeAngle = false;
+  p.move = function() {};
+  p.isLit = false;
+  p.update = function(ctx) {
+    ctx.save();
+    ctx.shadowColor = this.isLit ? "#7fffb2" : "#5b8cff";
+    ctx.shadowBlur = this.isLit ? 20 : 10;
+    ctx.fillStyle = this.color;
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = this.isLit ? "#b8ffe0" : "#a8c4ff";
+    ctx.fillRect(this.x, this.y, this.width, 3);
+    ctx.restore();
+  };
   display.add(p, SCENE_GAME);
   p.hide();
   platformPool.push({ comp: p, active: false });
 }
 
 function getPooledPlatform() {
-  for (let slot of platformPool) {
-    if (!slot.active) return slot;
-  }
+  for (let slot of platformPool) if (!slot.active) return slot;
   return null;
 }
-
 function returnToPool(slot) {
   slot.active = false;
   slot.comp.hide();
   slot.comp.x = -500;
   slot.comp.y = -500;
+  slot.comp.isLit = false;
 }
 
 // ═══════════════════════════════════════════════════════
-// PLATFORM MANAGEMENT
+// COIN POOL (single player)
+// ═══════════════════════════════════════════════════════
+const COIN_POOL_SIZE = 20;
+const coinPool = [];
+for (let i = 0; i < COIN_POOL_SIZE; i++) {
+  const c = new Component(COIN_SIZE, COIN_SIZE, "#ffdd00", -500, -500, "rect");
+  c.changeAngle = false;
+  c.move = function() {};
+  c.update = function(ctx) {
+    if (!this.visible) return;
+    ctx.save();
+    ctx.shadowColor = "#ffdd00";
+    ctx.shadowBlur = 16;
+    ctx.fillStyle = "#ffdd00";
+    ctx.beginPath();
+    ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(this.x + this.width / 2 - 2, this.y + this.height / 2 - 2, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  };
+  c.visible = false;
+  display.add(c, SCENE_GAME);
+  c.hide();
+  coinPool.push({ comp: c, active: false });
+}
+
+function getPooledCoin() {
+  for (let slot of coinPool) if (!slot.active) return slot;
+  return null;
+}
+function returnCoinToPool(slot) {
+  slot.active = false;
+  slot.comp.hide();
+  slot.comp.visible = false;
+  slot.comp.x = -500;
+  slot.comp.y = -500;
+}
+
+// ═══════════════════════════════════════════════════════
+// PLATFORM + COIN SPAWNING
 // ═══════════════════════════════════════════════════════
 let nextPlatformX = 0;
+let lastPlatformTop = true;
 
 function spawnPlatform(x) {
   const slot = getPooledPlatform();
   if (!slot) return;
 
-  const isTop  = Math.random() > 0.5;
-  const pWidth = 140 + Math.floor(Math.random() * 180);
-  const pY     = isTop ? 0 : H - PLATFORM_H;
+  const widthMin = Math.max(80, 140 - difficulty * 6);
+  const widthMax = Math.max(130, 300 - difficulty * 10);
+  const pWidth = widthMin + Math.random() * (widthMax - widthMin);
 
-  slot.comp.x      = x;
-  slot.comp.y      = pY;
-  slot.comp.width  = pWidth;
+  let isTop = Math.random() > 0.5;
+  if (isTop === lastPlatformTop && Math.random() < 0.7) isTop = !isTop;
+  lastPlatformTop = isTop;
+
+  const pY = isTop ? 0 : H - PLATFORM_H;
+
+  slot.comp.x = x;
+  slot.comp.y = pY;
+  slot.comp.width = pWidth;
   slot.comp.speedX = 0;
   slot.comp.speedY = 0;
+  slot.comp.isLit = false;
   slot.comp.setColor("#5b8cff");
   slot.comp.show();
   slot.active = true;
   platforms.push(slot);
+
+  if (Math.random() < 0.35) {
+    const coinSlot = getPooledCoin();
+    if (coinSlot) {
+      const cx = x + pWidth / 2 - COIN_SIZE / 2;
+      const cy = isTop ? pY + PLATFORM_H + 30 + Math.random() * 40
+                       : pY - COIN_SIZE - 30 - Math.random() * 40;
+      coinSlot.comp.x = cx;
+      coinSlot.comp.y = cy;
+      coinSlot.comp.visible = true;
+      coinSlot.comp.show();
+      coinSlot.active = true;
+      coins.push(coinSlot);
+    }
+  }
 }
 
 function spawnInitialPlatforms() {
   const startSlot = getPooledPlatform();
   startSlot.comp.x = 40;
   startSlot.comp.y = H - PLATFORM_H;
-  startSlot.comp.width = 300;
+  startSlot.comp.width = 340;
+  startSlot.comp.isLit = false;
   startSlot.comp.show();
   startSlot.active = true;
   platforms.push(startSlot);
 
-  nextPlatformX = 380;
+  nextPlatformX = 440;
+  lastPlatformTop = false;
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 12; i++) {
     spawnPlatform(nextPlatformX);
-    nextPlatformX += PLATFORM_GAP + Math.random() * 120;
+    const gapMin = 160 + difficulty * 6;
+    const gapMax = 260 + difficulty * 10;
+    nextPlatformX += gapMin + Math.random() * (gapMax - gapMin);
   }
 }
 
-function recyclePlatforms() {
+function recycleWorld() {
   for (let i = platforms.length - 1; i >= 0; i--) {
     const slot = platforms[i];
     if (slot.comp.x + slot.comp.width < cameraX - 200) {
@@ -315,15 +366,23 @@ function recyclePlatforms() {
       platforms.splice(i, 1);
     }
   }
-
-  while (nextPlatformX < cameraX + W + 400) {
+  for (let i = coins.length - 1; i >= 0; i--) {
+    const slot = coins[i];
+    if (slot.comp.x + slot.comp.width < cameraX - 200) {
+      returnCoinToPool(slot);
+      coins.splice(i, 1);
+    }
+  }
+  while (nextPlatformX < cameraX + W + 500) {
     spawnPlatform(nextPlatformX);
-    nextPlatformX += PLATFORM_GAP + Math.random() * 100;
+    const gapMin = 160 + difficulty * 6;
+    const gapMax = 260 + difficulty * 10;
+    nextPlatformX += gapMin + Math.random() * (gapMax - gapMin);
   }
 }
 
 // ═══════════════════════════════════════════════════════
-// SHAKE VIA OFFSET VARIABLES
+// SCREEN SHAKE
 // ═══════════════════════════════════════════════════════
 function triggerShake(x, y) {
   shakeOffsetX = x;
@@ -336,135 +395,910 @@ function triggerShake(x, y) {
 }
 
 // ═══════════════════════════════════════════════════════
-// GAME INIT / RESET
+// INIT / FLIP / DEATH
 // ═══════════════════════════════════════════════════════
 function initGame() {
   for (let slot of platforms) returnToPool(slot);
+  for (let slot of coins) returnCoinToPool(slot);
   platforms = [];
+  coins = [];
   nextPlatformX = 0;
+  lastPlatformTop = true;
 
-  player.x      = 120;
-  player.y      = H / 2 - 14;
+  player.x = 120;
+  player.y = H / 2 - 13;
   player.speedX = 0;
   player.speedY = 0;
-  player.angle  = 0;
+  player.angle = 0;
 
   velY = 0;
   gravityDir = 1;
   score = 0;
   distanceTravelled = 0;
+  combo = 0;
+  comboTime = 0;
+  difficulty = 0;
   gameRunning = true;
   cameraX = 0;
   frameCounter = 0;
 
   display.camera.x = 0;
   display.camera.y = 0;
+  display.camera.rotationShake = 0;
 
   particles_ps.clear();
   spawnInitialPlatforms();
 }
 
-// ═══════════════════════════════════════════════════════
-// FLIP GRAVITY
-// ═══════════════════════════════════════════════════════
 function flipGravity() {
   if (display.scene !== SCENE_GAME || !gameRunning) return;
   gravityDir *= -1;
   velY = 0;
 
-  move.particles.sparkle(particles_ps, player.x + 14, player.y + 14);
-  display.camera.shakeRotation(0.025);
-  triggerShake(0, gravityDir * 4);
+  move.particles.sparkle(particles_ps, player.x + 13, player.y + 13);
+  move.particles.explosion(particles_ps, player.x + 13, player.y + 13, 8);
+  display.camera.shakeRotation(0.03);
+  triggerShake(0, gravityDir * 6);
+  playSound(sndFlip);
 }
+
+function killPlayer() {
+  if (!gameRunning) return;
+  gameRunning = false;
+
+  const isNewBest = score > bestScore;
+  if (isNewBest) {
+    bestScore = score;
+    saveBest();
+    playSound(sndBest);
+  } else {
+    playSound(sndDeath);
+  }
+
+  move.particles.explosion(particles_ps, player.x + 13, player.y + 13, 40);
+  move.particles.blood(particles_ps, player.x + 13, player.y + 13, 20);
+  move.particles.smoke(particles_ps, player.x + 13, player.y + 13);
+  triggerShake(16, 12);
+  display.camera.shakeRotation(0.15);
+
+  deadScore.setText("Score: " + score);
+  deadBest.setText(isNewBest ? "🏆 NEW BEST!" : "Best: " + bestScore);
+  deadBest.color = isNewBest ? "#ffdd00" : "#7fffb2";
+
+  setTimeout(() => {
+    display.scene = SCENE_DEAD;
+  }, 550);
+}
+
+// ═══════════════════════════════════════════════════════
+// UI — GAME SCENE
+// ═══════════════════════════════════════════════════════
+const scoreUI = new Tctxt("22px", "Segoe UI", "#7fffb2", 16, 34, "left", false, "alphabetic", "rgba(0,0,0,0.5)", 12, 5);
+scoreUI.setText("0");
+display.add(scoreUI, SCENE_GAME);
+
+const scoreLabel = new Tctxt("11px", "Segoe UI", "#666", 16, 18, "left", false, "alphabetic", null, 0, 0);
+scoreLabel.setText("SCORE");
+display.add(scoreLabel, SCENE_GAME);
+
+const bestUI = new Tctxt("13px", "Segoe UI", "#888", 16, 60, "left", false, "alphabetic", "rgba(0,0,0,0.3)", 8, 3);
+bestUI.setText("Best: 0");
+display.add(bestUI, SCENE_GAME);
+
+const fpsUI = new Tctxt("11px", "Segoe UI", "#444", W - 16, 20, "right", false, "alphabetic", null, 0, 0);
+fpsUI.setText("60 fps");
+display.add(fpsUI, SCENE_GAME);
+
+const pauseHint = new Tctxt("11px", "Segoe UI", "#333", W / 2, H - 10, "center", false, "alphabetic", null, 0, 0);
+pauseHint.setText("SPACE / TAP  to flip    •    P  to pause");
+display.add(pauseHint, SCENE_GAME);
+
+const comboUI = new Tctxt("14px", "Segoe UI", "#ffbb6b", W / 2, 34, "center", false, "alphabetic", "rgba(0,0,0,0.4)", 10, 4);
+comboUI.setText("");
+display.add(comboUI, SCENE_GAME);
+
+// ═══════════════════════════════════════════════════════
+// UI — MENU SCENE
+// ═══════════════════════════════════════════════════════
+const menuTitle = new Tctxt("64px", "Segoe UI", "#7fffb2", W / 2, H / 2 - 100, "center", false, "alphabetic", null, 0, 0);
+menuTitle.setText("G  SWITCH");
+display.add(menuTitle, SCENE_MENU);
+
+const menuSub = new Tctxt("14px", "Segoe UI", "#777", W / 2, H / 2 - 55, "center", false, "alphabetic", null, 0, 0);
+menuSub.setText("Flip gravity. Dodge platforms. Survive.");
+display.add(menuSub, SCENE_MENU);
+
+const playBtn = new Component(220, 48, "#7fffb2", W / 2 - 110, H / 2 - 15, "rect");
+playBtn.changeAngle = false;
+playBtn.move = function() {};
+playBtn.update = function(ctx) {
+  ctx.save();
+  ctx.shadowColor = "#7fffb2";
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = this.color;
+  ctx.fillRect(this.x, this.y, this.width, this.height);
+  ctx.restore();
+};
+display.add(playBtn, SCENE_MENU);
+
+const playBtnText = new Tctxt("20px", "Segoe UI", "#05050a", W / 2, H / 2 + 18, "center", false, "alphabetic", null, 0, 0);
+playBtnText.setText("▶   PLAY");
+display.add(playBtnText, SCENE_MENU);
+
+const helpBtn = new Component(220, 38, "#1a1a2a", W / 2 - 110, H / 2 + 45, "rect");
+helpBtn.changeAngle = false;
+helpBtn.move = function() {};
+display.add(helpBtn, SCENE_MENU);
+
+const helpBtnText = new Tctxt("14px", "Segoe UI", "#999", W / 2, H / 2 + 69, "center", false, "alphabetic", null, 0, 0);
+helpBtnText.setText("?   HOW TO PLAY");
+display.add(helpBtnText, SCENE_MENU);
+
+const multiBtn = new Component(220, 38, "#1a1a2a", W / 2 - 110, H / 2 + 89, "rect");
+multiBtn.changeAngle = false;
+multiBtn.move = function() {};
+display.add(multiBtn, SCENE_MENU);
+
+const multiBtnText = new Tctxt("14px", "Segoe UI", "#ffbb6b", W / 2, H / 2 + 113, "center", false, "alphabetic", null, 0, 0);
+multiBtnText.setText("👥   2-PLAYER LOCAL");
+display.add(multiBtnText, SCENE_MENU);
+
+const menuBest = new Tctxt("14px", "Segoe UI", "#666", W / 2, H / 2 + 148, "center", false, "alphabetic", null, 0, 0);
+menuBest.setText("Best: 0");
+display.add(menuBest, SCENE_MENU);
+
+const madeWith = new Tctxt("11px", "Segoe UI", "#2a2a3a", W / 2, H - 10, "center", false, "alphabetic", null, 0, 0);
+madeWith.setText("Made with Limn Engine");
+display.add(madeWith, SCENE_MENU);
+
+// ═══════════════════════════════════════════════════════
+// UI — HELP SCENE
+// ═══════════════════════════════════════════════════════
+const helpTitle = new Tctxt("38px", "Segoe UI", "#ffbb6b", W / 2, 80, "center", false, "alphabetic", null, 0, 0);
+helpTitle.setText("HOW TO PLAY");
+display.add(helpTitle, SCENE_HELP);
+
+const helpLines = [
+  "🎯   Flip gravity to land on platforms",
+  "⚡   Survive as long as you can",
+  "💰   Collect coins for bonus points",
+  "🔥   Longer survival = higher difficulty",
+  "",
+  "⌨️   SPACE or click to flip",
+  "📱   Tap anywhere on mobile",
+  "⏸️   P to pause"
+];
+
+helpLines.forEach((line, i) => {
+  const t = new Tctxt("16px", "Segoe UI", i === 4 ? "#555" : "#bbb", W / 2, 140 + i * 26, "center", false, "alphabetic", null, 0, 0);
+  t.setText(line);
+  display.add(t, SCENE_HELP);
+});
+
+const helpBackBtn = new Component(200, 48, "#7fffb2", W / 2 - 100, H - 70, "rect");
+helpBackBtn.changeAngle = false;
+helpBackBtn.move = function() {};
+display.add(helpBackBtn, SCENE_HELP);
+
+const helpBackText = new Tctxt("18px", "Segoe UI", "#05050a", W / 2, H - 40, "center", false, "alphabetic", null, 0, 0);
+helpBackText.setText("←   BACK");
+display.add(helpBackText, SCENE_HELP);
+
+// ═══════════════════════════════════════════════════════
+// UI — DEAD SCENE
+// ═══════════════════════════════════════════════════════
+const deadOverlay = new Component(W, H, "rgba(5,5,10,0.85)", 0, 0, "rect");
+deadOverlay.changeAngle = false;
+deadOverlay.move = function() {};
+deadOverlay.aX = 0;
+deadOverlay.aY = 0;
+display.add(deadOverlay, SCENE_DEAD);
+
+const deadTitle = new Tctxt("52px", "Segoe UI", "#ff6b6b", W / 2, H / 2 - 90, "center", false, "alphabetic", null, 0, 0);
+deadTitle.setText("GAME OVER");
+display.add(deadTitle, SCENE_DEAD);
+
+const deadScore = new Tctxt("26px", "Segoe UI", "white", W / 2, H / 2 - 25, "center", false, "alphabetic", null, 0, 0);
+deadScore.setText("Score: 0");
+display.add(deadScore, SCENE_DEAD);
+
+const deadBest = new Tctxt("15px", "Segoe UI", "#7fffb2", W / 2, H / 2 + 10, "center", false, "alphabetic", null, 0, 0);
+deadBest.setText("Best: 0");
+display.add(deadBest, SCENE_DEAD);
+
+const restartBtn = new Component(240, 54, "#7fffb2", W / 2 - 120, H / 2 + 45, "rect");
+restartBtn.changeAngle = false;
+restartBtn.move = function() {};
+restartBtn.update = function(ctx) {
+  ctx.save();
+  ctx.shadowColor = "#7fffb2";
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = this.color;
+  ctx.fillRect(this.x, this.y, this.width, this.height);
+  ctx.restore();
+};
+display.add(restartBtn, SCENE_DEAD);
+
+const restartText = new Tctxt("20px", "Segoe UI", "#05050a", W / 2, H / 2 + 80, "center", false, "alphabetic", null, 0, 0);
+restartText.setText("↺   PLAY AGAIN");
+display.add(restartText, SCENE_DEAD);
+
+const menuBtn = new Component(200, 44, "#1a1a2a", W / 2 - 100, H / 2 + 115, "rect");
+menuBtn.changeAngle = false;
+menuBtn.move = function() {};
+display.add(menuBtn, SCENE_DEAD);
+
+const menuBtnText = new Tctxt("16px", "Segoe UI", "#999", W / 2, H / 2 + 142, "center", false, "alphabetic", null, 0, 0);
+menuBtnText.setText("←   MENU");
+display.add(menuBtnText, SCENE_DEAD);
+
+// ═══════════════════════════════════════════════════════
+// UI — PAUSE SCENE
+// ═══════════════════════════════════════════════════════
+const pauseOverlay = new Component(W, H, "rgba(5,5,10,0.85)", 0, 0, "rect");
+pauseOverlay.changeAngle = false;
+pauseOverlay.move = function() {};
+pauseOverlay.aX = 0;
+pauseOverlay.aY = 0;
+display.add(pauseOverlay, SCENE_PAUSE);
+
+const pauseTitle = new Tctxt("44px", "Segoe UI", "#ffbb6b", W / 2, H / 2 - 80, "center", false, "alphabetic", null, 0, 0);
+pauseTitle.setText("PAUSED");
+display.add(pauseTitle, SCENE_PAUSE);
+
+const resumeBtn = new Component(220, 52, "#7fffb2", W / 2 - 110, H / 2 - 20, "rect");
+resumeBtn.changeAngle = false;
+resumeBtn.move = function() {};
+display.add(resumeBtn, SCENE_PAUSE);
+
+const resumeText = new Tctxt("20px", "Segoe UI", "#05050a", W / 2, H / 2 + 14, "center", false, "alphabetic", null, 0, 0);
+resumeText.setText("▶   RESUME");
+display.add(resumeText, SCENE_PAUSE);
+
+const pauseMenuBtn = new Component(200, 44, "#1a1a2a", W / 2 - 100, H / 2 + 50, "rect");
+pauseMenuBtn.changeAngle = false;
+pauseMenuBtn.move = function() {};
+display.add(pauseMenuBtn, SCENE_PAUSE);
+
+const pauseMenuText = new Tctxt("16px", "Segoe UI", "#999", W / 2, H / 2 + 78, "center", false, "alphabetic", null, 0, 0);
+pauseMenuText.setText("←   MENU");
+display.add(pauseMenuText, SCENE_PAUSE);
+
+// ═══════════════════════════════════════════════════════
+// MULTIPLAYER — SETUP
+// ═══════════════════════════════════════════════════════
+const MP_HALF_H = H / 2;
+const MP_POOL   = 22;
+
+const mpPool = [[], []];
+const mpCoinPool = [[], []];
+
+for (let p = 0; p < 2; p++) {
+  const platformColor = p === 0 ? "#5b8cff" : "#ffbb6b";
+  const coinColor     = p === 0 ? "#a8c4ff" : "#ffd98a";
+
+  for (let i = 0; i < MP_POOL; i++) {
+    const plat = new Component(180, PLATFORM_H, platformColor, -500, -500, "rect");
+    plat.changeAngle = false;
+    plat.move = function() {};
+    plat.isLit = false;
+    plat.playerIdx = p;
+    plat.update = function(ctx) {
+      if (!this.visible) return;
+      ctx.save();
+      ctx.shadowColor = this.isLit ? "#ffffff" : this.color;
+      ctx.shadowBlur = this.isLit ? 18 : 8;
+      ctx.fillStyle = this.color;
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = this.isLit ? "#ffffff" : (this.playerIdx === 0 ? "#a8c4ff" : "#ffd98a");
+      ctx.fillRect(this.x, this.y, this.width, 3);
+      ctx.restore();
+    };
+    display.add(plat, SCENE_MULTI);
+    plat.hide();
+    mpPool[p].push({ comp: plat, active: false });
+
+    if (i < 12) {
+      const coin = new Component(12, 12, coinColor, -500, -500, "rect");
+      coin.changeAngle = false;
+      coin.move = function() {};
+      coin.visible = false;
+      coin.update = function(ctx) {
+        if (!this.visible) return;
+        ctx.save();
+        ctx.shadowColor = this.color;
+        ctx.shadowBlur = 14;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      };
+      display.add(coin, SCENE_MULTI);
+      coin.hide();
+      mpCoinPool[p].push({ comp: coin, active: false });
+    }
+  }
+}
+
+const mp = {
+  players: [],
+  ended: false,
+  winner: -1,
+  overlayReady: false,
+};
+
+function mpResetPlayer(idx) {
+  return {
+    idx: idx,
+    gravityDir: 1,
+    velY: 0,
+    x: 120,
+    y: MP_HALF_H / 2 - 13,
+    score: 0,
+    distance: 0,
+    dead: false,
+    difficulty: 0,
+    lastTop: true,
+    nextX: 0,
+    cameraX: 0,
+    frameCounter: 0,
+    worldY: idx === 0 ? 0 : MP_HALF_H,
+    color: idx === 0 ? "#7fffb2" : "#ffd98a",
+    activePlatforms: [],
+    activeCoins: [],
+  };
+}
+
+function mpGetPooledPlatform(p) {
+  for (let slot of mpPool[p]) if (!slot.active) return slot;
+  return null;
+}
+function mpGetPooledCoin(p) {
+  for (let slot of mpCoinPool[p]) if (!slot.active) return slot;
+  return null;
+}
+function mpReturnPlatform(slot) {
+  slot.active = false;
+  slot.comp.hide();
+  slot.comp.x = -500;
+  slot.comp.y = -500;
+  slot.comp.isLit = false;
+}
+function mpReturnCoin(slot) {
+  slot.active = false;
+  slot.comp.visible = false;
+  slot.comp.hide();
+  slot.comp.x = -500;
+  slot.comp.y = -500;
+}
+
+function mpSpawnPlatform(p, x) {
+  const slot = mpGetPooledPlatform(p);
+  if (!slot) return;
+  const pl = mp.players[p];
+
+  const widthMin = Math.max(80, 140 - pl.difficulty * 6);
+  const widthMax = Math.max(120, 260 - pl.difficulty * 10);
+  const pw = widthMin + Math.random() * (widthMax - widthMin);
+
+  let isTop = Math.random() > 0.5;
+  if (isTop === pl.lastTop && Math.random() < 0.7) isTop = !isTop;
+  pl.lastTop = isTop;
+
+  const halfTop = pl.worldY;
+  const halfBot = pl.worldY + MP_HALF_H - PLATFORM_H;
+  const py = isTop ? halfTop : halfBot;
+
+  slot.comp.x = x;
+  slot.comp.y = py;
+  slot.comp.width = pw;
+  slot.comp.isLit = false;
+  slot.comp.show();
+  slot.active = true;
+  pl.activePlatforms.push(slot);
+
+  if (Math.random() < 0.4) {
+    const coinSlot = mpGetPooledCoin(p);
+    if (coinSlot) {
+      const cx = x + pw / 2 - 6;
+      const cy = isTop ? py + PLATFORM_H + 25 + Math.random() * 35
+                       : py - 12 - 25 - Math.random() * 35;
+      coinSlot.comp.x = cx;
+      coinSlot.comp.y = cy;
+      coinSlot.comp.visible = true;
+      coinSlot.comp.show();
+      coinSlot.active = true;
+      pl.activeCoins.push(coinSlot);
+    }
+  }
+}
+
+function mpSpawnInitial(p) {
+  const pl = mp.players[p];
+  const startSlot = mpGetPooledPlatform(p);
+  startSlot.comp.x = 40;
+  startSlot.comp.y = pl.worldY + MP_HALF_H - PLATFORM_H;
+  startSlot.comp.width = 320;
+  startSlot.comp.isLit = false;
+  startSlot.comp.show();
+  startSlot.active = true;
+  pl.activePlatforms.push(startSlot);
+
+  pl.nextX = 420;
+  pl.lastTop = false;
+
+  for (let i = 0; i < 10; i++) {
+    mpSpawnPlatform(p, pl.nextX);
+    const gapMin = 160 + pl.difficulty * 6;
+    const gapMax = 260 + pl.difficulty * 10;
+    pl.nextX += gapMin + Math.random() * (gapMax - gapMin);
+  }
+}
+
+function mpClearPlayer(p) {
+  const pl = mp.players[p];
+  for (let slot of pl.activePlatforms) mpReturnPlatform(slot);
+  for (let slot of pl.activeCoins) mpReturnCoin(slot);
+  pl.activePlatforms = [];
+  pl.activeCoins = [];
+}
+
+function mpInit() {
+  mp.players = [mpResetPlayer(0), mpResetPlayer(1)];
+  mp.ended = false;
+  mp.winner = -1;
+  mp.overlayReady = false;
+
+  for (let p = 0; p < 2; p++) {
+    mpClearPlayer(p);
+    mpSpawnInitial(p);
+  }
+
+  mpWinnerText.setText("");
+  mpSubText.setText("");
+  mpRestartBtn.hide();
+  mpRestartText.hide();
+  mpMenuBtn.hide();
+  mpMenuText.hide();
+  mpRestartBtn.aX = -500;
+  mpMenuBtn.aX = -500;
+}
+
+function mpFlip(idx) {
+  if (display.scene !== SCENE_MULTI || mp.ended) return;
+  const pl = mp.players[idx];
+  if (!pl || pl.dead) return;
+  pl.gravityDir *= -1;
+  pl.velY = 0;
+
+  move.particles.sparkle(particles_ps, pl.x + 13, pl.y + 13);
+  triggerShake(0, (idx === 0 ? -1 : 1) * 3);
+}
+
+function mpKill(idx) {
+  const pl = mp.players[idx];
+  if (!pl || pl.dead) return;
+  pl.dead = true;
+
+  move.particles.explosion(particles_ps, pl.x + 13, pl.y + 13, 30);
+  move.particles.smoke(particles_ps, pl.x + 13, pl.y + 13);
+  triggerShake(12, 8);
+
+  const other = mp.players[1 - idx];
+  if (!other.dead) {
+    mp.ended = true;
+    mp.winner = 1 - idx;
+    setTimeout(mpShowWinner, 500);
+  } else {
+    mp.ended = true;
+    mp.winner = -1;
+    setTimeout(mpShowWinner, 500);
+  }
+}
+
+function mpShowWinner() {
+  if (mp.winner === -1) {
+    mpWinnerText.setText("DRAW!");
+    mpWinnerText.color = "#ffffff";
+  } else {
+    mpWinnerText.setText("P" + (mp.winner + 1) + " WINS!");
+    mpWinnerText.color = mp.winner === 0 ? "#7fffb2" : "#ffd98a";
+  }
+
+  const s0 = mp.players[0].score;
+  const s1 = mp.players[1].score;
+  mpSubText.setText("P1: " + s0 + "   •   P2: " + s1);
+
+  mpRestartBtn.aX = W / 2 - 110;
+  mpRestartBtn.aY = H / 2 + 30;
+  mpRestartBtn.show();
+  mpRestartText.aX = W / 2;
+  mpRestartText.aY = H / 2 + 64;
+  mpRestartText.show();
+
+  mpMenuBtn.aX = W / 2 - 90;
+  mpMenuBtn.aY = H / 2 + 100;
+  mpMenuBtn.show();
+  mpMenuText.aX = W / 2;
+  mpMenuText.aY = H / 2 + 128;
+  mpMenuText.show();
+
+  mp.overlayReady = true;
+}
+
+function mpUpdatePlayer(p, dt) {
+  const pl = mp.players[p];
+  if (pl.dead) return;
+
+  const safeDt = Math.min(dt, 0.05);
+  const speed = PLAYER_SPEED;
+
+  pl.x += speed * safeDt;
+
+  pl.velY += GRAVITY * pl.gravityDir * safeDt;
+  pl.velY = Math.max(-MAX_VEL_Y, Math.min(MAX_VEL_Y, pl.velY));
+  pl.y += pl.velY * safeDt;
+
+  pl.distance += speed * safeDt;
+  pl.score = Math.floor(pl.distance / 60);
+  pl.difficulty = Math.min(18, Math.floor(pl.distance / 2200));
+
+  const halfTop = pl.worldY;
+  const halfBot = pl.worldY + MP_HALF_H;
+
+  if (pl.y <= halfTop) {
+    if (pl.gravityDir === -1) { pl.y = halfTop; pl.velY = 0; }
+    else { mpKill(p); return; }
+  }
+  if (pl.y + 26 >= halfBot) {
+    if (pl.gravityDir === 1) { pl.y = halfBot - 26; pl.velY = 0; }
+    else { mpKill(p); return; }
+  }
+
+  for (let slot of pl.activePlatforms) {
+    if (!slot.active) continue;
+    const plat = slot.comp;
+
+    const overlap =
+      pl.x < plat.x + plat.width && pl.x + 26 > plat.x &&
+      pl.y < plat.y + plat.height && pl.y + 26 > plat.y;
+
+    if (overlap) {
+      const landedTop = pl.gravityDir === 1 &&
+                        pl.y + 26 > plat.y && pl.y < plat.y;
+      const landedBottom = pl.gravityDir === -1 &&
+                           pl.y < plat.y + plat.height &&
+                           pl.y + 26 > plat.y + plat.height;
+
+      if (landedTop) {
+        pl.y = plat.y - 26;
+        pl.velY = 0;
+        plat.isLit = true;
+      } else if (landedBottom) {
+        pl.y = plat.y + plat.height;
+        pl.velY = 0;
+        plat.isLit = true;
+      } else {
+        mpKill(p); return;
+      }
+    } else {
+      plat.isLit = false;
+    }
+  }
+
+  for (let i = pl.activeCoins.length - 1; i >= 0; i--) {
+    const c = pl.activeCoins[i];
+    if (!c.active) continue;
+    const cc = c.comp;
+    const coinOverlap =
+      pl.x < cc.x + cc.width && pl.x + 26 > cc.x &&
+      pl.y < cc.y + cc.height && pl.y + 26 > cc.y;
+    if (coinOverlap) {
+      pl.score += 25;
+      move.particles.sparkle(particles_ps, cc.x + 6, cc.y + 6);
+      mpReturnCoin(c);
+      pl.activeCoins.splice(i, 1);
+    }
+  }
+
+  for (let i = pl.activePlatforms.length - 1; i >= 0; i--) {
+    const slot = pl.activePlatforms[i];
+    if (slot.comp.x + slot.comp.width < pl.cameraX - 200) {
+      mpReturnPlatform(slot);
+      pl.activePlatforms.splice(i, 1);
+    }
+  }
+  for (let i = pl.activeCoins.length - 1; i >= 0; i--) {
+    const slot = pl.activeCoins[i];
+    if (slot.comp.x + slot.comp.width < pl.cameraX - 200) {
+      mpReturnCoin(slot);
+      pl.activeCoins.splice(i, 1);
+    }
+  }
+
+  while (pl.nextX < pl.cameraX + W + 400) {
+    mpSpawnPlatform(p, pl.nextX);
+    const gapMin = 160 + pl.difficulty * 6;
+    const gapMax = 260 + pl.difficulty * 10;
+    pl.nextX += gapMin + Math.random() * (gapMax - gapMin);
+  }
+
+  const targetCamX = pl.x - W / 3;
+  pl.cameraX += (targetCamX - pl.cameraX) * 0.12;
+  pl.cameraX = Math.max(0, pl.cameraX);
+
+  pl.frameCounter++;
+  if (pl.frameCounter % 3 === 0) {
+    particles_ps.emit(pl.x + 13, pl.y + 13, {
+      width: 3, height: 3,
+      color: pl.color,
+      life: 18,
+      speedX: -80 + (Math.random() - 0.5) * 40,
+      speedY: (Math.random() - 0.5) * 60,
+      alphaFade: 0.06,
+      type: "circle"
+    });
+  }
+}
+
+function mpDrawPlayer(p) {
+  const pl = mp.players[p];
+  if (pl.dead) return;
+
+  const ctx = display.context;
+  const screenX = pl.x - pl.cameraX;
+
+  ctx.save();
+  ctx.shadowColor = pl.color;
+  ctx.shadowBlur = 22;
+
+  ctx.fillStyle = pl.color;
+  ctx.fillRect(screenX, pl.y, 26, 26);
+
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(screenX + 6, pl.y + 6, 14, 14);
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalAlpha = 0.4;
+  ctx.strokeStyle = pl.color;
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(screenX + 13, pl.y + 13 + pl.gravityDir * 20);
+  ctx.lineTo(screenX + 13, pl.y + 13 + pl.gravityDir * 50);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════════
+// UI — MULTIPLAYER SCENE
+// ═══════════════════════════════════════════════════════
+const mpDivider = new Component(W, 4, "#ff0080", 0, H / 2 - 2, "rect");
+mpDivider.changeAngle = false;
+mpDivider.move = function() {};
+mpDivider.aX = 0;
+mpDivider.aY = H / 2 - 2;
+display.add(mpDivider, SCENE_MULTI);
+
+const mpP1Label = new Tctxt("14px", "Segoe UI", "#7fffb2", 12, 22, "left", false, "alphabetic", "rgba(0,0,0,0.5)", 8, 3);
+mpP1Label.setText("P1  (W)");
+display.add(mpP1Label, SCENE_MULTI);
+
+const mpP2Label = new Tctxt("14px", "Segoe UI", "#ffd98a", 12, H / 2 + 22, "left", false, "alphabetic", "rgba(0,0,0,0.5)", 8, 3);
+mpP2Label.setText("P2  (↑)");
+display.add(mpP2Label, SCENE_MULTI);
+
+const mpP1Score = new Tctxt("22px", "Segoe UI", "#7fffb2", W - 16, 30, "right", false, "alphabetic", "rgba(0,0,0,0.5)", 12, 5);
+mpP1Score.setText("0");
+display.add(mpP1Score, SCENE_MULTI);
+
+const mpP2Score = new Tctxt("22px", "Segoe UI", "#ffd98a", W - 16, H / 2 + 30, "right", false, "alphabetic", "rgba(0,0,0,0.5)", 12, 5);
+mpP2Score.setText("0");
+display.add(mpP2Score, SCENE_MULTI);
+
+const mpWinnerText = new Tctxt("52px", "Segoe UI", "#ffffff", W / 2, H / 2 - 40, "center", false, "alphabetic", null, 0, 0);
+mpWinnerText.setText("");
+display.add(mpWinnerText, SCENE_MULTI);
+
+const mpSubText = new Tctxt("18px", "Segoe UI", "#aaa", W / 2, H / 2 - 5, "center", false, "alphabetic", null, 0, 0);
+mpSubText.setText("");
+display.add(mpSubText, SCENE_MULTI);
+
+const mpRestartBtn = new Component(220, 50, "#7fffb2", W / 2 - 110, H / 2 + 30, "rect");
+mpRestartBtn.changeAngle = false;
+mpRestartBtn.move = function() {};
+mpRestartBtn.aX = -500;
+mpRestartBtn.aY = H / 2 + 30;
+mpRestartBtn.hide();
+display.add(mpRestartBtn, SCENE_MULTI);
+
+const mpRestartText = new Tctxt("20px", "Segoe UI", "#05050a", W / 2, H / 2 + 64, "center", false, "alphabetic", null, 0, 0);
+mpRestartText.setText("↺  PLAY AGAIN");
+mpRestartText.aX = W / 2;
+mpRestartText.aY = H / 2 + 64;
+mpRestartText.hide();
+display.add(mpRestartText, SCENE_MULTI);
+
+const mpMenuBtn = new Component(180, 44, "#1a1a2a", W / 2 - 90, H / 2 + 100, "rect");
+mpMenuBtn.changeAngle = false;
+mpMenuBtn.move = function() {};
+mpMenuBtn.aX = -500;
+mpMenuBtn.aY = H / 2 + 100;
+mpMenuBtn.hide();
+display.add(mpMenuBtn, SCENE_MULTI);
+
+const mpMenuText = new Tctxt("16px", "Segoe UI", "#999", W / 2, H / 2 + 128, "center", false, "alphabetic", null, 0, 0);
+mpMenuText.setText("←  MENU");
+mpMenuText.aX = W / 2;
+mpMenuText.aY = H / 2 + 128;
+mpMenuText.hide();
+display.add(mpMenuText, SCENE_MULTI);
 
 // ═══════════════════════════════════════════════════════
 // INPUT
 // ═══════════════════════════════════════════════════════
 window.addEventListener("keydown", (e) => {
-  if (e.keyCode === 32) { e.preventDefault(); flipGravity(); }
+  // SPACE
+  if (e.keyCode === 32) {
+    e.preventDefault();
+    if (display.scene === SCENE_GAME) {
+      flipGravity();
+    } else if (display.scene === SCENE_MENU) {
+      playSound(sndClick);
+      initGame();
+      display.scene = SCENE_GAME;
+    } else if (display.scene === SCENE_DEAD) {
+      playSound(sndClick);
+      initGame();
+      display.scene = SCENE_GAME;
+    } else if (display.scene === SCENE_PAUSE) {
+      gameRunning = true;
+      display.scene = SCENE_GAME;
+    }
+  }
+
+  // P
   if (e.keyCode === 80) {
     if (display.scene === SCENE_GAME && gameRunning) {
       gameRunning = false;
       display.scene = SCENE_PAUSE;
+    } else if (display.scene === SCENE_PAUSE) {
+      gameRunning = true;
+      display.scene = SCENE_GAME;
     }
+  }
+
+  // ESC
+  if (e.keyCode === 27) {
+    if (display.scene === SCENE_HELP || display.scene === SCENE_DEAD || display.scene === SCENE_MULTI) {
+      display.scene = SCENE_MENU;
+    } else if (display.scene === SCENE_GAME) {
+      gameRunning = false;
+      display.scene = SCENE_PAUSE;
+    }
+  }
+
+  // W — P1 flip
+  if (e.keyCode === 87 && display.scene === SCENE_MULTI) {
+    e.preventDefault();
+    mpFlip(0);
+  }
+
+  // ↑ — P2 flip
+  if (e.keyCode === 38 && display.scene === SCENE_MULTI) {
+    e.preventDefault();
+    mpFlip(1);
   }
 });
 
+// Touch — single player flip
 display.canvas.addEventListener("touchstart", (e) => {
-  e.preventDefault();
-  if (display.scene === SCENE_GAME) flipGravity();
+  if (display.scene === SCENE_GAME && gameRunning) {
+    e.preventDefault();
+    flipGravity();
+  }
 }, { passive: false });
-
-// ═══════════════════════════════════════════════════════
-// DEATH
-// ═══════════════════════════════════════════════════════
-function killPlayer() {
-  if (!gameRunning) return;
-  gameRunning = false;
-
-  if (score > bestScore) bestScore = score;
-
-  move.particles.explosion(particles_ps, player.x + 14, player.y + 14, 35);
-  move.particles.blood(particles_ps, player.x + 14, player.y + 14, 20);
-  triggerShake(14, 10);
-  display.camera.shakeRotation(0.1);
-
-  deadScore.setText("Score: " + score);
-  deadBest.setText(
-    score >= bestScore ? "🏆 New Best: " + bestScore : "Best: " + bestScore
-  );
-
-  setTimeout(() => {
-    display.scene = SCENE_DEAD;
-  }, 600);
-}
 
 // ═══════════════════════════════════════════════════════
 // UPDATE LOOP
 // ═══════════════════════════════════════════════════════
 function update(dt) {
 
-  particles_ps.update();
+  try { particles_ps.update(); } catch (e) {}
 
-  // ── MENU SCENE ──
+  // ── MENU ──
   if (display.scene === SCENE_MENU) {
-    menuTitle.y = H / 2 - 80 + Math.sin(Date.now() / 600) * 5;
+    menuTitle.y = H / 2 - 100 + Math.sin(Date.now() / 700) * 4;
+
     menuTitle.fixed();
     menuSub.fixed();
     playBtnText.fixed();
     playBtn.fixed();
+    helpBtnText.fixed();
+    helpBtn.fixed();
+    multiBtnText.fixed();
+    multiBtn.fixed();
     menuBest.fixed();
     madeWith.fixed();
 
     menuBest.setText("Best: " + bestScore);
 
+    playBtn.color  = (display.x && playBtn.clicked())  ? "#b8ffe0" : "#7fffb2";
+    helpBtn.color  = (display.x && helpBtn.clicked())  ? "#2a2a3a" : "#1a1a2a";
+    multiBtn.color = (display.x && multiBtn.clicked()) ? "#2a2a3a" : "#1a1a2a";
+
     if (display.x && playBtn.clicked()) {
+      playSound(sndClick);
       initGame();
       display.scene = SCENE_GAME;
+      return;
+    }
+    if (display.x && helpBtn.clicked()) {
+      playSound(sndClick);
+      display.scene = SCENE_HELP;
+      return;
+    }
+    if (display.x && multiBtn.clicked()) {
+      playSound(sndClick);
+      mpInit();
+      display.scene = SCENE_MULTI;
+      return;
     }
     return;
   }
 
-  // ── PAUSE SCENE ──
+  // ── HELP ──
+  if (display.scene === SCENE_HELP) {
+    helpTitle.fixed();
+    helpBackText.fixed();
+    helpBackBtn.fixed();
+    helpBackBtn.color = (display.x && helpBackBtn.clicked()) ? "#b8ffe0" : "#7fffb2";
+
+    for (const c of comm) {
+      if (c.scene === SCENE_HELP && c.x && c.x.type === "text") c.x.fixed();
+    }
+
+    if (display.x && helpBackBtn.clicked()) {
+      playSound(sndClick);
+      display.scene = SCENE_MENU;
+    }
+    return;
+  }
+
+  // ── PAUSE ──
   if (display.scene === SCENE_PAUSE) {
+    pauseOverlay.fixed();
     pauseTitle.fixed();
     resumeBtn.fixed();
     resumeText.fixed();
     pauseMenuBtn.fixed();
     pauseMenuText.fixed();
 
+    resumeBtn.color    = (display.x && resumeBtn.clicked())    ? "#b8ffe0" : "#7fffb2";
+    pauseMenuBtn.color = (display.x && pauseMenuBtn.clicked()) ? "#2a2a3a" : "#1a1a2a";
+
     if (display.x && resumeBtn.clicked()) {
+      playSound(sndClick);
       gameRunning = true;
       display.scene = SCENE_GAME;
+      return;
     }
     if (display.x && pauseMenuBtn.clicked()) {
+      playSound(sndClick);
       display.scene = SCENE_MENU;
+      return;
     }
     return;
   }
 
-  // ── DEAD SCENE ──
+  // ── DEAD ──
   if (display.scene === SCENE_DEAD) {
+    deadOverlay.fixed();
     deadTitle.fixed();
     deadScore.fixed();
     deadBest.fixed();
@@ -473,34 +1307,115 @@ function update(dt) {
     menuBtn.fixed();
     menuBtnText.fixed();
 
+    restartBtn.color = (display.x && restartBtn.clicked()) ? "#b8ffe0" : "#7fffb2";
+    menuBtn.color    = (display.x && menuBtn.clicked())    ? "#2a2a3a" : "#1a1a2a";
+
     if (display.x && restartBtn.clicked()) {
+      playSound(sndClick);
       initGame();
       display.scene = SCENE_GAME;
+      return;
     }
     if (display.x && menuBtn.clicked()) {
+      playSound(sndClick);
       display.scene = SCENE_MENU;
+      return;
     }
     return;
   }
 
-  // ── GAME SCENE ──
+  // ── MULTIPLAYER ──
+  if (display.scene === SCENE_MULTI) {
+    mpDivider.fixed();
+    mpP1Label.fixed();
+    mpP2Label.fixed();
+    mpP1Score.fixed();
+    mpP2Score.fixed();
+    mpWinnerText.fixed();
+    mpSubText.fixed();
+
+    if (mp.players[0]) mpP1Score.setText(String(mp.players[0].score));
+    if (mp.players[1]) mpP2Score.setText(String(mp.players[1].score));
+
+    if (!mp.ended && mp.players[0] && mp.players[1]) {
+      mpUpdatePlayer(0, dt);
+      mpUpdatePlayer(1, dt);
+    }
+
+    // Draw each player's world
+    for (let p = 0; p < 2; p++) {
+      const pl = mp.players[p];
+      if (!pl) continue;
+
+      for (let slot of pl.activePlatforms) {
+        if (!slot.active) continue;
+        const comp = slot.comp;
+        const originalX = comp.x;
+        comp.x = originalX - pl.cameraX;
+        comp.update(display.context);
+        comp.x = originalX;
+      }
+      for (let slot of pl.activeCoins) {
+        if (!slot.active) continue;
+        const comp = slot.comp;
+        const originalX = comp.x;
+        comp.x = originalX - pl.cameraX;
+        comp.update(display.context);
+        comp.x = originalX;
+      }
+    }
+
+    mpDrawPlayer(0);
+    mpDrawPlayer(1);
+
+    if (mp.overlayReady) {
+      mpRestartBtn.fixed();
+      mpRestartText.fixed();
+      mpMenuBtn.fixed();
+      mpMenuText.fixed();
+
+      mpRestartBtn.color = (display.x && mpRestartBtn.clicked()) ? "#b8ffe0" : "#7fffb2";
+      mpMenuBtn.color    = (display.x && mpMenuBtn.clicked())    ? "#2a2a3a" : "#1a1a2a";
+
+      if (display.x && mpRestartBtn.clicked()) {
+        playSound(sndClick);
+        mpInit();
+        return;
+      }
+      if (display.x && mpMenuBtn.clicked()) {
+        playSound(sndClick);
+        display.scene = SCENE_MENU;
+        return;
+      }
+    }
+    return;
+  }
+
+  // ── GAME ──
+  if (display.scene !== SCENE_GAME) return;
   if (!gameRunning) return;
 
   const safeDt = Math.min(dt, 0.05);
 
-  // Horizontal movement
-  player.speedX = PLAYER_SPEED * safeDt;
+  const currentSpeed = PLAYER_SPEED + Math.min(difficulty * 4, 80);
+  player.speedX = currentSpeed * safeDt;
 
-  // Gravity
   velY += GRAVITY * gravityDir * safeDt;
-  velY  = Math.max(-700, Math.min(700, velY));
+  velY  = Math.max(-MAX_VEL_Y, Math.min(MAX_VEL_Y, velY));
   player.y += velY * safeDt;
 
-  // Score
-  distanceTravelled += PLAYER_SPEED * safeDt;
-  score = Math.floor(distanceTravelled / 80);
+  distanceTravelled += currentSpeed * safeDt;
+  comboTime += safeDt;
 
-  // Walls
+  if (comboTime >= 1) {
+    comboTime = 0;
+    combo++;
+    score += combo;
+    comboUI.setText(combo > 1 ? "×" + combo + " COMBO" : "");
+  }
+
+  difficulty = Math.min(20, Math.floor(distanceTravelled / 2000));
+
   if (player.y <= 0) {
     if (gravityDir === -1) { player.y = 0; velY = 0; }
     else { killPlayer(); return; }
@@ -510,84 +1425,105 @@ function update(dt) {
     else { killPlayer(); return; }
   }
 
-  // Platform collisions
   for (let slot of platforms) {
     if (!slot.active) continue;
     const p = slot.comp;
+
     if (player.crashWith(p)) {
-      if (gravityDir === 1 && player.y + player.height > p.y && player.y < p.y) {
+      const landedTop = gravityDir === 1 &&
+                        player.y + player.height > p.y &&
+                        player.y < p.y;
+      const landedBottom = gravityDir === -1 &&
+                           player.y < p.y + p.height &&
+                           player.y + player.height > p.y + p.height;
+
+      if (landedTop) {
         player.y = p.y - player.height;
         velY = 0;
+        p.isLit = true;
         p.setColor("#7fffb2");
-      } else if (gravityDir === -1 && player.y < p.y + p.height &&
-                 player.y + player.height > p.y + p.height) {
+      } else if (landedBottom) {
         player.y = p.y + p.height;
         velY = 0;
+        p.isLit = true;
         p.setColor("#7fffb2");
       } else {
-        killPlayer(); return;
+        killPlayer();
+        return;
       }
     } else {
+      p.isLit = false;
       p.setColor("#5b8cff");
     }
   }
 
-  recyclePlatforms();
+  for (let i = coins.length - 1; i >= 0; i--) {
+    const c = coins[i];
+    if (!c.active) continue;
+    if (player.crashWith(c.comp)) {
+      score += 25;
+      combo = 0;
+      comboTime = 0;
+      move.particles.sparkle(particles_ps, c.comp.x + 7, c.comp.y + 7);
+      move.particles.explosion(particles_ps, c.comp.x + 7, c.comp.y + 7, 6);
+      triggerShake(2, 2);
+      playSound(sndCoin);
+      returnCoinToPool(c);
+      coins.splice(i, 1);
+    }
+  }
 
-  // Trail particles
+  recycleWorld();
+
   frameCounter++;
   if (frameCounter % 3 === 0) {
-    particles_ps.emit(player.x + 14, player.y + 14, {
-      width: 4, height: 4,
+    particles_ps.emit(player.x + 13, player.y + 13, {
+      width: 3 + Math.random() * 2,
+      height: 3 + Math.random() * 2,
       color: gravityDir === 1 ? "#5b8cff" : "#ffbb6b",
-      life: 18,
-      speedX: -2 + (Math.random() - 0.5),
-      speedY: (Math.random() - 0.5) * 2,
-      alphaFade: 0.06,
+      life: 22,
+      speedX: -80 + (Math.random() - 0.5) * 40,
+      speedY: (Math.random() - 0.5) * 60,
+      alphaFade: 0.05,
+      friction: 0.98,
       type: "circle"
     });
   }
 
-  // Camera follow
   const targetCamX = player.x - W / 3;
   cameraX += (targetCamX - cameraX) * 0.12;
   cameraX = Math.max(0, cameraX);
 
-  // Apply camera + shake
   display.camera.x = cameraX + shakeOffsetX;
   display.camera.y = shakeOffsetY;
 
-  // Starfield follows camera
   starfield.fixed();
 
-  // Player rotation
   const targetAngle = gravityDir === 1 ? 0 : Math.PI;
   player.angle += (targetAngle - player.angle) * 0.18;
 
-  // UI
-  scoreUI.setText("Score: " + score);
+  scoreUI.setText(String(score));
   scoreUI.fixed();
-
   bestUI.setText("Best: " + bestScore);
   bestUI.fixed();
-
   fpsUI.setText(Math.round(display.fps) + " fps");
   fpsUI.fixed();
-
   pauseHint.fixed();
+  comboUI.fixed();
+  scoreLabel.fixed();
 
-  // Gravity indicator
   const ctx = display.context;
-  const ax  = player.x + 14 + display.camera.x;
-  const ay  = player.y + 14 + display.camera.y;
+  const ax = player.x + 13 + display.camera.x;
+  const ay = player.y + 13 + display.camera.y;
+
   ctx.save();
-  ctx.globalAlpha = 0.35;
+  ctx.globalAlpha = 0.5;
   ctx.strokeStyle = gravityDir === 1 ? "#5b8cff" : "#ffbb6b";
   ctx.lineWidth = 2;
-  ctx.setLineDash([4, 4]);
+  ctx.setLineDash([5, 5]);
   ctx.beginPath();
-  ctx.moveTo(ax, ay + player.height * gravityDir * 0.6);
-  ctx.lineTo(ax, ay + player.height * gravityDir * 1.8);
+  ctx.moveTo(ax, ay + player.height * gravityDir * 0.8);
+  ctx.lineTo(ax, ay + player.height * gravityDir * 2.2);
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.globalAlpha = 1;
@@ -595,8 +1531,9 @@ function update(dt) {
 }
 
 // ═══════════════════════════════════════════════════════
-// FIX: Start the engine LAST — after every const/let is ready
+// BOOT — start engine LAST
 // ═══════════════════════════════════════════════════════
+scaleCanvas();
 display.start(W, H);
 display.scene = SCENE_MENU;
 </script>
