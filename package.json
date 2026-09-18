@@ -1,18 +1,10 @@
 {
-  "name": "whatsapp-email-alerts",
+  "name": "limn-engine-doc",
   "version": "1.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
     "axios": "^1.6.0",
     "resend": "^3.2.0"
-  },
-  "devDependencies": {
-    "vite": "^5.0.0"
   }
 }
