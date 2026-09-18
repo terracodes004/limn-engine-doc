@@ -1,37 +1,10 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "**/*.{html,css,js,png,jpg,jpeg,svg,json,txt}",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/signup",
-      "dest": "/signup/frontend/index.html"
-    },
-    {
-      "src": "/callback",
-      "dest": "/signup/frontend/callback.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
+  "rewrites": [
+    { "source": "/signup", "destination": "/signup/frontend/index.html" },
+    { "source": "/callback", "destination": "/signup/frontend/callback.html" }
   ],
   "crons": [
-    {
-      "path": "/api/send-weekly",
-      "schedule": "0 9 * * 1"
-    },
-    {
-      "path": "/api/send-monthly",
-      "schedule": "0 10 1 * *"
-    }
+    { "path": "/api/send-weekly", "schedule": "0 9 * * 1" },
+    { "path": "/api/send-monthly", "schedule": "0 10 1 * *" }
   ]
 }
