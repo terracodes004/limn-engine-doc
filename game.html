@@ -49,10 +49,9 @@ const SCENE_GAME   = 1;
 const SCENE_DEAD   = 2;
 const SCENE_PAUSE  = 3;
 
-// ── DISPLAY ──
+// ── DISPLAY (start moved to the very end) ──
 const display = new Display();
 display.perform();
-display.start(W, H);
 display.clearMargin = [WORLD_W, H];
 display.camera.worldWidth  = WORLD_W;
 display.camera.worldHeight = H;
@@ -74,17 +73,15 @@ let bestScore = 0;
 let distanceTravelled = 0;
 let platforms = [];
 let gameRunning = false;
-let frameCounter = 0;          // ← FIX 3: replaces display.frameNo
-let cameraX = 0;               // ← FIX 4: smooth follow in local var
-let shakeOffsetX = 0;          // ← FIX 4: shake offset
+let frameCounter = 0;
+let cameraX = 0;
+let shakeOffsetX = 0;
 let shakeOffsetY = 0;
 let shakeTimeout = null;
 
 const particles_ps = new ParticleSystem(display);
 
-// ═══════════════════════════════════════════════════════
-// FIX 1: Particles must go to the current scene
-// ═══════════════════════════════════════════════════════
+// ── FIX 1: Particles must go to the current scene ──
 particles_ps.emit = function(x, y, options) {
   const p = new Particle(x, y, options);
   this.particles.push(p);
@@ -92,9 +89,7 @@ particles_ps.emit = function(x, y, options) {
   return p;
 };
 
-// ═══════════════════════════════════════════════════════
-// FIX 2: Starfield as a screen-space component
-// ═══════════════════════════════════════════════════════
+// ── FIX 2: Starfield as a screen-space component ──
 const stars = [];
 for (let i = 0; i < 120; i++) {
   stars.push({
@@ -111,11 +106,9 @@ starfield.aY = 0;
 starfield.changeAngle = false;
 starfield.move = function() {};
 starfield.update = function(ctx) {
-  // Solid background
   ctx.fillStyle = "#0a0a0f";
   ctx.fillRect(this.x, this.y, this.width, this.height);
 
-  // Parallax stars
   const parallaxX = cameraX * 0.15;
 
   for (let i = 0; i < stars.length; i++) {
@@ -131,9 +124,7 @@ starfield.update = function(ctx) {
 };
 display.add(starfield, SCENE_GAME);
 
-// ═══════════════════════════════════════════════════════
-// PLAYER
-// ═══════════════════════════════════════════════════════
+// ── PLAYER ──
 const player = new Component(28, 28, "#7fffb2", 120, H / 2 - 14, "rect");
 display.add(player, SCENE_GAME);
 
@@ -332,7 +323,7 @@ function recyclePlatforms() {
 }
 
 // ═══════════════════════════════════════════════════════
-// FIX 4: Shake via offset variables (not camera.shake)
+// SHAKE VIA OFFSET VARIABLES
 // ═══════════════════════════════════════════════════════
 function triggerShake(x, y) {
   shakeOffsetX = x;
@@ -383,7 +374,7 @@ function flipGravity() {
 
   move.particles.sparkle(particles_ps, player.x + 14, player.y + 14);
   display.camera.shakeRotation(0.025);
-  triggerShake(0, gravityDir * 4);   // ← FIX 4
+  triggerShake(0, gravityDir * 4);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -415,7 +406,7 @@ function killPlayer() {
 
   move.particles.explosion(particles_ps, player.x + 14, player.y + 14, 35);
   move.particles.blood(particles_ps, player.x + 14, player.y + 14, 20);
-  triggerShake(14, 10);   // ← FIX 4
+  triggerShake(14, 10);
   display.camera.shakeRotation(0.1);
 
   deadScore.setText("Score: " + score);
@@ -429,16 +420,10 @@ function killPlayer() {
 }
 
 // ═══════════════════════════════════════════════════════
-// START ON MENU
-// ═══════════════════════════════════════════════════════
-display.scene = SCENE_MENU;
-
-// ═══════════════════════════════════════════════════════
 // UPDATE LOOP
 // ═══════════════════════════════════════════════════════
 function update(dt) {
 
-  // ── FIX 5: No more silent try/catch ──
   particles_ps.update();
 
   // ── MENU SCENE ──
@@ -515,7 +500,7 @@ function update(dt) {
   distanceTravelled += PLAYER_SPEED * safeDt;
   score = Math.floor(distanceTravelled / 80);
 
-  // ── Walls ──
+  // Walls
   if (player.y <= 0) {
     if (gravityDir === -1) { player.y = 0; velY = 0; }
     else { killPlayer(); return; }
@@ -525,7 +510,7 @@ function update(dt) {
     else { killPlayer(); return; }
   }
 
-  // ── Platform collisions ──
+  // Platform collisions
   for (let slot of platforms) {
     if (!slot.active) continue;
     const p = slot.comp;
@@ -549,7 +534,7 @@ function update(dt) {
 
   recyclePlatforms();
 
-  // ── FIX 3: Local frame counter ──
+  // Trail particles
   frameCounter++;
   if (frameCounter % 3 === 0) {
     particles_ps.emit(player.x + 14, player.y + 14, {
@@ -563,23 +548,23 @@ function update(dt) {
     });
   }
 
-  // ── Camera follow (local variable, then apply) ──
+  // Camera follow
   const targetCamX = player.x - W / 3;
   cameraX += (targetCamX - cameraX) * 0.12;
   cameraX = Math.max(0, cameraX);
 
-  // ── FIX 4: Apply camera + shake offset ──
+  // Apply camera + shake
   display.camera.x = cameraX + shakeOffsetX;
   display.camera.y = shakeOffsetY;
 
-  // ── Starfield follows the camera ──
+  // Starfield follows camera
   starfield.fixed();
 
-  // ── Player rotation ──
+  // Player rotation
   const targetAngle = gravityDir === 1 ? 0 : Math.PI;
   player.angle += (targetAngle - player.angle) * 0.18;
 
-  // ── UI ──
+  // UI
   scoreUI.setText("Score: " + score);
   scoreUI.fixed();
 
@@ -591,7 +576,7 @@ function update(dt) {
 
   pauseHint.fixed();
 
-  // ── Gravity direction indicator ──
+  // Gravity indicator
   const ctx = display.context;
   const ax  = player.x + 14 + display.camera.x;
   const ay  = player.y + 14 + display.camera.y;
@@ -608,6 +593,12 @@ function update(dt) {
   ctx.globalAlpha = 1;
   ctx.restore();
 }
+
+// ═══════════════════════════════════════════════════════
+// FIX: Start the engine LAST — after every const/let is ready
+// ═══════════════════════════════════════════════════════
+display.start(W, H);
+display.scene = SCENE_MENU;
 </script>
 </body>
 </html>
