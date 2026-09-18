@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyBtn = document.createElement('button');
     copyBtn.className = 'copy-code-btn';
     copyBtn.innerText = '📋 Copy';
-    
+
     Object.assign(copyBtn.style, {
       position: 'absolute',
       top: '8px',
@@ -92,6 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   checkUnreadBadge();
+  setupSettingsBadge();
+  setupProfileLink();
+  setupInboxBadge();
+  setupCtaSlider();
 });
 
 async function checkUnreadBadge() {
@@ -136,6 +140,173 @@ async function checkUnreadBadge() {
   }
 }
 
+function setupSettingsBadge() {
+  const hasVisited = localStorage.getItem('limn_settings_visited');
+  const badge = document.getElementById('settings-badge');
+
+  if (!hasVisited && badge) {
+    badge.style.display = 'inline-block';
+  }
+
+  const settingsLink = document.getElementById('settings-link');
+  if (settingsLink) {
+    settingsLink.addEventListener('click', () => {
+      if (badge) badge.style.display = 'none';
+    });
+  }
+}
+
+function setupProfileLink() {
+  const profileLink = document.getElementById('my-profile-link');
+  const profileBadge = document.getElementById('profile-badge');
+  if (!profileLink) return;
+
+  (async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (profile && profile.username) {
+        profileLink.href = '/u/?u=' + encodeURIComponent(profile.username);
+      } else {
+        profileLink.href = '/settings.html';
+        if (profileBadge) profileBadge.style.display = 'inline-block';
+      }
+    } catch (e) {
+      console.log('Profile link setup skipped:', e.message);
+    }
+  })();
+}
+
+function setupInboxBadge() {
+  const inboxBadge = document.getElementById('inbox-badge');
+  if (!inboxBadge) return;
+
+  const INBOX_SEEN_KEY = 'limn_inbox_seen';
+
+  (async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const lastSeen = localStorage.getItem(INBOX_SEEN_KEY) || '1970-01-01T00:00:00Z';
+
+      const { count } = await supabase
+        .from('engine_updates')
+        .select('*', { count: 'exact', head: true })
+        .gt('created_at', lastSeen);
+
+      if (count && count > 0) {
+        inboxBadge.style.display = 'inline-block';
+      } else {
+        inboxBadge.style.display = 'none';
+      }
+    } catch (e) {
+      console.log('Inbox badge check skipped:', e.message);
+    }
+  })();
+
+  const inboxLink = document.getElementById('inbox-link');
+  if (inboxLink) {
+    inboxLink.addEventListener('click', () => {
+      localStorage.setItem(INBOX_SEEN_KEY, new Date().toISOString());
+      inboxBadge.style.display = 'none';
+    });
+  }
+}
+
+function setupCtaSlider() {
+  const slider = document.getElementById('ctaSlider');
+  const track = document.getElementById('ctaTrack');
+  const dotsEl = document.getElementById('ctaDots');
+  if (!slider || !track || !dotsEl) return;
+
+  const slides = Array.from(track.children);
+  const total = slides.length;
+  if (total === 0) return;
+
+  let current = 0;
+  let timer = null;
+  const INTERVAL = 3500;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  slides.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'cta-dot';
+    dot.setAttribute('role', 'tab');
+    dot.setAttribute('aria-label', 'Show call to action ' + (i + 1));
+    dot.addEventListener('click', () => goTo(i, true));
+    dotsEl.appendChild(dot);
+  });
+  const dots = Array.from(dotsEl.children);
+
+  function goTo(index, userAction) {
+    current = (index + total) % total;
+    track.style.transform = 'translateX(-' + (current * 100) + '%)';
+    dots.forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+      d.setAttribute('aria-selected', i === current ? 'true' : 'false');
+    });
+    slides.forEach((s, i) => {
+      s.setAttribute('aria-hidden', i === current ? 'false' : 'true');
+      s.tabIndex = i === current ? 0 : -1;
+    });
+    if (userAction) restartAuto();
+  }
+
+  function next() { goTo(current + 1, false); }
+
+  function startAuto() {
+    if (reduceMotion) return;
+    stopAuto();
+    timer = setInterval(next, INTERVAL);
+  }
+  function stopAuto() {
+    if (timer) { clearInterval(timer); timer = null; }
+  }
+  function restartAuto() {
+    stopAuto();
+    startAuto();
+  }
+
+  slider.addEventListener('mouseenter', stopAuto);
+  slider.addEventListener('mouseleave', startAuto);
+  slider.addEventListener('focusin', stopAuto);
+  slider.addEventListener('focusout', startAuto);
+
+  let touchStartX = 0;
+  let touchDeltaX = 0;
+  slider.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchDeltaX = 0;
+    stopAuto();
+  }, { passive: true });
+  slider.addEventListener('touchmove', (e) => {
+    touchDeltaX = e.touches[0].clientX - touchStartX;
+  }, { passive: true });
+  slider.addEventListener('touchend', () => {
+    if (Math.abs(touchDeltaX) > 40) {
+      if (touchDeltaX < 0) goTo(current + 1, false);
+      else goTo(current - 1, false);
+    }
+    restartAuto();
+  });
+
+  slider.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); goTo(current - 1, true); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); goTo(current + 1, true); }
+  });
+
+  goTo(0, false);
+  startAuto();
+}
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
@@ -166,4 +337,4 @@ if ('serviceWorker' in navigator) {
       window.location.reload();
     }
   });
-                               }
+                                          }
