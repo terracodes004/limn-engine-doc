@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="epic.js"></script>
+  </head>
+  <body>
+  <script>
+    const display = new Display();
+display.start(800, 600);
+const ps = new ParticleSystem(display);
+function update() {
+  ps.update();
+  if (display.x) {
+    move.particles.explosion(ps, display.x, display.y, 50);
+    move.particles.sparkle(ps, display.x, display.y);
+    display.camera.shakeRotation(0.04);
+    display.camera.shake(6, 4);
+  }
+}
+  </script>
+    </body>
+</html>

@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="epic.js"></script>
+  </head>
+  <body>
+  <script>
+    const display = new Display();
+display.start(800, 600);
+const ps = new ParticleSystem(display);
+    display.backgroundColor("black")
+
+// Continuous emitter: 80 raindrops/sec across the sky
+const rain = ps.createEmitter(0, 0, {
+  rate: 80,
+  randomOffset: 800,
+  width: 2, height: 10,
+  color: "rgba(150,200,255,0.5)",
+  life: 55, speedY: 8, speedX: 1,
+  gravity: 0, friction: 1, alphaFade: 0.015,
+  type: "rect"
+});
+
+function update() {
+  ps.update(); // dead particles auto-removed
+
+  // Pause rain on key press
+  if (display.keys[32]) rain.stop();
+  else rain.start();
+}
+  </script>
+    </body>
+</html>

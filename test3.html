@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="epic.js"></script>
+  </head>
+  <body>
+  <script>
+    const display = new Display();
+display.start(480, 270);
+display.backgroundColor("#111");
+
+const box = new Component(40, 40, "#7fffb2", 200, 100);
+display.add(box);
+
+let score = 0;
+
+function update() {
+  // Move box randomly every 60 frames
+  if (display.frameNo % 60 === 0) {
+    box.x = Math.random() * 440;
+    box.y = Math.random() * 230;
+  }
+  // Click detection
+  if (display.x && box.clicked()) {
+    score++;
+    console.log("Score:", score);
+  }
+}
+  </script>
+    </body>
+</html>

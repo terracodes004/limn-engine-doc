@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="epic.js"></script>
+  </head>
+  <body>
+  <script>
+    const display = new Display();
+display.start(480, 270);
+
+const player = new Component(32, 32, "#5b8cff", 200, 100);
+display.add(player);
+
+function update() {
+  player.speedX = 0;
+  player.speedY = 0;
+  if (display.keys[37]) player.speedX = -3; // ←
+  if (display.keys[39]) player.speedX =  3; // →
+  if (display.keys[38]) player.speedY = -3; // ↑
+  if (display.keys[40]) player.speedY =  3; // ↓
+  move.bound(player);
+}
+  </script>
+    </body>
+</html>

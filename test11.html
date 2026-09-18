@@ -8,8 +8,9 @@
     const display = new Display();
 display.perform();
 display.start(800, 600);
-display.backgroundColor("lightblue")
-
+//display.backgroundColor("lightblue")
+fake.bgComm = new Component(2000,2000, "#1a1a2e", 0 ,0)
+fake.bgComm.setImage("limn-doc/img/alien.png")
 TCJSgameGameArea.width = 1600
 TCJSgameGameArea.height = 1200
 display.camera.worldWidth = 1600;
@@ -71,7 +72,7 @@ for (let i = 0; i < 4; i++) {
     const enemy = new Component(35, 35, "#ff6b6b", 
         Math.random() * 1400 + 100, 
         Math.random() * 1000 + 100, "rect");
-    enemy.speed = 30;
+    enemy.speed = 60;
     display.add(enemy);
     enemies.push(enemy);
 }
@@ -102,8 +103,9 @@ function applyKnockback(target, fromX, fromY, strength = 150) {
         target.speedX = 0;
         target.speedY = 0;
         target.physics = false;
-    }, 50);
+    }, 200);
 }
+// ===== UPDATE FUNCTION =====
 function update(dt) {
     if (!gameActive) return;
     display.camera.follow(player,true);
@@ -136,41 +138,12 @@ function update(dt) {
     player.y += my * 200 * dt;
     
     // Wall collision
-    // Better wall collision resolution
-if (tilemap.crashWith(player, 1)) {
-    // Check each wall tile the player overlaps with
-    const walls = tilemap.tiles(1);
-    for (let wall of walls) {
-        if (player.crashWith(wall)) {
-            // Calculate overlap on each axis
-            const overlapX = Math.min(player.x + player.width, wall.x + wall.width) - 
-                           Math.max(player.x, wall.x);
-            const overlapY = Math.min(player.y + player.height, wall.y + wall.height) - 
-                           Math.max(player.y, wall.y);
-            
-            // Resolve the smaller overlap first (most natural)
-            if (overlapX < overlapY) {
-                if (player.x < wall.x) {
-                    player.x = wall.x - player.width;
-                } else {
-                    player.x = wall.x + wall.width;
-                }
-            } else {
-                if (player.y < wall.y) {
-                    player.y = wall.y - player.height;
-                } else {
-                    player.y = wall.y + wall.height;
-                }
-            }
-            
-            // Stop the player's velocity if they're hitting a wall
-            if (player.physics) {
-                player.speedX = 0;
-                player.speedY = 0;
-            }
-        }
+    if (tilemap.crashWith(player, 1)) {
+        if (mx > 0) player.x -= 10;
+        if (mx < 0) player.x += 10;
+        if (my > 0) player.y -= 10;
+        if (my < 0) player.y += 10;
     }
-}
     
     // Coin collection
     const coins = tilemap.tiles(2);
@@ -202,7 +175,7 @@ if (tilemap.crashWith(player, 1)) {
             const healthPercent = Math.max(0, health / 100);
             healthBarFill.width = 200 * healthPercent;
             
-            applyKnockback(player, enemy.x, enemy.y, 200 * dt);
+            applyKnockback(player, enemy.x, enemy.y, 200);
             display.camera.shake(6, 6);
             move.particles.blood(particles, player.x, player.y, 10);
             invincibleTimer = 1.0;
@@ -232,7 +205,6 @@ if (tilemap.crashWith(player, 1)) {
 
     player.x = Math.max(0, Math.min(1560, player.x));
     player.y = Math.max(0, Math.min(1160, player.y));
-
 }
   </script>
     </body>

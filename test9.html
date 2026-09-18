@@ -1,5 +1,5 @@
 <!doctype html>
-<html> 
+<html>
   <head>
     <script src="epic.js"></script>
   </head>
@@ -48,7 +48,7 @@ setInterval(()=>{
 },7000)
 function update(dt) {
     particles.update();
-display.camera.follow(player);
+display.camera.follow(player,true);
 
 scoreText.x = 20+display.camera.x
 scoreText.y = 50+display.camera.y
@@ -60,7 +60,8 @@ livesText.y = 100+display.camera.y
         player.alpha = 0.5;
     } else player.alpha = 1;
 
-    // Player movement
+    // Player movementc
+    
     if (display.keys[37]) player.speedX = -400 * dt;
     else if (display.keys[39]) player.speedX = 400 * dt;
     else player.speedX = 0;
@@ -75,7 +76,7 @@ livesText.y = 100+display.camera.y
     // Bullet update
     for (let i = 0; i < bullets.length; i++) {
         bullets[i].y += bullets[i].speedY * dt;
-        if (bullets[i].y < -50) { bullets[i].hide(); bullets.splice(i,1); i--; }
+        if (bullets[i].y < -50) { bullets[i].destroy(); bullets.splice(i,1); i--; }
     }
 
     // Enemy logic and collisions
@@ -89,7 +90,7 @@ livesText.y = 100+display.camera.y
             livesText.setText("Lives: " + lives+", Bullet: "+  bulletCounts);
             invincibleFrames = 60;
             display.camera.shake(8, 8);
-            e.hide(); enemies.splice(i,1); i--;
+            e.destroy(); enemies.splice(i,1); i--;
             if (lives <= 0) { display.stop(); alert("Game Over! Score: " + score); location.reload(); }
             continue;
         }
@@ -101,13 +102,13 @@ livesText.y = 100+display.camera.y
                 score += 10;
                 scoreText.setText("Score: " + score);
                 display.camera.shake(3, 3);
-                e.hide(); bullets[j].hide();
+                e.destroy(); bullets[j].destroy();
                 enemies.splice(i,1); bullets.splice(j,1);
                 i--; break;
             }
         }
 
-        if (enemies[i] && enemies[i].y > 650) { enemies[i].hide();score-=12;scoreText.setText("Score: " + score); enemies.splice(i,1); i--;
+        if (enemies[i] && enemies[i].y > 650) { enemies[i].destroy();score-=12;scoreText.setText("Score: " + score); enemies.splice(i,1); i--;
                                               if(score<0){
                                                 display.stop(); alert("Game Over! Score: " + score); location.reload();
                                               }
@@ -116,7 +117,6 @@ livesText.y = 100+display.camera.y
 
     // Engine exhaust particles
     particles.emit(player.x + 20, player.y + 40, { color: "orange", life: 15, alphaFade: 0.07, speedY: 1, width: 5, height: 5, type: "circle" });
-    
 }
   </script>
     </body>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="epic.js"></script>
+  </head>
+  <body>
+  <script>
+    const display = new Display();
+display.start(800, 400);
+
+const player = new Component(32, 48, "#5b8cff", 100, 100);
+player.physics = true;
+player.gravity  = 0.4;
+player.bounce   = 0.1;
+display.add(player);
+
+const floor = new Component(800, 20, "#444", 0, 380);
+display.add(floor);
+
+function update() {
+  move.hitObject(player, floor);
+  if (display.keys[39]) player.speedX =  4;
+  if (display.keys[37]) player.speedX = -4;
+  if (display.keys[38] && player.gravitySpeed >= 0) {
+    player.gravitySpeed = -9; // jump
+  }
+  move.decelerate(player, 0.4, 0);
+  display.camera.follow(player, true);
+}
+  </script>
+    </body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head><title>Platform Game</title></head>
+<body>
+<script src="epic.js"></script>
+<script>
+const display = new Display();
+display.start(800, 600);
+display.backgroundColor("#0d0d1a");
+
+const ps = new ParticleSystem(display);
+
+const player = new Component(36, 36, "blue", 400, 300, "rect");
+player.enableCircleCollision(18);
+display.add(player, 1);
+
+const enemy = new Component(36, 36, "red", 100, 100, "rect");
+enemy.enableCircleCollision(18);
+display.add(enemy, 1);
+
+const scoreUI = new Tctxt("18px","Arial","white",12,24,"left",false,"alphabetic","rgba(0,0,0,0.5)",8,4);
+scoreUI.setText("Score: 0");
+display.add(scoreUI, 1);
+
+let score = 0;
+display.scene = 1;
+
+function update() {
+    ps.update();
+
+    // WASD movement
+    if (display.keys[87]) player.speedY = -4;
+    else if (display.keys[83]) player.speedY = 4;
+    else player.speedY = 0;
+    if (display.keys[65]) player.speedX = -4;
+    else if (display.keys[68]) player.speedX = 4;
+    else player.speedX = 0;
+
+    // Face mouse
+    move.pointTo(player, display.x||400, display.y||300);
+
+    // Enemy chases player slowly
+    const dx = player.x - enemy.x;
+    const dy = player.y - enemy.y;
+    const dist = Math.sqrt(dx*dx+dy*dy);
+    enemy.speedX = (dx/dist)*1.5;
+    enemy.speedY = (dy/dist)*1.5;
+
+    // Circle collision
+    if (player.crashWithCircle(enemy)) {
+        move.particles.explosion(ps, enemy.x, enemy.y, 25);
+        display.camera.shake(10,8);
+        display.camera.shakeRotation(0.06);
+        score += 10;
+        enemy.x = Math.random()*700;
+        enemy.y = Math.random()*500;
+    }
+
+    move.bound(player);
+    display.camera.follow(player);
+    scoreUI.setText("Score: " + score);
+    scoreUI.fixed();
+}
+</script>
+</body>
+</html>

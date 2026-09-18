@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="epic.js"></script>
+  </head>
+  <body>
+  <script>
+   const display = new Display();
+display.perform();
+display.start(800, 600);
+display.backgroundColor("green")
+// Load sprite sheet
+
+
+// Create sprite (extends Component!)
+
+const hero = new AnimatedSprite("imgs/vegeta/anime-1778494489415_0023%20(1).png", 178, 511, 400, 0);
+hero.addAnimation("idle", 0, 0, 1);
+hero.addAnimation("walk", 1, 4, 8);
+hero.addAnimation("jump", 5, 6, 6, false);
+
+
+// Add to display like any Component
+display.add(hero);
+
+// It automatically updates and draws every frame!
+function update(deltaTime) {
+    // Move with arrow keys
+    if (display.keys[37]) {
+        hero.speedX = -300 * deltaTime;
+        hero.faceLeft();   // Flip sprite left
+      
+    } else if (display.keys[39]) {
+        hero.speedX = 300 * deltaTime;
+        hero.faceRight();  // Face right
+    } else {
+        hero.speedX = 0;
+    }
+    
+    move.bound(hero);
+}
+  </script>
+    </body>
+</html>

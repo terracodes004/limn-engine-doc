@@ -2,7 +2,7 @@
 <html>
 <head><title>Platform Game</title></head>
 <body>
-<script src="asset/epic.js"></script>
+<script src="epic.js"></script>
 <script>
 const display = new Display();
 display.perform();           // dual-canvas ON
@@ -15,8 +15,7 @@ fake.mapWidth= 2000
 fake.mapHeight = 2000
 fake.canvas.width = 2000
 fake.canvas.height =2000
-TCJSgameGameArea.width = 2000
-TCJSgameGameArea.height =2000
+
 // ── FAKE CANVAS — static world ──
 fake.tile = [
     new Component(64, 64, "#1a3a1a", 0, 0), // grass
@@ -58,7 +57,7 @@ function update(dt) {
     move.particles.sparkle(ps, player.x+18, player.y+18);
 
     // Camera
-    display.camera.follow(player);
+    display.camera.follow(player,true);
     fake.camera.x = display.camera.x;  // sync!
     fake.camera.y = display.camera.y;
 

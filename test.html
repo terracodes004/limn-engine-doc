@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="epic.js"></script>
+  </head>
+  <body>
+  <script>
+    let display = new Display()
+    display.perform()
+    display.start()
+    const scoreText = new Tctxt(
+  "22px", "Arial", "white", 20, 100,
+  "top", false, "hanging",
+  "rgba(0,0,0,0.55)", 14, 6
+);
+scoreText.setText("Score: 0");
+display.add(scoreText);
+
+let pts = 0;
+function update() {
+  pts++;
+  scoreText.setText("Score: " + pts);
+}
+  </script>
+    </body>
+</html>

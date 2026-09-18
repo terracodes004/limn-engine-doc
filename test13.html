@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head><title>Platform Game</title></head>
+<body>
+<script src="epic.js"></script>
+<script>
+const display = new Display();
+display.start(800, 400);
+display.backgroundColor("#1a1a2e");
+
+const player = new Component(36, 48, "blue", 100, 100, "rect");
+player.physics = true;
+player.gravity  = 0.5;
+player.bounce   = 0.05;
+display.add(player);
+
+const floor = new Component(800, 20, "#555", 0, 380, "rect");
+display.add(floor);
+
+const scoreText = new Tctxt("20px","Arial","white",12,30,"left",false,"alphabetic","rgba(0,0,0,0.5)",10,4);
+scoreText.setText("Score: 0");
+display.add(scoreText);
+
+let score = 0;
+
+function update() {
+    // Movement
+    if (display.keys[39] || display.keys[68]) move.accelerate(player, 0.6, 0, 6, 0);
+    else if (display.keys[37] || display.keys[65]) move.accelerate(player, -0.6, 0, 6, 0);
+    else move.decelerate(player, 0.4, 0);
+
+    // Jump
+    if ((display.keys[38] || display.keys[87]) && player.gravitySpeed >= 0) {
+        player.gravitySpeed = -10;
+    }
+
+    player.hitBottom();
+    move.hitObject(player, floor);
+    move.bound(player);
+    display.camera.follow(player, true);
+
+    score++;
+    scoreText.setText("Score: " + Math.floor(score/60));
+    scoreText.fixed();
+}
+</script>
+</body>
+</html>

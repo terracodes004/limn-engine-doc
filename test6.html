@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head>
+    <script src="epic.js"></script>
+  </head>
+  <body>
+  <script>
+    const display = new Display();
+display.start(800, 600);
+
+// Scene 0: main menu button
+const btn = new Component(160, 50, "#7fffb2", 320, 260);
+display.add(btn, 0);
+
+// Scene 1: gameplay player
+const player = new Component(40, 40, "#5b8cff", 100, 100);
+display.add(player, 1);
+
+function update() {
+  if (display.scene === 0 && btn.clicked()) {
+    display.scene = 1; // switch to game
+  }
+  if (display.scene === 1) {
+    // gameplay code here
+  }
+}
+  </script>
+    </body>
+</html>
