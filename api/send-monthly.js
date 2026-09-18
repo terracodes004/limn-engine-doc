@@ -56,7 +56,7 @@ export default async function handler(req, res) {
         const htmlContent = '<p>🏆 Here are the top community creations and major feature updates for this month!</p>';
 
         await supabaseAdmin
-            .from('notifications')
+            .from('engine_updates')
             .insert([{ title: subject, content: htmlContent }]);
 
         let successCount = 0;
@@ -64,13 +64,18 @@ export default async function handler(req, res) {
 
         for (const r of recipients) {
             try {
-                await resend.emails.send({
+                const result = await resend.emails.send({
                     from: 'Limn Engine <onboarding@resend.dev>',
                     to: r.email,
                     subject: subject,
                     html: htmlContent,
                 });
-                successCount++;
+
+                if (result.error) {
+                    failures.push({ email: r.email, error: result.error.message });
+                } else {
+                    successCount++;
+                }
             } catch (err) {
                 failures.push({ email: r.email, error: err.message });
             }
@@ -85,4 +90,4 @@ export default async function handler(req, res) {
     } catch (err) {
         return res.status(500).json({ error: err.message });
     }
-            }
+}
