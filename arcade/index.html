@@ -34,6 +34,36 @@
                             border-color: rgba(68,170,255,0.6);
                             box-shadow: 0 0 0 3px rgba(68,170,255,0.15); }
 
+  .view-toggle {
+    display: flex;
+    gap: 6px;
+    padding: 12px 32px 0;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .view-toggle button {
+    flex: 1;
+    padding: 10px 14px;
+    background: #15152a;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    color: #888;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .view-toggle button:hover {
+    background: #1a1a2e;
+    color: #bbb;
+  }
+  .view-toggle button.active {
+    background: rgba(68,170,255,0.15);
+    border-color: rgba(68,170,255,0.5);
+    color: #4af;
+  }
+
   .featured-wrap { padding: 20px 32px 0;
                    max-width: 900px; margin: 0 auto; }
 
@@ -130,6 +160,12 @@
     gap: 10px;
     padding-top: 16px;
   }
+  .creator-games.always-open {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+    padding-top: 16px;
+  }
 
   .game-tile {
     background: #0a0a18;
@@ -157,6 +193,58 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  /* Flat projects grid */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+    margin-top: 12px;
+  }
+  .project-card {
+    background: linear-gradient(180deg,#15152a,#10101e);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+  .project-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(68,170,255,0.6);
+    box-shadow: 0 8px 24px rgba(68,170,255,0.15);
+  }
+  .project-card .thumb {
+    width: 100%;
+    aspect-ratio: 4/3;
+    display: block;
+  }
+  .project-card .p-info { padding: 10px 12px; }
+  .project-card .p-info h3 {
+    margin: 0 0 3px;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .project-card .p-info p {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.7;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .project-card .p-info a {
+    color: #fbbf24;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .project-card .p-info a:hover {
+    text-decoration: underline;
   }
 
   .load-more-wrap {
@@ -266,6 +354,8 @@
     .nav-links a { padding: 6px 12px; font-size: 12px; }
     .search-bar { padding: 12px 16px 0; }
     .search-bar input { padding: 11px 14px; font-size: 14px; }
+    .view-toggle { padding: 10px 16px 0; }
+    .view-toggle button { padding: 9px 12px; font-size: 13px; }
     .featured-wrap { padding: 12px 16px 0; }
     main { padding: 16px; }
 
@@ -280,7 +370,19 @@
       gap: 8px;
       padding: 12px 14px 14px;
     }
+    .creator-games.always-open {
+      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      gap: 8px;
+      padding: 12px 14px 14px;
+    }
     .game-tile .tile-name { font-size: 10px; padding: 6px 8px; }
+
+    .projects-grid {
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+    }
+    .project-card .p-info h3 { font-size: 13px; }
+    .project-card .p-info p { font-size: 11px; }
 
     .featured { padding: 16px; gap: 12px; }
     .featured-title { font-size: 18px; }
@@ -294,14 +396,19 @@
 <header>
   <h1>Arcade</h1>
   <div class="nav-links">
+    <a href="https://limn-engine-doc.vercel.app/">🏠 Home</a>
     <a href="/my-games.html">📁 My Games</a>
     <a href="/arcade/leaderboard.html">🏆 Leaderboard</a>
     <a href="/editor/">+ Make a game</a>
   </div>
 </header>
-
 <div class="search-bar">
   <input type="text" id="search" placeholder="Search creators...">
+</div>
+
+<div class="view-toggle">
+  <button id="viewCreators" data-view="creators">👥 Creators</button>
+  <button id="viewProjects" data-view="projects">🎮 Projects</button>
 </div>
 
 <div class="featured-wrap" id="featuredWrap" style="display:none"></div>
@@ -323,6 +430,8 @@ let anonymousGames = [];
 let allGames = [];
 let visibleCreatorCount = CREATORS_PER_PAGE;
 let currentFilter = '';
+let profileMapGlobal = {};
+let viewMode = localStorage.getItem('arcade_view') || 'creators';
 
 async function boot() {
   const { data, error } = await supabase
@@ -349,6 +458,8 @@ async function boot() {
       .in('user_id', userIds);
     for (const p of profiles || []) profileMap[p.user_id] = p;
   }
+
+  profileMapGlobal = profileMap;
 
   const likeCountMap = {};
   const gameIds = allGames.map(g => g.id);
@@ -391,6 +502,8 @@ async function boot() {
 
   anonymousGames = anonymous;
 
+  updateViewButtons();
+  updateSearchPlaceholder();
   render();
   loadFeatured();
 }
@@ -405,9 +518,68 @@ function matchesFilter(c) {
 
 function render() {
   const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  if (viewMode === 'projects') {
+    renderProjects(grid);
+  } else {
+    renderCreators(grid);
+  }
+}
+
+function renderProjects(grid) {
+  const q = currentFilter.toLowerCase();
+
+  const list = allGames.filter(g => {
+    if (!q) return true;
+    const profile = g.author_id ? profileMapGlobal[g.author_id] : null;
+    const creatorName = profile && profile.username
+      ? profile.username.toLowerCase()
+      : (g.author_name || '').toLowerCase();
+    return (g.title || '').toLowerCase().includes(q) || creatorName.includes(q);
+  });
+
+  if (list.length === 0) {
+    const msg = currentFilter ? 'No projects match your search.' : 'No games yet.';
+    grid.innerHTML = '<div class="empty"><h2>' + msg + '</h2>' +
+      (currentFilter ? '' : '<p><a href="/editor/">Make the first one →</a></p>') +
+      '</div>';
+    return;
+  }
+
+  const wrap = document.createElement('div');
+  wrap.className = 'projects-grid';
+  wrap.style.marginTop = '20px';
+
+  for (const g of list) {
+    const profile = g.author_id ? profileMapGlobal[g.author_id] : null;
+    let creatorHtml;
+    if (profile && profile.username) {
+      creatorHtml = '<a href="/u/?u=' + encodeURIComponent(profile.username) + '">@' +
+                    escapeHtml(profile.username) + '</a>';
+    } else {
+      const name = (g.author_name || 'anonymous').split('@')[0];
+      creatorHtml = escapeHtml(name);
+    }
+
+    wrap.insertAdjacentHTML('beforeend',
+      '<a class="project-card" href="/arcade/game.html?slug=' +
+        encodeURIComponent(g.slug) + '">' +
+        thumbSVG(g.config, true) +
+        '<div class="p-info">' +
+          '<h3>' + escapeHtml(g.title || 'Untitled') + '</h3>' +
+          '<p>by ' + creatorHtml + '</p>' +
+        '</div>' +
+      '</a>');
+  }
+
+  grid.appendChild(wrap);
+}
+
+function renderCreators(grid) {
   const filtered = creators.filter(matchesFilter);
 
-  if (filtered.length === 0 && anonymousGames.length === 0) {
+  if (filtered.length === 0) {
     const msg = currentFilter ? 'No creators match your search.' : 'No games yet.';
     grid.innerHTML = '<div class="empty"><h2>' + msg + '</h2>' +
       (currentFilter ? '' : '<p><a href="/editor/">Make the first one →</a></p>') +
@@ -415,13 +587,7 @@ function render() {
     return;
   }
 
-  if (filtered.length === 0) {
-    grid.innerHTML = '<div class="empty"><h2>No creators match your search.</h2></div>';
-    return;
-  }
-
   const visible = filtered.slice(0, visibleCreatorCount);
-
   let html = '<div class="section-title">Creators</div>';
 
   for (const c of visible) {
@@ -444,7 +610,6 @@ function render() {
   }
 
   grid.innerHTML = html;
-
   bindCardEvents();
 }
 
@@ -475,26 +640,16 @@ function renderCreatorCard(c) {
 
   html += '</div>';
 
-  if (gameCount > 1) {
-    html += '<div class="creator-games">';
-    for (const g of c.games) {
-      html += '<a class="game-tile" href="/arcade/game.html?slug=' +
-              encodeURIComponent(g.slug) + '">' +
-              thumbSVG(g.config, true) +
-              '<div class="tile-name">' + escapeHtml(g.title) + '</div>' +
-              '</a>';
-    }
-    html += '</div>';
-  } else {
-    html += '<div class="creator-games" style="display:grid">';
-    const g = c.games[0];
-    html += '<a class="game-tile" href="/arcade/game.html?slug=' +
-            encodeURIComponent(g.slug) + '">' +
-            thumbSVG(g.config, true) +
-            '<div class="tile-name">' + escapeHtml(g.title) + '</div>' +
-            '</a>';
-    html += '</div>';
+  const openClass = gameCount > 1 ? 'creator-games' : 'creator-games always-open';
+  let gamesHtml = '';
+  for (const g of c.games) {
+    gamesHtml += '<a class="game-tile" href="/arcade/game.html?slug=' +
+      encodeURIComponent(g.slug) + '">' +
+      thumbSVG(g.config, true) +
+      '<div class="tile-name">' + escapeHtml(g.title) + '</div>' +
+      '</a>';
   }
+  html += '<div class="' + openClass + '">' + gamesHtml + '</div>';
 
   html += '</div>';
   return html;
@@ -535,9 +690,33 @@ function bindCardEvents() {
   }
 }
 
+function updateViewButtons() {
+  document.querySelectorAll('.view-toggle button').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === viewMode);
+  });
+}
+
+function updateSearchPlaceholder() {
+  document.getElementById('search').placeholder =
+    viewMode === 'creators' ? 'Search creators...' : 'Search games or creators...';
+}
+
+document.querySelectorAll('.view-toggle button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    viewMode = btn.dataset.view;
+    localStorage.setItem('arcade_view', viewMode);
+    visibleCreatorCount = CREATORS_PER_PAGE;
+    updateViewButtons();
+    updateSearchPlaceholder();
+    render();
+  });
+});
+
 document.getElementById('search').addEventListener('input', (e) => {
   currentFilter = e.target.value.trim();
-  visibleCreatorCount = CREATORS_PER_PAGE;
+  if (viewMode === 'creators') {
+    visibleCreatorCount = CREATORS_PER_PAGE;
+  }
   render();
 });
 
