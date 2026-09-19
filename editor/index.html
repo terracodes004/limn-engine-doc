@@ -11,6 +11,7 @@
         iframe{
             width:100%;
             height:100%;
+            border:0;
         }
         .dropdown {
             position: relative;
@@ -54,6 +55,61 @@
         }
         .dropdown:hover .dropdown-content {
             display: block;
+        }
+
+        /* ── Dialog controls (zoom + fullscreen) ── */
+        .dialog-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 6px;
+            z-index: 999999;
+        }
+        .dialog-controls button {
+            min-width: 44px;
+            height: 44px;
+            padding: 0 12px;
+            background: rgba(37, 99, 235, 0.9);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: inherit;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: background 0.15s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dialog-controls button:hover {
+            background: rgba(37, 99, 235, 1);
+        }
+        .dialog-controls button:active {
+            transform: scale(0.95);
+        }
+        .dialog-controls button#fsBtn {
+            min-width: 60px;
+            background: rgba(124, 58, 237, 0.9);
+        }
+        .dialog-controls button#fsBtn:hover {
+            background: rgba(124, 58, 237, 1);
+        }
+        @media (max-width: 600px) {
+            .dialog-controls {
+                top: 12px;
+                right: 12px;
+                gap: 4px;
+            }
+            .dialog-controls button {
+                min-width: 40px;
+                height: 40px;
+                font-size: 15px;
+                padding: 0 10px;
+            }
         }
 
         .tabs {
@@ -167,8 +223,15 @@
 <body>
     <dialog open="">
         <button onclick="$('dialog').fadeToggle(500)">⛔</button>
+
+        <div class="dialog-controls" id="dialogControls">
+            <button id="zoomOutBtn" title="Zoom out">−</button>
+            <button id="zoomInBtn"  title="Zoom in">+</button>
+            <button id="fsBtn"      title="Fullscreen (F)">⛶</button>
+        </div>
+
         <br />
-        <iframe srcdoc="<center><h1>Loading ...</h1><progress></progress></center>"></iframe>
+        <iframe id="gameFrame" srcdoc="<center><h1>Loading ...</h1><progress></progress></center>"></iframe>
     </dialog>
 
     <div class="container">
@@ -233,17 +296,17 @@
                 <div class="build-left">
                     <label class="build-label">Template</label>
                     <select id="templateSelect">
-  <option value="dressup">Dress-Up</option>
-  <option value="platformer">Platformer</option>
-  <option value="runner">Runner</option>
-  <option value="shooter">Shooter</option>
-  <option value="clicker">Clicker</option>
-  <option value="breakout">Breakout</option>
-  <option value="flappy">Flappy</option>
-  <option value="snake">Snake</option>
-  <option value="catch">Catch</option>
-  <option value="dodge">Dodge</option>
-    </select>
+                        <option value="dressup">Dress-Up</option>
+                        <option value="platformer">Platformer</option>
+                        <option value="runner">Runner</option>
+                        <option value="shooter">Shooter</option>
+                        <option value="clicker">Clicker</option>
+                        <option value="breakout">Breakout</option>
+                        <option value="flappy">Flappy</option>
+                        <option value="snake">Snake</option>
+                        <option value="catch">Catch</option>
+                        <option value="dodge">Dodge</option>
+                    </select>
                     <div id="templateFields"></div>
 
                     <div class="build-field">
@@ -345,5 +408,118 @@ function update(dt) {
     <script src="templates.js"></script>
     <script src="build.js"></script>
     <script type="module" src="script.js"></script>
+
+    <!-- Zoom + Fullscreen controls for the game preview dialog -->
+    <script>
+    (function () {
+        let zoomLevel = 1;
+
+        function getFrame() {
+            return document.getElementById('gameFrame');
+        }
+
+        function applyZoom() {
+            const frame = getFrame();
+            if (!frame) return;
+            try {
+                const doc = frame.contentDocument;
+                if (doc && doc.body) {
+                    doc.body.style.zoom = zoomLevel;
+                    return;
+                }
+            } catch (e) {
+                // fall through to iframe-level zoom
+            }
+            frame.style.zoom = zoomLevel;
+        }
+
+        function resetZoom() {
+            zoomLevel = 1;
+            applyZoom();
+        }
+
+        // Zoom controls
+        document.getElementById('zoomInBtn').addEventListener('click', () => {
+            zoomLevel = Math.min(3, +(zoomLevel + 0.1).toFixed(2));
+            applyZoom();
+        });
+
+        document.getElementById('zoomOutBtn').addEventListener('click', () => {
+            zoomLevel = Math.max(0.3, +(zoomLevel - 0.1).toFixed(2));
+            applyZoom();
+        });
+
+        // Fullscreen toggle
+        document.getElementById('fsBtn').addEventListener('click', () => {
+            const dialog = document.querySelector('dialog');
+            if (!dialog) return;
+
+            const el = document.fullscreenElement || document.webkitFullscreenElement;
+
+            if (el) {
+                (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+            } else {
+                const req = dialog.requestFullscreen
+                         || dialog.webkitRequestFullscreen
+                         || dialog.msRequestFullscreen;
+                if (req) {
+                    req.call(dialog).catch(err => console.warn('Fullscreen failed:', err));
+                } else {
+                    alert('Fullscreen not supported on this browser.');
+                }
+            }
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            const btn = document.getElementById('fsBtn');
+            if (!btn) return;
+            const active = !!document.fullscreenElement;
+            btn.textContent = active ? '⛶ Exit' : '⛶';
+        });
+
+        // Re-apply zoom whenever the iframe reloads (e.g. after clicking Run)
+        const frame = getFrame();
+        if (frame) {
+            frame.addEventListener('load', () => {
+                // give the doc a moment to settle
+                setTimeout(applyZoom, 60);
+            });
+        }
+
+        // Reset zoom whenever the user clicks the Run button
+        const runBtn = document.getElementById('run');
+        if (runBtn) {
+            runBtn.addEventListener('click', () => {
+                zoomLevel = 1;
+                // iframe load event will handle re-applying (which is now 1)
+            });
+        }
+
+        // Keyboard shortcuts: F = fullscreen, +/- = zoom, 0 = reset
+        // Ignored when typing in an input / textarea (so they don't
+        // interfere with code editing).
+        document.addEventListener('keydown', (e) => {
+            const t = e.target;
+            const tag = t && t.tagName ? t.tagName.toLowerCase() : '';
+            if (tag === 'input' || tag === 'textarea' || (t && t.isContentEditable)) return;
+
+            if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                document.getElementById('fsBtn').click();
+            } else if (e.key === '+' || e.key === '=') {
+                e.preventDefault();
+                zoomLevel = Math.min(3, +(zoomLevel + 0.1).toFixed(2));
+                applyZoom();
+            } else if (e.key === '-' || e.key === '_') {
+                e.preventDefault();
+                zoomLevel = Math.max(0.3, +(zoomLevel - 0.1).toFixed(2));
+                applyZoom();
+            } else if (e.key === '0') {
+                e.preventDefault();
+                resetZoom();
+            }
+        });
+    })();
+    </script>
 </body>
-    </html>
+</html>
