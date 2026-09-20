@@ -14,8 +14,8 @@
            align-items: center; justify-content: center;
            overflow: hidden; position: relative; }
   .stage iframe { width: 100%; height: 100vh; border: 0; display: block;
-                   transform-origin: center center;
-                   transition: transform 0.15s ease; }
+                  transform-origin: center center;
+                  transition: transform 0.15s ease; }
   .side { background: #10101e; padding: 20px;
           border-left: 1px solid rgba(255,255,255,0.06);
           overflow-y: auto; max-height: 100vh; }
@@ -82,6 +82,12 @@
              padding: 40px; opacity: 0.5; }
   .err { color: #f66; font-family: monospace;
          padding: 40px; white-space: pre-wrap; }
+  .side .desc { font-size: 13px; opacity: 0.75;
+                line-height: 1.5; margin-bottom: 16px;
+                padding: 12px;
+                background: rgba(255,255,255,0.03);
+                border-left: 3px solid #4af;
+                border-radius: 6px; }
   @media (max-width: 800px) {
     .wrap { grid-template-columns: 1fr; }
     .side { max-height: none; border-left: 0;
@@ -99,10 +105,7 @@
   <aside class="side" id="side" style="display:none">
     <h1 id="title">...</h1>
     <div class="author" id="author">...</div>
-    <div id="gameDescription" style="display:none; font-size:13px; opacity:0.75;
-         line-height:1.5; margin-bottom:16px; padding:12px;
-         background:rgba(255,255,255,0.03);
-         border-left:3px solid #4af; border-radius:6px;"></div>
+    <div id="gameDescription" style="display:none;"></div>
     <div class="row">
       <button class="btn" id="likeBtn">♥ <span id="likeCount">0</span></button>
       <button class="btn" id="shareBtn">🔗 Share</button>
@@ -129,7 +132,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const supabase = createClient(
   'https://pjtpesdhjfvcidfkxord.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frk[...]
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38'
 );
 
 const slug = new URLSearchParams(location.search).get('slug');
@@ -138,125 +141,79 @@ let currentGameId = null;
 let currentUserId = null;
 let zoomLevel = 1;
 
-const ENGINE_PATCH = `
-(function() {
-  if (typeof Display === 'undefined') return;
-
-  const originalAddEventListeners = Display.prototype.addEventListeners;
-  Display.prototype.addEventListeners = function() {
-    try {
-      if (typeof originalAddEventListeners === 'function') originalAddEventListeners.call(this);
-    } catch (e) {
-      console.warn('[limn-patch] original addEventListeners failed:', e);
-    }
-
-    const self = this;
-    if (!self || !self.canvas) return;
-
-    const toCanvasCoords = (clientX, clientY) => {
-      const rect = self.canvas.getBoundingClientRect();
-      if (!rect || !rect.width || !rect.height) return { x: clientX, y: clientY };
-      const scaleX = self.canvas.width / rect.width;
-      const scaleY = self.canvas.height / rect.height;
-      return {
-        x: (clientX - rect.left) * scaleX,
-        y: (clientY - rect.top) * scaleY
-      };
-    };
-
-    window.addEventListener('keydown', (e) => {
-      self.keys[e.keyCode] = true;
-    });
-    window.addEventListener('keyup', (e) => {
-      self.keys[e.keyCode] = false;
-    });
-    window.addEventListener('mousedown', (e) => {
-      const p = toCanvasCoords(e.clientX, e.clientY);
-      self.x = p.x + (self.camera && self.camera.x ? self.camera.x : 0);
-      self.y = p.y + (self.camera && self.camera.y ? self.camera.y : 0);
-    });
-    window.addEventListener('mouseup', () => {
-      self.x = false;
-      self.y = false;
-    });
-    window.addEventListener('touchstart', (e) => {
-      const t = e.touches && e.touches[0];
-      if (!t) return;
-      const p = toCanvasCoords(t.clientX, t.clientY);
-      self.x = p.x + (self.camera && self.camera.x ? self.camera.x : 0);
-      self.y = p.y + (self.camera && self.camera.y ? self.camera.y : 0);
-    }, { passive: true });
-    window.addEventListener('touchend', () => {
-      self.x = false;
-      self.y = false;
-    });
-    window.addEventListener('mousemove', (e) => {
-      const p = toCanvasCoords(e.clientX, e.clientY);
-      if (typeof mouse !== 'undefined') {
-        mouse.x = p.x;
-        mouse.y = p.y;
-      }
-    });
-    window.addEventListener('touchmove', (e) => {
-      const t = e.touches && e.touches[0];
-      if (!t) return;
-      const p = toCanvasCoords(t.clientX, t.clientY);
-      if (typeof mouse !== 'undefined') {
-        mouse.x = p.x;
-        mouse.y = p.y;
-      }
-    }, { passive: true });
-  };
-})();
-`;
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error((label || 'Request') + ' timed out after ' + ms + 'ms')), ms)
+    )
+  ]);
+}
 
 async function boot() {
+  if (!slug) {
+    stage.innerHTML = '<div class="err">No game specified in the URL.</div>';
+    return;
+  }
+
+  console.log('[arcade] Fetching game:', slug);
+
+  let data, error;
   try {
-    if (!slug) {
-      stage.innerHTML = '<div class="err">No game specified.</div>';
-      return;
-    }
+    const result = await withTimeout(
+      supabase
+        .from('games')
+        .select('id, slug, title, author_id, author_name, code, engine_code, engine_version, plays, description')
+        .eq('slug', slug)
+        .single(),
+      8000,
+      'Game fetch'
+    );
+    data = result.data;
+    error = result.error;
+  } catch (e) {
+    stage.innerHTML = '<div class="err">Could not load game: ' + e.message +
+      '\n\nCheck your internet connection and refresh.' +
+      '\n\nIf this persists, the game may not exist or Supabase may be blocking the request.</div>';
+    console.error('[arcade] Fetch failed:', e);
+    return;
+  }
 
-    const { data, error } = await supabase
-      .from('games')
-      .select('id, slug, title, author_id, author_name, code, engine_code, engine_version, plays, description')
-      .eq('slug', slug)
-      .single();
+  if (error || !data) {
+    stage.innerHTML = '<div class="err">Game not found.' +
+      (error ? '\n\n' + error.message : '') + '</div>';
+    return;
+  }
 
-    if (error) throw error;
-    if (!data) throw new Error('Game not found.');
+  console.log('[arcade] Game loaded:', data.title, '| code length:', (data.code || '').length, '| engine length:', (data.engine_code || '').length);
 
-    currentGameId = data.id;
+  currentGameId = data.id;
 
-    document.title = data.title + ' — Arcade';
-    document.getElementById('title').textContent = data.title;
-    document.getElementById('side').style.display = 'block';
+  document.title = data.title + ' — Arcade';
+  document.getElementById('title').textContent = data.title;
+  document.getElementById('side').style.display = 'block';
 
-    if (data.description) {
-      const descEl = document.getElementById('gameDescription');
-      if (descEl) {
-        descEl.textContent = data.description;
-        descEl.style.display = 'block';
-      }
-    }
+  if (data.description) {
+    const descEl = document.getElementById('gameDescription');
+    descEl.textContent = data.description;
+    descEl.className = 'desc';
+    descEl.style.display = 'block';
+  }
 
-    renderGame(data);
-    renderAuthor(data);
+  renderGame(data);
+  renderAuthor(data);
 
-    supabase.from('games').update({ plays: (data.plays || 0) + 1 })
-      .eq('id', data.id).then(() => {});
+  supabase.from('games').update({ plays: (data.plays || 0) + 1 })
+    .eq('id', data.id).then(() => {}).catch(() => {});
 
-    wireButtons(data);
-    loadLikes(data.id);
-    loadComments(data.id);
+  wireButtons(data);
+  loadLikes(data.id);
+  loadComments(data.id);
 
-    const { data: { session } } = await supabase.auth.getSession();
+  supabase.auth.getSession().then(({ data: { session } }) => {
     currentUserId = session ? session.user.id : null;
     if (currentUserId) loadLikes(data.id, currentUserId);
-  } catch (err) {
-    console.error('Game boot failed:', err);
-    stage.innerHTML = '<div class="err">Could not load game.<br><br>' + escapeHtml(err && err.message ? err.message : String(err)) + '</div>';
-  }
+  }).catch(() => {});
 }
 
 function renderGame(data) {
@@ -269,13 +226,11 @@ function renderGame(data) {
   let html = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
     '<title>' + escapeHtml(data.title) + '</title>' +
-    '<style>html,body{margin:0;padding:0;background:#0a0a0a;' +
-    'overflow:hidden;height:100%}canvas{display:block;margin:0 auto}</style>' +
+    '<style>html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%}canvas{display:block;margin:0 auto}</style>' +
     '</head><body>';
 
   if (engineInline) {
     html += '<script>' + engineInline + '<\/script>';
-    html += '<script>' + ENGINE_PATCH + '<\/script>';
     html += '<script>' +
       'window.onerror = function(msg, src, line, col, err) {' +
       'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">ERROR: " + msg + "\\n\\n" + (err && err.stack ? err.stack : "") + "</pre>";' +
@@ -289,12 +244,10 @@ function renderGame(data) {
       'var s = document.createElement("script");' +
       's.src = "/editor/epic.js";' +
       's.onload = function() {' +
-        'try {' +
-          'eval(' + JSON.stringify(ENGINE_PATCH) + ');' +
-          safeUserCode +
-        '} catch(e) { document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">" + e.message + "\\n" + (e.stack||"") + "</pre>"; }' +
+        'try {' + safeUserCode + '} catch(e) {' +
+        'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">" + e.message + "\\n" + (e.stack||"") + "</pre>"; }' +
       '};' +
-      's.onerror = function() { document.body.innerHTML = "<div style=\\"color:#f66;padding:20px;font-family:monospace\\">Could not load engine.</div>"; };' +
+      's.onerror = function() { document.body.innerHTML = "<div style=\\"color:#f66;padding:20px;font-family:monospace\\">Could not load engine from /editor/epic.js</div>"; };' +
       'document.head.appendChild(s);' +
       '<\/script>';
   }
@@ -302,9 +255,7 @@ function renderGame(data) {
   html += '</body></html>';
 
   stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" allowfullscreen id="gameFrame"></iframe>';
-  const frame = document.getElementById('gameFrame');
-  frame.addEventListener('load', applyZoom);
-  frame.srcdoc = html;
+  document.getElementById('gameFrame').srcdoc = html;
 
   zoomLevel = 1;
   updateZoomLabel();
@@ -342,7 +293,9 @@ async function renderAuthor(data) {
       } else if (data.author_name) {
         creatorLabel = data.author_name.split('@')[0];
       }
-    } catch (e) {}
+    } catch (e) {
+      console.log('Author profile lookup failed:', e.message);
+    }
   } else if (data.author_name) {
     creatorLabel = data.author_name.split('@')[0];
   }
@@ -430,8 +383,7 @@ function wireButtons(data) {
 
     if (e.key === 'f' || e.key === 'F') {
       e.preventDefault();
-      const btn = document.getElementById('fsBtn');
-      if (btn) btn.click();
+      document.getElementById('fsBtn').click();
     } else if (e.key === '+' || e.key === '=') {
       e.preventDefault();
       zoomLevel = Math.min(2, +(zoomLevel + 0.1).toFixed(2));
@@ -515,28 +467,44 @@ async function submitComment(parentId) {
 }
 
 async function loadLikes(gameId, userId) {
-  const { count } = await supabase
-    .from('likes').select('*', { count: 'exact', head: true })
-    .eq('game_id', gameId);
-  document.getElementById('likeCount').textContent = count || 0;
-  if (userId) {
-    const { data } = await supabase
-      .from('likes').select('id')
-      .eq('game_id', gameId).eq('user_id', userId).maybeSingle();
-    document.getElementById('likeBtn').classList.toggle('liked', !!data);
+  try {
+    const { count } = await supabase
+      .from('likes').select('*', { count: 'exact', head: true })
+      .eq('game_id', gameId);
+    document.getElementById('likeCount').textContent = count || 0;
+    if (userId) {
+      const { data } = await supabase
+        .from('likes').select('id')
+        .eq('game_id', gameId).eq('user_id', userId).maybeSingle();
+      document.getElementById('likeBtn').classList.toggle('liked', !!data);
+    }
+  } catch (e) {
+    console.log('Likes load failed:', e.message);
   }
 }
 
 async function loadComments(gameId) {
-  const { data, error } = await supabase
-    .from('comments')
-    .select('id, user_id, user_name, body, created_at, parent_id')
-    .eq('game_id', gameId)
-    .order('created_at', { ascending: true })
-    .limit(200);
-
   const box = document.getElementById('comments');
-  if (error || !data || data.length === 0) {
+
+  let data;
+  try {
+    const result = await withTimeout(
+      supabase
+        .from('comments')
+        .select('id, user_id, user_name, body, created_at, parent_id')
+        .eq('game_id', gameId)
+        .order('created_at', { ascending: true })
+        .limit(200),
+      6000,
+      'Comments fetch'
+    );
+    data = result.data;
+  } catch (e) {
+    box.innerHTML = '<div style="opacity:0.4;font-size:13px">Could not load comments.</div>';
+    return;
+  }
+
+  if (!data || data.length === 0) {
     box.innerHTML = '<div style="opacity:0.4;font-size:13px">No comments yet.</div>';
     return;
   }
@@ -544,11 +512,13 @@ async function loadComments(gameId) {
   const ids = [...new Set(data.map(c => c.user_id).filter(Boolean))];
   const profileMap = {};
   if (ids.length > 0) {
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('user_id, username, display_name')
-      .in('user_id', ids);
-    for (const p of profiles || []) profileMap[p.user_id] = p;
+    try {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, username, display_name')
+        .in('user_id', ids);
+      for (const p of profiles || []) profileMap[p.user_id] = p;
+    } catch (e) {}
   }
 
   function who(c) {
@@ -597,7 +567,7 @@ async function loadComments(gameId) {
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   })[c]);
 }
 
@@ -609,10 +579,7 @@ function timeAgo(iso) {
   return Math.floor(s/86400) + 'd ago';
 }
 
-boot().catch(err => {
-  console.error('Unhandled boot error:', err);
-  stage.innerHTML = '<div class="err">Could not load game.<br><br>' + escapeHtml(err && err.message ? err.message : String(err)) + '</div>';
-});
+boot();
 </script>
 
 </body>
