@@ -11,13 +11,11 @@
 
     var lastGenerated = '';
 
-    // One-shot flag: skip only the very first auto-regenerate
-    // (used so fork/edit code isn't clobbered on page load)
     var params = new URLSearchParams(location.search);
-    var isForkOrEdit = params.get('fork') === '1' 
-                || params.get('edit') 
-                || params.get('id');    
-    var skipNextRegenerate = isForkOrEdit;   // ← the flag
+    var isForkOrEdit = params.get('fork') === '1'
+                || params.get('edit')
+                || params.get('id');
+    var skipNextRegenerate = isForkOrEdit;
 
     function currentTemplate() {
       return window.LimnTemplates[select.value];
@@ -41,13 +39,14 @@
 
       lastGenerated = tpl.generate(cfg);
 
-      // Skip only the first auto-run in fork/edit mode
       if (skipNextRegenerate) {
         skipNextRegenerate = false;
         return;
       }
 
       textarea.value = lastGenerated;
+
+      if (window.__renderCode) window.__renderCode();
     }
 
     function renderFields() {
@@ -91,9 +90,14 @@
         }
         this.classList.add('active');
 
-        var isBuild = this.dataset.tab === 'build';
-        buildPanel.style.display = isBuild ? 'grid' : 'none';
-        codeSection.style.display = isBuild ? 'none' : 'block';
+        var which = this.dataset.tab;
+        buildPanel.style.display = which === 'build' ? 'grid' : 'none';
+        codeSection.style.display = which === 'code' ? 'block' : 'none';
+
+        var promptPanel = document.getElementById('promptPanel');
+        if (promptPanel) {
+          promptPanel.style.display = which === 'prompt' ? 'grid' : 'none';
+        }
       });
     }
 
