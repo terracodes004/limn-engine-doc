@@ -23,7 +23,7 @@
 
   .banner {
     display: block;
-    padding: 24px 28px;
+    padding: 22px 26px;
     border-radius: 16px;
     text-decoration: none;
     color: inherit;
@@ -33,6 +33,7 @@
     overflow: hidden;
   }
   .banner:hover { transform: translateY(-2px); }
+
   .banner-1 {
     background: linear-gradient(135deg, #7c2d12 0%, #b45309 45%, #f59e0b 100%);
     box-shadow: 0 8px 32px rgba(245, 158, 11, 0.25);
@@ -40,6 +41,22 @@
   .banner-2 {
     background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #64748b 100%);
     box-shadow: 0 6px 24px rgba(148, 163, 184, 0.18);
+  }
+  .banner-3 {
+    background: linear-gradient(135deg, #4a2a1a 0%, #7c4a2c 50%, #c68a5a 100%);
+    box-shadow: 0 6px 24px rgba(198, 138, 90, 0.2);
+  }
+  .banner-4 {
+    background: linear-gradient(135deg, #131a2a 0%, #1e2740 50%, #2e3a55 100%);
+    box-shadow: 0 4px 18px rgba(46, 58, 85, 0.25);
+  }
+  .banner-5 {
+    background: linear-gradient(135deg, #101625 0%, #1a2235 50%, #28324a 100%);
+    box-shadow: 0 4px 16px rgba(40, 50, 74, 0.2);
+  }
+  .banner-6 {
+    background: linear-gradient(135deg, #0d1220 0%, #151c2e 50%, #1f283e 100%);
+    box-shadow: 0 3px 14px rgba(31, 40, 62, 0.18);
   }
 
   .banner-head {
@@ -53,29 +70,36 @@
     font-weight: 800;
     letter-spacing: 2px;
     text-transform: uppercase;
-    opacity: 0.85;
+    opacity: 0.9;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   }
-  .banner-1 .banner-tag { color: #fef3c7; }
-  .banner-2 .banner-tag { color: #e2e8f0; }
 
   .banner-trophy { font-size: 32px; line-height: 1; }
+  .banner-4 .banner-trophy,
+  .banner-5 .banner-trophy,
+  .banner-6 .banner-trophy { font-size: 22px; }
 
   .banner-title {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 800;
     letter-spacing: -0.5px;
-    margin: 0 0 8px;
+    margin: 0 0 6px;
     color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  .banner-4 .banner-title,
+  .banner-5 .banner-title,
+  .banner-6 .banner-title { font-size: 18px; }
 
   .banner-sub {
     font-size: 13px;
     opacity: 0.9;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
+    color: #ffffff;
   }
   .banner-sub a {
     color: inherit;
@@ -90,42 +114,8 @@
     gap: 16px;
     font-size: 14px;
     font-weight: 700;
+    color: #ffffff;
   }
-  .banner-stats span { display: inline-flex; align-items: center; gap: 4px; }
-  .banner-1 .banner-stats { color: #fef3c7; }
-  .banner-2 .banner-stats { color: #e2e8f0; }
-
-  .row { display: flex; align-items: center; gap: 16px;
-         padding: 14px 16px;
-         background: linear-gradient(180deg,#15152a,#10101e);
-         border: 1px solid rgba(255,255,255,0.06);
-         border-radius: 10px; margin-bottom: 8px;
-         text-decoration: none; color: inherit;
-         transition: border-color 0.15s; }
-  .row:hover { border-color: rgba(68,170,255,0.4); }
-
-  .rank { font-size: 20px; font-weight: 800;
-          width: 36px; text-align: center; flex-shrink: 0; }
-  .rank.num { color: #64748b; font-size: 16px; }
-
-  .info { flex: 1; min-width: 0; }
-  .info .name { font-size: 15px; font-weight: 600;
-                white-space: nowrap; overflow: hidden;
-                text-overflow: ellipsis; }
-  .info .name a { color: inherit; text-decoration: none; }
-  .info .name a:hover { color: #fbbf24; text-decoration: underline; }
-  .info .sub { font-size: 12px; opacity: 0.65;
-               margin-top: 2px; }
-  .info .sub a {
-    color: #fbbf24;
-    text-decoration: none;
-    font-weight: 600;
-  }
-  .info .sub a:hover { color: #fde68a; text-decoration: underline; }
-
-  .count { font-size: 16px; font-weight: 700;
-           color: #f43f5e; flex-shrink: 0;
-           display: inline-flex; align-items: center; gap: 4px; }
 
   .empty { text-align: center; padding: 60px 20px;
            opacity: 0.4; }
@@ -238,64 +228,38 @@ const rankedCreators = Object.entries(creatorCounts)
   .map(([name, count]) => ({ name, count, username: creatorUsernames[name] || null }))
   .sort((a, b) => b.count - a.count);
 
+const rankMeta = [
+  { cls: 'banner-1', tag: '🏆 1st Place · Game of the Week', trophy: '🏆' },
+  { cls: 'banner-2', tag: '🥈 2nd Place',                     trophy: '🥈' },
+  { cls: 'banner-3', tag: '🥉 3rd Place',                     trophy: '🥉' },
+  { cls: 'banner-4', tag: '4th Place',                        trophy: '4️⃣' },
+  { cls: 'banner-5', tag: '5th Place',                        trophy: '5️⃣' },
+  { cls: 'banner-6', tag: '6th Place',                        trophy: '6️⃣' }
+];
+
 const gamesEl = document.getElementById('games');
 
 if (rankedGames.length === 0) {
   gamesEl.innerHTML = '<div class="empty">No likes yet this week.</div>';
 } else {
-  const top1 = rankedGames[0];
-  const top2 = rankedGames[1];
-  const rest = rankedGames.slice(2, 10);
+  const top = rankedGames.slice(0, 6);
 
-  let html = '';
-
-  html += `
-    <a class="banner banner-1" href="/arcade/game.html?slug=${encodeURIComponent(top1.game.slug)}">
-      <div class="banner-head">
-        <span class="banner-tag">🏆 1st Place · Game of the Week</span>
-        <span class="banner-trophy">🏆</span>
-      </div>
-      <h3 class="banner-title">${esc(top1.game.title)}</h3>
-      <div class="banner-sub">by ${creatorLink(top1.game)}</div>
-      <div class="banner-stats">
-        <span>♥ ${top1.count}</span>
-      </div>
-    </a>
-  `;
-
-  if (top2) {
-    html += `
-      <a class="banner banner-2" href="/arcade/game.html?slug=${encodeURIComponent(top2.game.slug)}">
+  gamesEl.innerHTML = top.map((x, i) => {
+    const meta = rankMeta[i] || { cls: 'banner-6', tag: (i + 1) + 'th Place', trophy: String(i + 1) };
+    return `
+      <a class="banner ${meta.cls}" href="/arcade/game.html?slug=${encodeURIComponent(x.game.slug)}">
         <div class="banner-head">
-          <span class="banner-tag">🥈 2nd Place</span>
-          <span class="banner-trophy">🥈</span>
+          <span class="banner-tag">${meta.tag}</span>
+          <span class="banner-trophy">${meta.trophy}</span>
         </div>
-        <h3 class="banner-title">${esc(top2.game.title)}</h3>
-        <div class="banner-sub">by ${creatorLink(top2.game)}</div>
+        <h3 class="banner-title">${esc(x.game.title)}</h3>
+        <div class="banner-sub">by ${creatorLink(x.game)}</div>
         <div class="banner-stats">
-          <span>♥ ${top2.count}</span>
+          <span>♥ ${x.count}</span>
         </div>
       </a>
     `;
-  }
-
-  html += rest.map((x, i) => {
-    const rank = i + 3;
-    const trophy = rank === 3 ? '🥉' : null;
-    const rankHtml = trophy
-      ? `<div class="rank">${trophy}</div>`
-      : `<div class="rank num">${rank}</div>`;
-    return `<a class="row" href="/arcade/game.html?slug=${encodeURIComponent(x.game.slug)}">
-      ${rankHtml}
-      <div class="info">
-        <div class="name">${esc(x.game.title)}</div>
-        <div class="sub">by ${creatorLink(x.game)}</div>
-      </div>
-      <div class="count">♥ ${x.count}</div>
-    </a>`;
   }).join('');
-
-  gamesEl.innerHTML = html;
 }
 
 const creatorsEl = document.getElementById('creators');
@@ -303,65 +267,28 @@ const creatorsEl = document.getElementById('creators');
 if (rankedCreators.length === 0) {
   creatorsEl.innerHTML = '<div class="empty">No creators yet this week.</div>';
 } else {
-  const top1 = rankedCreators[0];
-  const top2 = rankedCreators[1];
-  const rest = rankedCreators.slice(2, 10);
+  const top = rankedCreators.slice(0, 6);
 
-  let html = '';
-
-  html += `
-    <div class="banner banner-1" style="cursor:default">
-      <div class="banner-head">
-        <span class="banner-tag">🏆 1st Place · Creator of the Week</span>
-        <span class="banner-trophy">🏆</span>
-      </div>
-      <h3 class="banner-title">${top1.username ?
-        '<a href="/u/?u=' + encodeURIComponent(top1.username) +
-        '" style="color:inherit;text-decoration:none">' + esc(top1.name) + '</a>'
-        : esc(top1.name)}</h3>
-      <div class="banner-stats">
-        <span>♥ ${top1.count}</span>
-      </div>
-    </div>
-  `;
-
-  if (top2) {
-    html += `
-      <div class="banner banner-2" style="cursor:default">
+  creatorsEl.innerHTML = top.map((x, i) => {
+    const meta = rankMeta[i] || { cls: 'banner-6', tag: (i + 1) + 'th Place', trophy: String(i + 1) };
+    const nameHtml = x.username
+      ? '<a href="/u/?u=' + encodeURIComponent(x.username) +
+        '" style="color:inherit;text-decoration:none">' + esc(x.name) + '</a>'
+      : esc(x.name);
+    const tagText = i === 0 ? '🏆 1st Place · Creator of the Week' : meta.tag;
+    return `
+      <div class="banner ${meta.cls}" style="cursor:default">
         <div class="banner-head">
-          <span class="banner-tag">🥈 2nd Place</span>
-          <span class="banner-trophy">🥈</span>
+          <span class="banner-tag">${tagText}</span>
+          <span class="banner-trophy">${meta.trophy}</span>
         </div>
-        <h3 class="banner-title">${top2.username ?
-          '<a href="/u/?u=' + encodeURIComponent(top2.username) +
-          '" style="color:inherit;text-decoration:none">' + esc(top2.name) + '</a>'
-          : esc(top2.name)}</h3>
+        <h3 class="banner-title">${nameHtml}</h3>
         <div class="banner-stats">
-          <span>♥ ${top2.count}</span>
+          <span>♥ ${x.count}</span>
         </div>
       </div>
     `;
-  }
-
-  html += rest.map((x, i) => {
-    const rank = i + 3;
-    const trophy = rank === 3 ? '🥉' : null;
-    const rankHtml = trophy
-      ? `<div class="rank">${trophy}</div>`
-      : `<div class="rank num">${rank}</div>`;
-    const nameHtml = x.username
-      ? '<a href="/u/?u=' + encodeURIComponent(x.username) + '">' + esc(x.name) + '</a>'
-      : esc(x.name);
-    return `<div class="row">
-      ${rankHtml}
-      <div class="info">
-        <div class="name">${nameHtml}</div>
-      </div>
-      <div class="count">♥ ${x.count}</div>
-    </div>`;
   }).join('');
-
-  creatorsEl.innerHTML = html;
 }
 
 function esc(s) {
@@ -372,4 +299,4 @@ function esc(s) {
 </script>
 
 </body>
- </html>
+   </html>
