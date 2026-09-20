@@ -14,8 +14,8 @@
            align-items: center; justify-content: center;
            overflow: hidden; position: relative; }
   .stage iframe { width: 100%; height: 100vh; border: 0; display: block;
-                  transform-origin: center center;
-                  transition: transform 0.15s ease; }
+                   transform-origin: center center;
+                   transition: transform 0.15s ease; }
   .side { background: #10101e; padding: 20px;
           border-left: 1px solid rgba(255,255,255,0.06);
           overflow-y: auto; max-height: 100vh; }
@@ -129,7 +129,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const supabase = createClient(
   'https://pjtpesdhjfvcidfkxord.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38'
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frk[...]
 );
 
 const slug = new URLSearchParams(location.search).get('slug');
@@ -142,68 +142,65 @@ const ENGINE_PATCH = `
 (function() {
   if (typeof Display === 'undefined') return;
 
+  const originalAddEventListeners = Display.prototype.addEventListeners;
   Display.prototype.addEventListeners = function() {
-    var self = this;
+    try {
+      if (typeof originalAddEventListeners === 'function') originalAddEventListeners.call(this);
+    } catch (e) {
+      console.warn('[limn-patch] original addEventListeners failed:', e);
+    }
 
-    window.addEventListener('keydown', function(e) {
-      self.keys[e.keyCode] = true;
-    });
-    window.addEventListener('keyup', function(e) {
-      self.keys[e.keyCode] = false;
-    });
+    const self = this;
+    if (!self || !self.canvas) return;
 
-    var toCanvasCoords = function(clientX, clientY) {
-      var rect = self.canvas.getBoundingClientRect();
-
-      var vv = window.visualViewport;
-      var vvScale = vv ? vv.scale : 1;
-      var vvOffsetLeft = vv ? vv.offsetLeft : 0;
-      var vvOffsetTop = vv ? vv.offsetTop : 0;
-
-      var docX = clientX * vvScale + vvOffsetLeft + window.scrollX;
-      var docY = clientY * vvScale + vvOffsetTop + window.scrollY;
-
-      var rectDocLeft = rect.left + window.scrollX;
-      var rectDocTop = rect.top + window.scrollY;
-
-      var scaleX = self.canvas.width / rect.width;
-      var scaleY = self.canvas.height / rect.height;
-
+    const toCanvasCoords = (clientX, clientY) => {
+      const rect = self.canvas.getBoundingClientRect();
+      if (!rect || !rect.width || !rect.height) return { x: clientX, y: clientY };
+      const scaleX = self.canvas.width / rect.width;
+      const scaleY = self.canvas.height / rect.height;
       return {
-        x: (docX - rectDocLeft) * scaleX,
-        y: (docY - rectDocTop) * scaleY
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
       };
     };
 
-    window.addEventListener('mousedown', function(e) {
-      var p = toCanvasCoords(e.clientX, e.clientY);
-      self.x = p.x + self.camera.x;
-      self.y = p.y + self.camera.y;
+    window.addEventListener('keydown', (e) => {
+      self.keys[e.keyCode] = true;
     });
-    window.addEventListener('mouseup', function() {
+    window.addEventListener('keyup', (e) => {
+      self.keys[e.keyCode] = false;
+    });
+    window.addEventListener('mousedown', (e) => {
+      const p = toCanvasCoords(e.clientX, e.clientY);
+      self.x = p.x + (self.camera && self.camera.x ? self.camera.x : 0);
+      self.y = p.y + (self.camera && self.camera.y ? self.camera.y : 0);
+    });
+    window.addEventListener('mouseup', () => {
       self.x = false;
       self.y = false;
     });
-    window.addEventListener('touchstart', function(e) {
-      var t = e.touches[0];
-      var p = toCanvasCoords(t.clientX, t.clientY);
-      self.x = p.x + self.camera.x;
-      self.y = p.y + self.camera.y;
+    window.addEventListener('touchstart', (e) => {
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+      const p = toCanvasCoords(t.clientX, t.clientY);
+      self.x = p.x + (self.camera && self.camera.x ? self.camera.x : 0);
+      self.y = p.y + (self.camera && self.camera.y ? self.camera.y : 0);
     }, { passive: true });
-    window.addEventListener('touchend', function() {
+    window.addEventListener('touchend', () => {
       self.x = false;
       self.y = false;
     });
-    window.addEventListener('mousemove', function(e) {
-      var p = toCanvasCoords(e.clientX, e.clientY);
+    window.addEventListener('mousemove', (e) => {
+      const p = toCanvasCoords(e.clientX, e.clientY);
       if (typeof mouse !== 'undefined') {
         mouse.x = p.x;
         mouse.y = p.y;
       }
     });
-    window.addEventListener('touchmove', function(e) {
-      var t = e.touches[0];
-      var p = toCanvasCoords(t.clientX, t.clientY);
+    window.addEventListener('touchmove', (e) => {
+      const t = e.touches && e.touches[0];
+      if (!t) return;
+      const p = toCanvasCoords(t.clientX, t.clientY);
       if (typeof mouse !== 'undefined') {
         mouse.x = p.x;
         mouse.y = p.y;
@@ -214,51 +211,52 @@ const ENGINE_PATCH = `
 `;
 
 async function boot() {
-  if (!slug) {
-    stage.innerHTML = '<div class="err">No game specified.</div>';
-    return;
-  }
-
-  const { data, error } = await supabase
-    .from('games')
-    .select('id, slug, title, author_id, author_name, code, engine_code, engine_version, plays, description')
-    .eq('slug', slug)
-    .single();
-
-  if (error || !data) {
-    stage.innerHTML = '<div class="err">Game not found.</div>';
-    return;
-  }
-
-  currentGameId = data.id;
-
-  document.title = data.title + ' — Arcade';
-  document.getElementById('title').textContent = data.title;
-  document.getElementById('side').style.display = 'block';
-
-  if (data.description) {
-    const descEl = document.getElementById('gameDescription');
-    if (descEl) {
-      descEl.textContent = data.description;
-      descEl.style.display = 'block';
+  try {
+    if (!slug) {
+      stage.innerHTML = '<div class="err">No game specified.</div>';
+      return;
     }
-  }
 
-  renderGame(data);
-  renderAuthor(data);
+    const { data, error } = await supabase
+      .from('games')
+      .select('id, slug, title, author_id, author_name, code, engine_code, engine_version, plays, description')
+      .eq('slug', slug)
+      .single();
 
-  supabase.from('games').update({ plays: (data.plays || 0) + 1 })
-    .eq('id', data.id).then(() => {});
+    if (error) throw error;
+    if (!data) throw new Error('Game not found.');
 
-  wireButtons(data);
+    currentGameId = data.id;
 
-  loadLikes(data.id);
-  loadComments(data.id);
+    document.title = data.title + ' — Arcade';
+    document.getElementById('title').textContent = data.title;
+    document.getElementById('side').style.display = 'block';
 
-  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (data.description) {
+      const descEl = document.getElementById('gameDescription');
+      if (descEl) {
+        descEl.textContent = data.description;
+        descEl.style.display = 'block';
+      }
+    }
+
+    renderGame(data);
+    renderAuthor(data);
+
+    supabase.from('games').update({ plays: (data.plays || 0) + 1 })
+      .eq('id', data.id).then(() => {});
+
+    wireButtons(data);
+    loadLikes(data.id);
+    loadComments(data.id);
+
+    const { data: { session } } = await supabase.auth.getSession();
     currentUserId = session ? session.user.id : null;
     if (currentUserId) loadLikes(data.id, currentUserId);
-  });
+  } catch (err) {
+    console.error('Game boot failed:', err);
+    stage.innerHTML = '<div class="err">Could not load game.<br><br>' + escapeHtml(err && err.message ? err.message : String(err)) + '</div>';
+  }
 }
 
 function renderGame(data) {
@@ -292,7 +290,7 @@ function renderGame(data) {
       's.src = "/editor/epic.js";' +
       's.onload = function() {' +
         'try {' +
-          '(function(){' + ENGINE_PATCH + '})();' +
+          'eval(' + JSON.stringify(ENGINE_PATCH) + ');' +
           safeUserCode +
         '} catch(e) { document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">" + e.message + "\\n" + (e.stack||"") + "</pre>"; }' +
       '};' +
@@ -304,7 +302,9 @@ function renderGame(data) {
   html += '</body></html>';
 
   stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" allowfullscreen id="gameFrame"></iframe>';
-  document.getElementById('gameFrame').srcdoc = html;
+  const frame = document.getElementById('gameFrame');
+  frame.addEventListener('load', applyZoom);
+  frame.srcdoc = html;
 
   zoomLevel = 1;
   updateZoomLabel();
@@ -537,4 +537,83 @@ async function loadComments(gameId) {
 
   const box = document.getElementById('comments');
   if (error || !data || data.length === 0) {
-    box.innerHTML = '<div style=
+    box.innerHTML = '<div style="opacity:0.4;font-size:13px">No comments yet.</div>';
+    return;
+  }
+
+  const ids = [...new Set(data.map(c => c.user_id).filter(Boolean))];
+  const profileMap = {};
+  if (ids.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('user_id, username, display_name')
+      .in('user_id', ids);
+    for (const p of profiles || []) profileMap[p.user_id] = p;
+  }
+
+  function who(c) {
+    const p = profileMap[c.user_id];
+    if (p && p.username) {
+      return '<a href="/u/?u=' + encodeURIComponent(p.username) + '">@' +
+        escapeHtml(p.username) + '</a>';
+    }
+    if (p && p.display_name) return escapeHtml(p.display_name);
+    return escapeHtml(c.user_name ? c.user_name.split('@')[0] : 'anon');
+  }
+
+  const roots = data.filter(c => !c.parent_id);
+  const replies = {};
+  for (const c of data) {
+    if (c.parent_id) {
+      if (!replies[c.parent_id]) replies[c.parent_id] = [];
+      replies[c.parent_id].push(c);
+    }
+  }
+
+  function renderOne(c, isReply) {
+    const kids = replies[c.id] || [];
+    const replyForm = isReply ? '' :
+      '<div class="reply-form">' +
+        '<input data-reply-input="' + c.id + '" placeholder="Reply..." maxlength="200">' +
+        '<button data-reply-btn="' + c.id + '">Reply</button>' +
+      '</div>';
+    const kidsHtml = kids.length > 0
+      ? '<div class="replies">' + kids.map(k => renderOne(k, true)).join('') + '</div>'
+      : '';
+    return '<div class="comment">' +
+      '<div class="who">' + who(c) + '</div>' +
+      '<div class="body">' + escapeHtml(c.body) + '</div>' +
+      '<div class="when">' + timeAgo(c.created_at) + '</div>' +
+      kidsHtml + replyForm +
+      '</div>';
+  }
+
+  box.innerHTML = roots.map(c => renderOne(c, false)).join('');
+
+  box.querySelectorAll('[data-reply-btn]').forEach(btn => {
+    btn.addEventListener('click', () => submitComment(btn.dataset.replyBtn));
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"
+  })[c]);
+}
+
+function timeAgo(iso) {
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return Math.floor(s/86400) + 'd ago';
+}
+
+boot().catch(err => {
+  console.error('Unhandled boot error:', err);
+  stage.innerHTML = '<div class="err">Could not load game.<br><br>' + escapeHtml(err && err.message ? err.message : String(err)) + '</div>';
+});
+</script>
+
+</body>
+</html>
