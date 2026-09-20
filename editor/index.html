@@ -199,165 +199,6 @@
             font-size: 13px;
         }
         .build-hint { color: #666; font-size: 13px; }
-
-        .prompt-panel {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            padding: 20px;
-            min-height: 400px;
-        }
-        .prompt-left textarea {
-            width: 100%;
-            padding: 12px;
-            background: #1a1a2e;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 14px;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 120px;
-            line-height: 1.5;
-        }
-        .prompt-left textarea:focus {
-            outline: none;
-            border-color: #7c3aed;
-            box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
-        }
-        .ai-generate-btn {
-            margin-top: 12px;
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #7c3aed, #ec4899);
-            color: #fff;
-            border: 0;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 15px;
-            cursor: pointer;
-            transition: transform 0.15s, opacity 0.15s;
-        }
-        .ai-generate-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-        }
-        .ai-generate-btn:disabled {
-            opacity: 0.5;
-            cursor: default;
-            transform: none;
-        }
-        .prompt-hint {
-            margin-top: 14px;
-            font-size: 12px;
-            color: #666;
-            line-height: 1.5;
-        }
-        .prompt-status {
-            margin-top: 14px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            background: rgba(124,58,237,0.1);
-            border: 1px solid rgba(124,58,237,0.3);
-            color: #c4b5fd;
-        }
-        .prompt-status.error {
-            background: rgba(239,68,68,0.1);
-            border-color: rgba(239,68,68,0.3);
-            color: #f87171;
-        }
-
-        .code-editor {
-            display: flex;
-            background: #0d0d16;
-            border: 1px solid #1e1e2e;
-            border-radius: 10px;
-            margin: 12px 16px;
-            height: 60vh;
-            min-height: 400px;
-            overflow: hidden;
-            font-family: 'JetBrains Mono', 'Fira Code', 'Space Mono', 'Consolas', monospace;
-            font-size: 13.5px;
-            line-height: 1.7;
-            position: relative;
-        }
-
-        .gutter {
-            flex: 0 0 52px;
-            background: #0a0a12;
-            color: #3d3d55;
-            text-align: right;
-            padding: 14px 10px 14px 0;
-            overflow: hidden;
-            user-select: none;
-            border-right: 1px solid #1a1a28;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .gutter div {
-            height: 1.7em;
-            font-size: 13.5px;
-            line-height: 1.7;
-        }
-
-        .gutter div.active {
-            color: #7c3aed;
-        }
-
-        .editor-wrap {
-            position: relative;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        .highlight-layer,
-        #js {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            margin: 0;
-            padding: 14px 18px;
-            border: 0;
-            font-family: inherit;
-            font-size: inherit;
-            line-height: inherit;
-            white-space: pre;
-            overflow: auto;
-            tab-size: 4;
-            box-sizing: border-box;
-        }
-
-        .highlight-layer {
-            pointer-events: none;
-            color: #cbd5e1;
-            background: transparent;
-            z-index: 1;
-            overflow: hidden;
-        }
-
-        #js {
-            background: transparent;
-            color: transparent;
-            caret-color: #4af;
-            z-index: 2;
-            resize: none;
-            outline: none;
-            -webkit-text-fill-color: transparent;
-        }
-
-        #js::selection {
-            background: rgba(68, 170, 255, 0.25);
-        }
-
-        .tok-keyword   { color: #c586c0; font-weight: 600; }
-        .tok-string    { color: #ce9178; }
-        .tok-number    { color: #b5cea8; }
-        .tok-comment   { color: #5c6370; font-style: italic; }
-        .tok-function  { color: #dcdcaa; }
-        .tok-builtin   { color: #4ec9b0; }
-        .tok-punct     { color: #94a3b8; }
-        .tok-operator  { color: #cbd5e1; }
-        .tok-boolean   { color: #569cd6; }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Limn playground</title>
@@ -442,7 +283,6 @@
 
             <div class="tabs">
                 <button class="tab active" data-tab="build">Build</button>
-                <button class="tab" data-tab="prompt">Prompt</button>
                 <button class="tab" data-tab="code">Code</button>
             </div>
 
@@ -480,24 +320,6 @@
                 </div>
             </div>
 
-            <div id="promptPanel" class="prompt-panel" style="display:none">
-                <div class="prompt-left">
-                    <label class="build-label">Describe your game</label>
-                    <textarea id="aiPrompt" rows="5" placeholder="A game where you're a cat dodging rain and collecting fish before time runs out..." maxlength="500"></textarea>
-
-                    <button id="aiGenerate" class="ai-generate-btn">✨ Generate</button>
-
-                    <p class="prompt-hint">
-                        The AI picks a template and fills the fields. You can still edit them in Build. Press Ctrl+Enter to generate.
-                    </p>
-
-                    <div id="aiStatus" class="prompt-status" style="display:none;"></div>
-                </div>
-                <div class="prompt-right">
-                    <p class="build-hint">Your game will appear in the Build tab ready to edit.</p>
-                </div>
-            </div>
-
             <section id="codeSection" style="display:none">
                 <select id="version">
                     <option value="v2">Limn Version 2</option>
@@ -505,13 +327,9 @@
                     <option value="v4" selected>LIMN V4</option>
                 </select>
 
-                <div class="code-editor">
-                    <div class="gutter" id="gutter"></div>
-                    <div class="editor-wrap">
-                        <pre class="highlight-layer" id="highlightLayer" aria-hidden="true"></pre>
-                        <textarea id="js" wrap="off" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off">
+                <textarea id="js" wrap="off">
 const display = new Display();
-display.perform();
+display.perform();           
 display.start(800, 600);
 display.backgroundColor("#0a0a0a");
 display.camera.worldWidth  = 2000;
@@ -525,9 +343,9 @@ TCJSgameGameArea.width = 2000
 TCJSgameGameArea.height =2000
 
 fake.tile = [
-    new Component(64, 64, "#1a3a1a", 0, 0),
-    new Component(64, 64, "#2244aa", 0, 0),
-    new Component(64, 64, "#555",    0, 0),
+    new Component(64, 64, "#1a3a1a", 0, 0), 
+    new Component(64, 64, "#2244aa", 0, 0), 
+    new Component(64, 64, "#555",    0, 0), 
 ];
 fake.map = [
     [1,1,1,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -561,15 +379,13 @@ function update(dt) {
     move.particles.sparkle(ps, player.x+18, player.y+18);
 
     display.camera.follow(player);
-    fake.camera.x = display.camera.x;
+    fake.camera.x = display.camera.x;  
     fake.camera.y = display.camera.y;
 
     hud.setText("X:" + Math.floor(player.x) + " Y:" + Math.floor(player.y));
     hud.fixed();
 }
-                        </textarea>
-                    </div>
-                </div>
+                </textarea>
             </section>
 
             <div class="con">
@@ -590,7 +406,6 @@ function update(dt) {
     </script>
     <script src="templates.js"></script>
     <script src="build.js"></script>
-    <script src="ai.js"></script>
     <script type="module" src="script.js"></script>
 
     <script>
@@ -604,8 +419,20 @@ function update(dt) {
         function applyZoom() {
             var frame = getFrame();
             if (!frame) return;
-            frame.style.transform = 'scale(' + zoomLevel + ')';
-            frame.style.transformOrigin = 'center center';
+
+            // Prefer zooming the iframe's BODY — resizes the game canvas correctly
+            try {
+                var doc = frame.contentDocument;
+                if (doc && doc.body) {
+                    doc.body.style.zoom = zoomLevel;
+                    return;
+                }
+            } catch (e) {
+                // cross-origin fallback below
+            }
+
+            // Fallback: zoom the iframe element itself
+            frame.style.zoom = zoomLevel;
         }
 
         function setZoom(newLevel) {
@@ -669,6 +496,7 @@ function update(dt) {
         if (runBtn) {
             runBtn.addEventListener('click', function () {
                 zoomLevel = 1;
+                applyZoom();
             });
         }
 
@@ -691,221 +519,6 @@ function update(dt) {
                 setZoom(1);
             }
         });
-    })();
-    </script>
-
-    <script>
-    (function () {
-        const textarea = document.getElementById('js');
-        const highlightLayer = document.getElementById('highlightLayer');
-        const gutter = document.getElementById('gutter');
-        if (!textarea || !highlightLayer || !gutter) return;
-
-        const KEYWORDS = /\b(const|let|var|function|return|if|else|for|while|do|break|continue|new|class|extends|this|try|catch|finally|throw|typeof|instanceof|in|of|delete|void|yield|async|await|import|export|from|default)\b/g;
-        const BUILTINS = /\b(true|false|null|undefined|NaN|Infinity|Math|Array|Object|String|Number|Boolean|JSON|console|window|document|Display|Component|Camera|TileMap|Sprite|AnimatedSprite|Sound|SoundManager|Particle|ParticleSystem|Tctxt|Tile|move|state|mouse|Mouse|fake)\b/g;
-        const FUNCTIONS = /\b([A-Za-z_$][\w$]*)\s*(?=\()/g;
-        const NUMBERS = /\b(\d+(?:\.\d+)?)\b/g;
-        const STRINGS = /(["'`])((?:\\.|(?!\1).)*)\1/g;
-        const COMMENTS = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)/g;
-
-        const INDENT = "    ";
-
-        function escapeHtml(s) {
-            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        }
-
-        function highlight(code) {
-            let out = escapeHtml(code);
-
-            const placeholders = [];
-            const stash = (html) => {
-                placeholders.push(html);
-                return '\u0000' + (placeholders.length - 1) + '\u0000';
-            };
-
-            out = out.replace(STRINGS, (m) => stash('<span class="tok-string">' + m + '</span>'));
-            out = out.replace(COMMENTS, (m) => stash('<span class="tok-comment">' + m + '</span>'));
-            out = out.replace(KEYWORDS, '<span class="tok-keyword">$1</span>');
-            out = out.replace(BUILTINS, '<span class="tok-builtin">$1</span>');
-            out = out.replace(NUMBERS, '<span class="tok-number">$1</span>');
-            out = out.replace(FUNCTIONS, '<span class="tok-function">$1</span>');
-            out = out.replace(/([{}()\[\];,.])/g, '<span class="tok-punct">$1</span>');
-            out = out.replace(/([+\-*/%=<>!&|?:])/g, '<span class="tok-operator">$1</span>');
-
-            out = out.replace(/\u0000(\d+)\u0000/g, (_, i) => placeholders[+i]);
-            return out;
-        }
-
-        function render() {
-            const code = textarea.value;
-            const html = highlight(code);
-            highlightLayer.innerHTML = html + '\n';
-
-            const lines = code.split('\n').length;
-            const existing = gutter.children.length;
-            if (lines !== existing) {
-                if (lines > existing) {
-                    const frag = document.createDocumentFragment();
-                    for (let i = existing; i < lines; i++) {
-                        const d = document.createElement('div');
-                        d.textContent = i + 1;
-                        frag.appendChild(d);
-                    }
-                    gutter.appendChild(frag);
-                } else {
-                    while (gutter.children.length > lines) {
-                        gutter.removeChild(gutter.lastChild);
-                    }
-                }
-            }
-
-            highlightLayer.scrollTop = textarea.scrollTop;
-            highlightLayer.scrollLeft = textarea.scrollLeft;
-            gutter.scrollTop = textarea.scrollTop;
-        }
-
-        function updateActiveLine() {
-            const pos = textarea.selectionStart;
-            const before = textarea.value.slice(0, pos);
-            const lineNo = before.split('\n').length;
-            const children = gutter.children;
-            for (let i = 0; i < children.length; i++) {
-                children[i].classList.toggle('active', i === lineNo - 1);
-            }
-        }
-
-        function getLineStart(pos) {
-            const before = textarea.value.slice(0, pos);
-            const idx = before.lastIndexOf('\n');
-            return idx === -1 ? 0 : idx + 1;
-        }
-
-        function getLineEnd(pos) {
-            const after = textarea.value.slice(pos);
-            const idx = after.indexOf('\n');
-            return idx === -1 ? textarea.value.length : pos + idx;
-        }
-
-        function getIndentOfLine(lineStart) {
-            const line = textarea.value.slice(lineStart, getLineEnd(lineStart));
-            const match = line.match(/^\s*/);
-            return match ? match[0] : "";
-        }
-
-        textarea.addEventListener('keydown', (e) => {
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const hasSelection = start !== end;
-            const value = textarea.value;
-
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                if (hasSelection) {
-                    const lineStart = getLineStart(start);
-                    const lineEnd = getLineEnd(end);
-                    const block = value.slice(lineStart, lineEnd);
-                    const lines = block.split('\n');
-                    const shifted = e.shiftKey
-                        ? lines.map(l => l.startsWith(INDENT) ? l.slice(INDENT.length) : l).join('\n')
-                        : lines.map(l => INDENT + l).join('\n');
-                    textarea.setRangeText(shifted, lineStart, lineEnd, 'select');
-                } else {
-                    textarea.setRangeText(INDENT, start, end, 'end');
-                }
-                render();
-                updateActiveLine();
-                return;
-            }
-
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const before = value.slice(0, start);
-                const after = value.slice(end);
-                const lineStart = getLineStart(start);
-                const lineEnd = getLineEnd(start);
-                const currentLine = value.slice(lineStart, lineEnd);
-                const indent = getIndentOfLine(lineStart);
-                const trimmed = currentLine.trim();
-                const lastChar = trimmed.slice(-1);
-                const nextChar = after.charAt(0);
-
-                let nextIndent = indent;
-                let closer = "";
-
-                if (lastChar === "{" || lastChar === "[" || lastChar === "(") {
-                    nextIndent = indent + INDENT;
-                }
-                if (nextChar === "}" || nextChar === "]" || nextChar === ")") {
-                    if (lastChar === "{" || lastChar === "[" || lastChar === "(") {
-                        closer = nextChar;
-                    } else {
-                        nextIndent = indent;
-                    }
-                }
-
-                let insertion = "\n" + nextIndent;
-                let caretOffset = insertion.length;
-
-                if (closer) {
-                    insertion = "\n" + nextIndent + "\n" + indent;
-                    caretOffset = 1 + nextIndent.length;
-                }
-
-                textarea.setRangeText(insertion, start, end, 'end');
-                textarea.setSelectionRange(start + caretOffset, start + caretOffset);
-                render();
-                updateActiveLine();
-                return;
-            }
-
-            if (e.key === 'Backspace' && !hasSelection && start === end) {
-                const lineStart = getLineStart(start);
-                const indent = getIndentOfLine(lineStart);
-                const beforeCursor = value.slice(lineStart, start);
-                if (indent && beforeCursor === indent) {
-                    e.preventDefault();
-                    textarea.setRangeText("", lineStart, lineStart + INDENT.length, 'end');
-                    render();
-                    updateActiveLine();
-                    return;
-                }
-            }
-
-            const PAIRS = { "(": ")", "[": "]", "{": "}", "'": "'", '"': '"', "`": "`" };
-            if (PAIRS[e.key] && !hasSelection) {
-                const nextChar = value.charAt(start);
-                if ((e.key === "'" || e.key === '"' || e.key === "`") && nextChar === e.key) return;
-                e.preventDefault();
-                const close = PAIRS[e.key];
-                if (e.key === "{" || e.key === "[" || e.key === "(") {
-                    const indent = getIndentOfLine(getLineStart(start));
-                    const inner = indent + INDENT;
-                    const insertion = e.key + "\n" + inner + "\n" + indent + close;
-                    textarea.setRangeText(insertion, start, end, 'end');
-                    const caret = start + 1 + 1 + inner.length;
-                    textarea.setSelectionRange(caret, caret);
-                } else {
-                    textarea.setRangeText(e.key + close, start, end, 'end');
-                    textarea.setSelectionRange(start + 1, start + 1);
-                }
-                render();
-                updateActiveLine();
-                return;
-            }
-        });
-
-        textarea.addEventListener('input', () => { render(); updateActiveLine(); });
-        textarea.addEventListener('scroll', () => {
-            highlightLayer.scrollTop = textarea.scrollTop;
-            highlightLayer.scrollLeft = textarea.scrollLeft;
-            gutter.scrollTop = textarea.scrollTop;
-        });
-        textarea.addEventListener('keyup', updateActiveLine);
-        textarea.addEventListener('click', updateActiveLine);
-
-        window.__renderCode = render;
-        render();
-        updateActiveLine();
     })();
     </script>
 </body>
