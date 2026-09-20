@@ -13,7 +13,7 @@ const { data: { subscription } } = supabase.auth.onAuthStateChange(
           method: 'email_or_oauth',
           user_id: session.user.id
         });
-        console.log('✅ GA4 sign_up event sent for:', session.user.email);
+        console.log('GA4 sign_up event sent for:', session.user.email);
       }
     }
   }
@@ -61,33 +61,37 @@ function showMessage(text, type = 'error') {
 
 function getGreeting(name) {
     const hour = new Date().getHours();
-    let prefix, emoji;
-    if (hour < 12) { prefix = 'Good morning'; emoji = '☀️'; }
-    else if (hour < 17) { prefix = 'Good afternoon'; emoji = '🌤'; }
-    else if (hour < 21) { prefix = 'Good evening'; emoji = '🌆'; }
-    else { prefix = 'Good night'; emoji = '🌙'; }
-    return { emoji, text: prefix, name: name || '' };
+    let prefix, emoji, emojiClass;
+    if (hour < 12) {
+        prefix = 'Good morning';
+        emoji = '☀️';
+        emojiClass = 'emoji-sun';
+    } else if (hour < 17) {
+        prefix = 'Good afternoon';
+        emoji = '🌤';
+        emojiClass = 'emoji-cloud';
+    } else if (hour < 21) {
+        prefix = 'Good evening';
+        emoji = '🌆';
+        emojiClass = 'emoji-sunset';
+    } else {
+        prefix = 'Good night';
+        emoji = '🌙';
+        emojiClass = 'emoji-moon';
+    }
+    return { emoji, emojiClass, text: prefix, name: name || '' };
 }
 
 function renderBanner(userBanner, displayName) {
     if (!userBanner) return;
     const g = getGreeting(displayName);
-    const nameHtml = g.name
-        ? ' <strong style="color:#fbbf24; font-weight:700;">' + g.name + '</strong>'
-        : '';
+    const nameHtml = g.name ? ' <strong>' + g.name + '</strong>' : '';
     userBanner.innerHTML =
-        '<span style="display:inline-flex; align-items:center; gap:10px;' +
-        'padding:10px 18px;' +
-        'background:linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.15));' +
-        'border:1px solid rgba(139,92,246,0.35);' +
-        'border-radius:12px;' +
-        'font-size:15px; font-weight:600; color:#e2e8f0;' +
-        'box-shadow:0 4px 20px rgba(139,92,246,0.15);' +
-        'backdrop-filter:blur(8px);">' +
-        '<span style="font-size:20px;">' + g.emoji + '</span>' +
-        '<span>' + g.text + ',' + nameHtml + '</span>' +
+        '<span>' +
+          '<span class="greeting-emoji ' + g.emojiClass + '">' + g.emoji + '</span>' +
+          '<span>' + g.text + ',' + nameHtml + '</span>' +
         '</span>';
-    userBanner.style.display = 'inline-flex';
+    userBanner.classList.add('visible');
 }
 
 async function checkUserRouting() {
@@ -144,7 +148,9 @@ async function checkUserRouting() {
         if (stepGoogle) stepGoogle.classList.add('hidden');
         if (stepEmail) stepEmail.classList.remove('hidden');
     } else {
-        if (userBanner) userBanner.style.display = 'none';
+        if (userBanner) {
+            userBanner.classList.remove('visible');
+        }
         if (authButtons) authButtons.style.display = 'block';
         if (userDropdown) userDropdown.style.display = 'none';
 
@@ -160,13 +166,13 @@ checkUserRouting();
 const googleLoginBtn = document.getElementById('google-login-btn');
 if (googleLoginBtn) {
     googleLoginBtn.addEventListener('click', async () => {
-        showMessage('⏳ Connecting to Google...', 'success');
+        showMessage('Connecting to Google...', 'success');
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: { redirectTo: callbackPath }
         });
         if (error) {
-            showMessage('❌ OAuth Error: ' + error.message, 'error');
+            showMessage('OAuth Error: ' + error.message, 'error');
         }
     });
 }
@@ -184,11 +190,11 @@ if (sendEmailBtn) {
         });
 
         if (!error) {
-            showMessage('✅ Verification code sent to your email!', 'success');
+            showMessage('Verification code sent to your email!', 'success');
             const otpSection = document.getElementById('otp-section');
             if (otpSection) otpSection.classList.remove('hidden');
         } else {
-            showMessage('❌ ' + error.message, 'error');
+            showMessage(error.message, 'error');
         }
     });
 }
@@ -210,10 +216,10 @@ if (verifyEmailBtn) {
         });
 
         if (!error) {
-            showMessage('🎉 Email verified! Redirecting...', 'success');
+            showMessage('Email verified! Redirecting...', 'success');
             setTimeout(() => { window.location.href = homeRedirect; }, 1500);
         } else {
-            showMessage('❌ ' + error.message, 'error');
+            showMessage(error.message, 'error');
         }
     });
-}
+  }
