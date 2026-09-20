@@ -173,39 +173,39 @@ header {
   position: relative;
 }
 
-
 #dropdown-toggle {
-    background: conic-gradient(from 0deg, #0066ff, #ff0000, #ff8800, #00cc00, #39ff14, #0066ff) border-box !important;
-    border: 2px solid transparent !important;
-    border-radius: 50%;
-    padding: 2px !important;
-    position: relative;
-    cursor: pointer;
-    width: auto !important;
-    height: auto !important;
-    box-shadow: 0 0 10px rgba(0, 102, 255, 0.5), 
-                0 0 20px rgba(255, 0, 0, 0.3), 
-                0 0 30px rgba(255, 136, 0, 0.3), 
-                0 0 40px rgba(0, 204, 0, 0.3), 
-                0 0 50px rgba(57, 255, 20, 0.3), 
-                0 0 60px rgba(255, 221, 0, 0.3);
+  background: conic-gradient(from 0deg, #0066ff, #ff0000, #ff8800, #00cc00, #39ff14, #0066ff) border-box !important;
+  border: 2px solid transparent !important;
+  border-radius: 50%;
+  padding: 2px !important;
+  position: relative;
+  cursor: pointer;
+  width: auto !important;
+  height: auto !important;
+  box-shadow: 0 0 10px rgba(0, 102, 255, 0.5),
+              0 0 20px rgba(255, 0, 0, 0.3),
+              0 0 30px rgba(255, 136, 0, 0.3),
+              0 0 40px rgba(0, 204, 0, 0.3),
+              0 0 50px rgba(57, 255, 20, 0.3),
+              0 0 60px rgba(255, 221, 0, 0.3);
 }
 
 #dropdown-toggle #user-avatar {
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: 50%;
-    width: 40px !important;
-    height: 40px !important;
-    object-fit: cover;
-    display: block;
-    background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 50%;
+  width: 40px !important;
+  height: 40px !important;
+  object-fit: cover;
+  display: block;
+  background: transparent !important;
 }
 
 #dropdown-toggle #avatar-badge {
-    z-index: 999 !important;
-    position: absolute;
+  z-index: 999 !important;
+  position: absolute;
 }
+
 #dropdown-menu {
   position: absolute;
   right: 0;
@@ -220,8 +220,8 @@ header {
   overflow-y: auto;
   max-height: 50vh;
   margin-top: 8px;
-  }
-    
+}
+
 .dropdown-item {
   display: block;
   width: 100%;
@@ -247,73 +247,144 @@ header {
 
 #user-banner {
   position: fixed !important;
-  top: 0px !important;
+  top: 14px !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
-  z-index: 3 !important;
-  opacity:0;
-  background: linear-gradient(
-    90deg,
-    #ff0080, #7c3aed
-  ) !important;
+  z-index: 90 !important;
 
+  background: rgba(5, 8, 61, 0.75) !important;
   color: #ffffff !important;
-  border: none !important;
-  padding: 6px 14px !important;
+  border: 2px solid transparent !important;
   border-radius: 100px !important;
-  font-size: 0.3rem !important;
-  font-weight: 300 !important;
-  letter-spacing: 0.2px !important;
+  padding: 8px 22px !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.3px !important;
   text-decoration: none !important;
 
-  display: inline-flex !important;
+  display: none;
   align-items: center !important;
-  gap: 5px !important;
+  justify-content: center !important;
+  gap: 8px !important;
+
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
 
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.25) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.15) inset,
-    0 2px 10px rgba(0, 0, 0, 0.3),
-    0 0 12px rgba(255, 0, 128, 0.3) !important;
+    0 0 10px rgba(0, 102, 255, 0.5),
+    0 0 20px rgba(255, 0, 0, 0.3),
+    0 0 30px rgba(255, 136, 0, 0.3),
+    0 0 40px rgba(0, 204, 0, 0.3),
+    0 0 50px rgba(57, 255, 20, 0.3),
+    0 0 60px rgba(255, 221, 0, 0.3) !important;
 
-  transition: all !important;
-  overflow: hidden !important;
-  isolation: isolate !important;
-  white-space: nowrap !important;
   max-width: 90vw !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 
-  /* Combined animations: fade in/out + pulse glow */
-  animation: 
-    fadeInOut 10s ease-in-out,
-    pulseGlow 3s ease-in-out infinite !important;
+  animation: bannerPulse 3s ease-in-out infinite !important;
 }
 
-/* Visible → Invisible → Visible */
-@keyframes fadeInOut {
-  0%   { opacity: 0; }
-  25%  { opacity: 1; z-index:90;}
-  50%  { opacity: 1; z-index:90;}
-  100% { opacity: 0; }
+#user-banner.visible {
+  display: inline-flex !important;
 }
 
-/* Keep your existing pulse glow (in case it wasn't defined) */
-@keyframes pulseGlow {
+#user-banner::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: -2px !important;
+  border-radius: 100px !important;
+  background: conic-gradient(from 0deg,
+    #0066ff, #ff0000, #ff8800, #00cc00,
+    #39ff14, #ffdd00, #0066ff) !important;
+  z-index: -1 !important;
+}
+
+#user-banner > span {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+#user-banner strong {
+  color: #fbbf24 !important;
+  font-weight: 800 !important;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.4) !important;
+}
+
+#user-banner .greeting-emoji {
+  display: inline-block !important;
+}
+
+#user-banner .greeting-emoji.emoji-sun {
+  animation: sunSpin 8s linear infinite !important;
+  transform-origin: center !important;
+}
+
+#user-banner .greeting-emoji.emoji-cloud {
+  animation: cloudFloat 3s ease-in-out infinite !important;
+}
+
+#user-banner .greeting-emoji.emoji-sunset {
+  animation: sunsetTilt 4s ease-in-out infinite !important;
+  transform-origin: center bottom !important;
+}
+
+#user-banner .greeting-emoji.emoji-moon {
+  animation: moonGlow 3s ease-in-out infinite !important;
+}
+
+@keyframes sunSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes cloudFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2px); }
+}
+
+@keyframes sunsetTilt {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(-6deg); }
+  75%      { transform: rotate(6deg); }
+}
+
+@keyframes moonGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 3px rgba(200, 220, 255, 0.5));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(200, 220, 255, 0.9));
+    transform: scale(1.08);
+  }
+}
+
+@keyframes bannerPulse {
   0%, 100% {
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.35) inset,
-      0 -1px 0 rgba(0, 0, 0, 0.25) inset,
-      0 2px 10px rgba(0, 0, 0, 0.4),
-      0 0 12px rgba(255, 0, 128, 0.4);
+      0 0 10px rgba(0, 102, 255, 0.5),
+      0 0 20px rgba(255, 0, 0, 0.3),
+      0 0 30px rgba(255, 136, 0, 0.3),
+      0 0 40px rgba(0, 204, 0, 0.3),
+      0 0 50px rgba(57, 255, 20, 0.3),
+      0 0 60px rgba(255, 221, 0, 0.3);
   }
   50% {
     box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.35) inset,
-      0 -1px 0 rgba(0, 0, 0, 0.25) inset,
-      0 2px 10px rgba(0, 0, 0, 0.4),
-      0 0 22px rgba(124, 58, 237, 0.7);
+      0 0 14px rgba(0, 102, 255, 0.75),
+      0 0 26px rgba(255, 0, 0, 0.5),
+      0 0 40px rgba(255, 136, 0, 0.5),
+      0 0 52px rgba(0, 204, 0, 0.5),
+      0 0 64px rgba(57, 255, 20, 0.5),
+      0 0 76px rgba(255, 221, 0, 0.5);
   }
-    }
- 
+}
+
 #installAppBtn {
   background: transparent;
   color: var(--accent2);
@@ -464,7 +535,6 @@ nav ul li.active a {
   flex: 1;
 }
 
-
 main {
   max-width: 900px;
   width: 100%;
@@ -473,6 +543,7 @@ main {
   box-sizing: border-box;
   position: relative;
 }
+
 main > h1 {
   font-size: 2rem;
   font-weight: 800;
@@ -492,7 +563,6 @@ fieldset {
   display: block;
   width: 100%;
   max-width: 100%;
-  
 }
 
 fieldset legend {
@@ -745,7 +815,7 @@ footer {
     padding: 0 10px;
   }
 
-  .con-btns a, 
+  .con-btns a,
   .con-btns button {
     width: 100% !important;
     text-align: center !important;
@@ -767,6 +837,7 @@ footer {
     padding: 16px !important;
   }
 }
+
 nav .dropdown {
   position: relative;
   display: inline-block;
@@ -806,7 +877,8 @@ nav .dropdown .dropdown-content a {
 
 nav .dropdown .dropdown-content a:hover {
   background: #1e293b;
-  }
+}
+
 /* ============================================================
    🔒 ORIGINAL RESPONSIVE FIXES — DO NOT TOUCH
    ============================================================ */
@@ -986,184 +1058,4 @@ aside {
 }
 
 aside.open {
-  display: block;
-}
-
-aside ul {
-  list-style: none;
-  display: block;
-}
-
-aside ul li {
-  border-bottom: 1px solid var(--border);
-}
-
-aside ul li a {
-  display: block;
-  padding: 10px 20px;
-  color: #9090b8;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 500;
-  transition: all 0.15s;
-}
-
-aside ul li a:hover {
-  color: var(--accent2);
-  background: rgba(127, 255, 178, 0.05);
-}
-
-/* ── MOBILE RESPONSIVE (Original) ── */
-@media (max-width: 750px) {
-  .tut-grid {
-    grid-template-columns: 1fr;
-  }
-  .nav-burger {
-    display: block;
-  }
-  .con h1 {
-    font-size: 2.4rem;
-  }
-  td {
-    width: 85px;
-  }
-  article {
-    width: 85vw;
-    overflow-x: auto;
-  }
-}
-
-@media (max-width: 600px) {
-  nav ul li:not(:last-child) {
-    font-size: 13px;
-  }
-      }
-
-/* ============================================================
-   🔒 FINAL OVERRIDES — DO NOT TOUCH
-   ============================================================ */
-
-/* ── FIX: Remove page border ── */
-html, body {
-  border: none !important;
-  box-shadow: none !important;
-}
-
-/* ── FIX: Restore original pre responsiveness ── */
-pre {
-  border: 1px solid var(--border-color, #ccc) !important;
-  border-radius: var(--border-radius, 8px) !important;
-  overflow-x: auto !important;
-  white-space: pre !important;
-  word-break: normal !important;
-  word-wrap: normal !important;
-  max-width: 100% !important;
-  width: 80vw !important;
-  box-sizing: border-box !important;
-}
-
-pre code {
-  white-space: pre !important;
-  word-break: normal !important;
-  word-wrap: normal !important;
-  display: block !important;
-  min-width: max-content !important;
-  font-size: inherit !important;
-}
-
-/* ── FIX: Restore original fieldset ── */
-fieldset {
-  overflow: auto !important;
-}
-
-/* ── FIX: Restore original article ── */
-article {
-  width: 74vw !important;
-  overflow-x: auto !important;
-}
-
-/* ── FIX: Restore original table ── */
-table {
-  width: 80vw !important;
-  overflow-x: auto !important;
-  white-space: nowrap !important;
-}
-
-/* ── FIX: Restore original mobile pre ── */
-@media (max-width: 750px) {
-  article {
-    width: 85vw !important;
-    overflow-x: auto !important;
-  }
-  
-  pre {
-    font-size: 11px !important;
-    padding: 12px !important;
-  }
-}
-/* ============================================================
-   🚨 FORCE TUTORIAL CARD STYLES
-   ============================================================ */
-
-.tut-grid {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 16px !important;
-  margin-top: 8px !important;
-}
-
-.tut-card {
-  border: 1px solid var(--border) !important;
-  border-radius: 10px !important;
-  padding: 20px !important;
-  background: var(--surface) !important;
-  transition: border-color 0.2s, transform 0.15s !important;
-}
-
-.tut-card:hover {
-  border-color: var(--accent) !important;
-  transform: translateY(-2px) !important;
-}
-
-.tut-card h3 {
-  font-size: 1rem !important;
-  font-weight: 700 !important;
-  margin-bottom: 8px !important;
-  color: var(--text) !important;
-}
-
-.tut-card p {
-  font-size: 13px !important;
-  color: var(--muted) !important;
-  margin-bottom: 12px !important;
-}
-
-.tut-card ol {
-  font-size: 12.5px !important;
-  margin-bottom: 14px !important;
-  padding-left: 20px !important;
-}
-
-.tut-card a.start-btn {
-  display: inline-block !important;
-  padding: 6px 16px !important;
-  background: var(--accent) !important;
-  color: white !important;
-  border-radius: 6px !important;
-  font-size: 13px !important;
-  font-weight: 700 !important;
-  text-decoration: none !important;
-  transition: background 0.2s !important;
-}
-
-.tut-card a.start-btn:hover {
-  background: #e0405f !important;
-}
-
-/* ── Mobile fix ── */
-@media (max-width: 750px) {
-  .tut-grid {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
-  }
-}
+  display: bl
