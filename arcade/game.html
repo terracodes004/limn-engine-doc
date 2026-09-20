@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Playing — Arcade</title>
 <style>
   * { box-sizing: border-box; }
@@ -11,11 +11,8 @@
   .wrap { display: grid; grid-template-columns: 1fr 340px;
           min-height: 100vh; }
   .stage { background: #000; display: flex;
-           align-items: center; justify-content: center;
-           overflow: hidden; position: relative; }
-  .stage iframe { width: 100%; height: 100vh; border: 0; display: block;
-                  transform-origin: center center;
-                  transition: transform 0.15s ease; }
+           align-items: center; justify-content: center; }
+  .stage iframe { width: 100%; height: 100vh; border: 0; display: block; }
   .side { background: #10101e; padding: 20px;
           border-left: 1px solid rgba(255,255,255,0.06);
           overflow-y: auto; max-height: 100vh; }
@@ -34,8 +31,6 @@
          text-decoration: none; display: inline-block; }
   .btn:hover { background: rgba(255,255,255,0.15); }
   .btn.liked { background: #f44; }
-  .zoom-val { padding: 10px 8px; font-size: 13px; opacity: 0.6;
-              min-width: 48px; text-align: center; }
   .section { border-top: 1px solid rgba(255,255,255,0.06);
              padding-top: 16px; margin-top: 16px; }
   .section h2 { font-size: 14px; text-transform: uppercase;
@@ -50,6 +45,10 @@
   .comment .body { font-size: 14px; line-height: 1.4;
                    white-space: pre-wrap; word-break: break-word; }
   .comment .when { font-size: 11px; opacity: 0.4; margin-top: 4px; }
+  .comment .reply-link { color: #4af; opacity: 0.7;
+                         cursor: pointer; text-decoration: none;
+                         font-size: 11px; }
+  .comment .reply-link:hover { opacity: 1; }
   .replies { margin-top: 8px; margin-left: 16px;
              padding-left: 12px;
              border-left: 2px solid rgba(68,170,255,0.15); }
@@ -68,6 +67,7 @@
                        border-radius: 6px; background: #4af;
                        color: #fff; font-weight: 600;
                        font-size: 12px; cursor: pointer; }
+  .reply-form button:hover { background: #5bf; }
   .comment-form { display: flex; gap: 6px; margin-top: 12px; }
   .comment-form input { flex: 1; padding: 10px;
                         background: #1a1a2e;
@@ -153,7 +153,6 @@
       <button class="btn" id="forkBtn">✎ Fork</button>
       <button class="btn" id="fsBtn">⛶ Fullscreen</button>
       <button class="btn" id="zoomOut">−</button>
-      <span class="zoom-val" id="zoomVal">100%</span>
       <button class="btn" id="zoomIn">+</button>
       <a class="btn" href="/arcade/">← Arcade</a>
     </div>
@@ -210,7 +209,11 @@ let currentGameId = null;
 let currentUserId = null;
 let zoomLevel = 1;
 
-// Engine patch from First Code: fixes input coordinates when canvas is scaled
+// ─────────────────────────────────────────────────────────────
+// Engine patch: fixes component.clicked() and mouse coords
+// when the canvas is visually scaled (zoom, transform, DPR).
+// Injected into the iframe so it runs BEFORE the game code.
+// ─────────────────────────────────────────────────────────────
 const ENGINE_PATCH = `
 (function() {
   if (typeof Display === 'undefined') return;
@@ -283,7 +286,7 @@ async function boot() {
   log('boot() called with slug=' + slug);
 
   if (!slug) {
-    stage.innerHTML = '<div class="err">No game specified in the URL.</div>';
+    stage.innerHTML = '<div class="err">No game specified.</div>';
     log('No slug in URL', true);
     return;
   }
@@ -376,7 +379,7 @@ function renderGame(data) {
     '</head><body>';
 
   if (engineInline) {
-    // Engine inline: Inject engine script, engine patch, then user code
+    // Inline engine → inject patch right after, then user code
     html += '<script>' + engineInline + '<\/script>';
     html += '<script>' + ENGINE_PATCH + '<\/script>';
     html += '<script>' +
@@ -386,7 +389,7 @@ function renderGame(data) {
       'return true;};' +
       safeUserCode + '<\/script>';
   } else {
-    // External engine: Patch in onload before executing user code
+    // External engine → patch in the onload callback, before user code
     html += '<script>' +
       'window.onerror = function(msg, src, line, col, err) {' +
       'parent.postMessage({type:"game-error",msg:msg,stack:(err&&err.stack)||""}, "*");' +
@@ -402,7 +405,7 @@ function renderGame(data) {
         'parent.postMessage({type:"game-error",msg:e.message,stack:e.stack||""}, "*");' +
         'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">" + e.message + "\\n" + (e.stack||"") + "</pre>"; }' +
       '};' +
-      's.onerror = function() { document.body.innerHTML = "<div style=\\"color:#f66;padding:20px;font-family:monospace\\">Could not load /editor/epic.js</div>"; };' +
+      's.onerror = function() { document.body.innerHTML = "<div style=\\"color:#f66;padding:20px;font-family:monospace\\">Could not load engine.</div>"; };' +
       'document.head.appendChild(s);' +
       '<\/script>';
   }
@@ -411,10 +414,11 @@ function renderGame(data) {
 
   stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" allowfullscreen id="gameFrame"></iframe>';
   const frame = document.getElementById('gameFrame');
+
+  frame.addEventListener('load', applyZoom);
   frame.srcdoc = html;
 
   zoomLevel = 1;
-  updateZoomLabel();
   log('Iframe rendered');
 }
 
@@ -428,13 +432,13 @@ window.addEventListener('message', (e) => {
 function applyZoom() {
   const frame = document.getElementById('gameFrame');
   if (!frame) return;
-  frame.style.transform = 'scale(' + zoomLevel + ')';
-  updateZoomLabel();
-}
-
-function updateZoomLabel() {
-  const el = document.getElementById('zoomVal');
-  if (el) el.textContent = Math.round(zoomLevel * 100) + '%';
+  try {
+    const doc = frame.contentDocument;
+    if (!doc || !doc.body) return;
+    doc.body.style.zoom = zoomLevel;
+  } catch (e) {
+    frame.style.zoom = zoomLevel;
+  }
 }
 
 async function renderAuthor(data) {
@@ -521,7 +525,9 @@ function wireButtons(data) {
   document.getElementById('fsBtn').onclick = () => {
     const frame = document.getElementById('gameFrame');
     if (!frame) return;
+
     const el = document.fullscreenElement || document.webkitFullscreenElement;
+
     if (el) {
       (document.exitFullscreen || document.webkitExitFullscreen).call(document);
     } else {
@@ -547,14 +553,15 @@ function wireButtons(data) {
 
     if (e.key === 'f' || e.key === 'F') {
       e.preventDefault();
-      document.getElementById('fsBtn').click();
+      const btn = document.getElementById('fsBtn');
+      if (btn) btn.click();
     } else if (e.key === '+' || e.key === '=') {
       e.preventDefault();
-      zoomLevel = Math.min(2, +(zoomLevel + 0.1).toFixed(2));
+      zoomLevel = Math.min(3, +(zoomLevel + 0.1).toFixed(2));
       applyZoom();
     } else if (e.key === '-' || e.key === '_') {
       e.preventDefault();
-      zoomLevel = Math.max(0.5, +(zoomLevel - 0.1).toFixed(2));
+      zoomLevel = Math.max(0.3, +(zoomLevel - 0.1).toFixed(2));
       applyZoom();
     } else if (e.key === '0') {
       e.preventDefault();
@@ -564,11 +571,11 @@ function wireButtons(data) {
   });
 
   document.getElementById('zoomIn').onclick = () => {
-    zoomLevel = Math.min(2, +(zoomLevel + 0.1).toFixed(2));
+    zoomLevel = Math.min(3, +(zoomLevel + 0.1).toFixed(2));
     applyZoom();
   };
   document.getElementById('zoomOut').onclick = () => {
-    zoomLevel = Math.max(0.5, +(zoomLevel - 0.1).toFixed(2));
+    zoomLevel = Math.max(0.3, +(zoomLevel - 0.1).toFixed(2));
     applyZoom();
   };
 
