@@ -13,9 +13,7 @@
   .stage { background: #000; display: flex;
            align-items: center; justify-content: center;
            overflow: hidden; position: relative; }
-  .stage iframe { width: 100%; height: 100vh; border: 0; display: block;
-                  transform-origin: center center;
-                  transition: transform 0.15s ease; }
+  .stage iframe { width: 100%; height: 100vh; border: 0; display: block; }
   .side { background: #10101e; padding: 20px;
           border-left: 1px solid rgba(255,255,255,0.06);
           overflow-y: auto; max-height: 100vh; }
@@ -329,6 +327,13 @@ function renderGame(data) {
 
   stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" allowfullscreen id="gameFrame"></iframe>';
   const frame = document.getElementById('gameFrame');
+
+  // Re-apply zoom whenever the iframe finishes loading
+  frame.addEventListener('load', () => {
+    // slight delay so the game's canvas is sized before we zoom
+    setTimeout(applyZoom, 60);
+  });
+
   frame.srcdoc = html;
 
   zoomLevel = 1;
@@ -349,7 +354,22 @@ window.addEventListener('message', (e) => {
 function applyZoom() {
   const frame = document.getElementById('gameFrame');
   if (!frame) return;
-  frame.style.transform = 'scale(' + zoomLevel + ')';
+
+  // Zoom the iframe's BODY (so the game canvas fills the viewport correctly)
+  // Falls back to iframe-element zoom if the doc isn't reachable.
+  try {
+    const doc = frame.contentDocument;
+    if (doc && doc.body) {
+      doc.body.style.zoom = zoomLevel;
+      updateZoomLabel();
+      return;
+    }
+  } catch (e) {
+    // cross-origin fallback below
+  }
+
+  // Fallback: zoom the iframe element itself
+  frame.style.zoom = zoomLevel;
   updateZoomLabel();
 }
 
