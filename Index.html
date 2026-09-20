@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title> Limn engine asset store</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+</head>
+<link rel="stylesheet" href="style.css">
+<body>
+    <img class="image" src="Limnengine.jpg" alt="limn engine image">
+    <div class="head">
+        <h1> Limn engine asset store</h1>
+    </div>
+<div class="search-box">
+    <input type="text" placeholder="Search assets...">
+    <button>Search</button>
+</div><br>
+    <nav class="navbar">
+        
+    <div class="nav-links">
+       <button class="butin"> <a href="index.html">Home</a></button>
+       <button class="butin"> <a href="assets.html">Assets</a></button>
+        <button class="butin"><a href="categories.html">Categories</a></button>
+        <button class="butin"><a href="about.html">About</a></button>
+    </div>
+</nav><br><br>
+
+    <div id="g_id_onload"
+         data-client_id="YOUR_CLIENT_ID.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse">
+    </div>
+
+    <div class="g_id_signin"
+         data-type="standard"
+         data-size="large"
+         data-theme="outline"
+         data-text="signin_with">
+    </div>
+
+    <script>
+        function handleCredentialResponse(response) {
+            alert("Google sign-in worked!");
+            console.log(response);
+        }
+    </script>
+    <br>
+
+<section class="hero">
+
+    <div class="hero-text">
+        <h1>Build Your Next Game<br>With Limn assets</h1>
+
+        <p>
+            Discover high-quality assets for your Limn Engine game projects.
+            Find models, environments, audio, VFX, UI and more.
+        </p>
+
+        <div class="hero-buttons">
+            <a href="assets.html" class="browse-btn">Browse Assets</a>
+            <a href="categories.html" class="category-btn">Explore Categories</a>
+        </div>
+    </div>
+
+    <div class="hero-image">
+        <img src="Limnengine.jpg " alt="Limn Engine assets">
+    </div>
+
+</section>
+<br>
+<br>
+
+<section class="category">
+    <div class="text">
+       <h2> <a href="categories.html"> categories:</a></h2>
+    </div>
+    <ul>
+        <li> 3D Models</li>
+        <li> 2D assets</li>
+        <li> Environment</li>
+        <li> Backgrounds</li>
+        <li>Characters</li>
+        <li> Audio</li>
+        <li>VFX</li>
+        <li>UI</li>
+        <li> Tools and plugins</li>
+    </ul>
+</section>
+
+<div >
+    <h2> Featured assets</h2>
+    <p> hand picked assets for your next project</p>
+</div>
+
+ <table class="table">
+     <tr>
+         <th> Asset</th>
+         <th> Image</th>
+         <th> Price</th>
+     </tr>
+     <tr>
+         <td> <img src="2Droad.jpg" alt="2d road" class="Images"></td>
+         <td> 2D road for car games </td>
+         <td> Free</td>
+     </tr>
+     <tr>
+         <td> <img src="Caveman.jpg" alt="cave man" class="Images"></td>
+         <td> Cave man character</td>
+         <td> Free</td>
+     </tr>
+     <tr>
+         <td> <img src="Spacecraft.jpg" alt="spacecraft" class="Images"></td>
+         <td> Spacecraft ultra spaceship</td>
+         <td> Free</td>
+     </tr>
+     <tr>
+         
+     </tr>
+ </table>
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+</body>
+</html>
