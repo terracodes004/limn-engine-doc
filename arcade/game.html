@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Playing — Arcade</title>
 <style>
   * { box-sizing: border-box; }
@@ -11,8 +11,11 @@
   .wrap { display: grid; grid-template-columns: 1fr 340px;
           min-height: 100vh; }
   .stage { background: #000; display: flex;
-           align-items: center; justify-content: center; }
-  .stage iframe { width: 100%; height: 100vh; border: 0; display: block; }
+           align-items: center; justify-content: center;
+           overflow: hidden; position: relative; }
+  .stage iframe { width: 100%; height: 100vh; border: 0; display: block;
+                  transform-origin: center center;
+                  transition: transform 0.15s ease; }
   .side { background: #10101e; padding: 20px;
           border-left: 1px solid rgba(255,255,255,0.06);
           overflow-y: auto; max-height: 100vh; }
@@ -31,6 +34,8 @@
          text-decoration: none; display: inline-block; }
   .btn:hover { background: rgba(255,255,255,0.15); }
   .btn.liked { background: #f44; }
+  .zoom-val { padding: 10px 8px; font-size: 13px; opacity: 0.6;
+              min-width: 48px; text-align: center; }
   .section { border-top: 1px solid rgba(255,255,255,0.06);
              padding-top: 16px; margin-top: 16px; }
   .section h2 { font-size: 14px; text-transform: uppercase;
@@ -45,10 +50,6 @@
   .comment .body { font-size: 14px; line-height: 1.4;
                    white-space: pre-wrap; word-break: break-word; }
   .comment .when { font-size: 11px; opacity: 0.4; margin-top: 4px; }
-  .comment .reply-link { color: #4af; opacity: 0.7;
-                         cursor: pointer; text-decoration: none;
-                         font-size: 11px; }
-  .comment .reply-link:hover { opacity: 1; }
   .replies { margin-top: 8px; margin-left: 16px;
              padding-left: 12px;
              border-left: 2px solid rgba(68,170,255,0.15); }
@@ -67,7 +68,6 @@
                        border-radius: 6px; background: #4af;
                        color: #fff; font-weight: 600;
                        font-size: 12px; cursor: pointer; }
-  .reply-form button:hover { background: #5bf; }
   .comment-form { display: flex; gap: 6px; margin-top: 12px; }
   .comment-form input { flex: 1; padding: 10px;
                         background: #1a1a2e;
@@ -82,6 +82,50 @@
              padding: 40px; opacity: 0.5; }
   .err { color: #f66; font-family: monospace;
          padding: 40px; white-space: pre-wrap; }
+  .side .desc { font-size: 13px; opacity: 0.75;
+                line-height: 1.5; margin-bottom: 16px;
+                padding: 12px;
+                background: rgba(255,255,255,0.03);
+                border-left: 3px solid #4af;
+                border-radius: 6px; }
+  #debugLog {
+    position: fixed;
+    bottom: 8px;
+    left: 8px;
+    max-width: 320px;
+    max-height: 180px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.85);
+    color: #34d399;
+    font-family: monospace;
+    font-size: 10px;
+    line-height: 1.4;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(52,211,153,0.3);
+    z-index: 99999;
+    display: none;
+  }
+  #debugLog.on { display: block; }
+  #debugLog .err-line { color: #f87171; }
+  #debugToggle {
+    position: fixed;
+    bottom: 8px;
+    left: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.7);
+    color: #34d399;
+    border: 1px solid rgba(52,211,153,0.4);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   @media (max-width: 800px) {
     .wrap { grid-template-columns: 1fr; }
     .side { max-height: none; border-left: 0;
@@ -92,6 +136,9 @@
 </head>
 <body>
 
+<button id="debugToggle" title="Toggle debug log">🐞</button>
+<div id="debugLog"></div>
+
 <div class="wrap">
   <div class="stage" id="stage">
     <div class="loading">Loading game...</div>
@@ -99,12 +146,14 @@
   <aside class="side" id="side" style="display:none">
     <h1 id="title">...</h1>
     <div class="author" id="author">...</div>
+    <div id="gameDescription" class="desc" style="display:none;"></div>
     <div class="row">
       <button class="btn" id="likeBtn">♥ <span id="likeCount">0</span></button>
       <button class="btn" id="shareBtn">🔗 Share</button>
       <button class="btn" id="forkBtn">✎ Fork</button>
       <button class="btn" id="fsBtn">⛶ Fullscreen</button>
       <button class="btn" id="zoomOut">−</button>
+      <span class="zoom-val" id="zoomVal">100%</span>
       <button class="btn" id="zoomIn">+</button>
       <a class="btn" href="/arcade/">← Arcade</a>
     </div>
@@ -122,10 +171,38 @@
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
+const debugLog = document.getElementById('debugLog');
+const debugToggle = document.getElementById('debugToggle');
+
+function log(msg, isError) {
+  const line = document.createElement('div');
+  if (isError) line.className = 'err-line';
+  const t = new Date().toISOString().slice(11, 19);
+  line.textContent = '[' + t + '] ' + msg;
+  debugLog.appendChild(line);
+  debugLog.scrollTop = debugLog.scrollHeight;
+  if (isError) console.error(msg); else console.log(msg);
+}
+
+debugToggle.onclick = () => {
+  debugLog.classList.toggle('on');
+};
+
+window.addEventListener('error', (e) => {
+  log('WINDOW ERROR: ' + e.message + ' at ' + e.filename + ':' + e.lineno, true);
+});
+window.addEventListener('unhandledrejection', (e) => {
+  log('UNHANDLED PROMISE: ' + (e.reason && e.reason.message ? e.reason.message : e.reason), true);
+});
+
+log('Script started');
+
 const supabase = createClient(
   'https://pjtpesdhjfvcidfkxord.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38'
 );
+
+log('Supabase client created');
 
 const slug = new URLSearchParams(location.search).get('slug');
 const stage = document.getElementById('stage');
@@ -133,86 +210,57 @@ let currentGameId = null;
 let currentUserId = null;
 let zoomLevel = 1;
 
-// ─────────────────────────────────────────────────────────────
-// Engine patch: fixes component.clicked() and mouse coords
-// when the canvas is visually scaled (zoom, transform, DPR).
-// Injected into the iframe so it runs BEFORE the game code.
-// ─────────────────────────────────────────────────────────────
-const ENGINE_PATCH = `
-(function() {
-  if (typeof Display === 'undefined') return;
-  Display.prototype.addEventListeners = function() {
-    window.addEventListener('keydown', (e) => {
-      this.keys[e.keyCode] = true;
-    });
-    window.addEventListener('keyup', (e) => {
-      this.keys[e.keyCode] = false;
-    });
-
-    const toCanvasCoords = (clientX, clientY) => {
-      const rect = this.canvas.getBoundingClientRect();
-      const scaleX = this.canvas.width  / rect.width;
-      const scaleY = this.canvas.height / rect.height;
-      return {
-        x: (clientX - rect.left) * scaleX,
-        y: (clientY - rect.top)  * scaleY
-      };
-    };
-
-    window.addEventListener('mousedown', (e) => {
-      const p = toCanvasCoords(e.clientX, e.clientY);
-      this.x = p.x + this.camera.x;
-      this.y = p.y + this.camera.y;
-    });
-    window.addEventListener('mouseup', () => {
-      this.x = false;
-      this.y = false;
-    });
-    window.addEventListener('touchstart', (e) => {
-      const t = e.touches[0];
-      const p = toCanvasCoords(t.clientX, t.clientY);
-      this.x = p.x + this.camera.x;
-      this.y = p.y + this.camera.y;
-    });
-    window.addEventListener('touchend', () => {
-      this.x = false;
-      this.y = false;
-    });
-    window.addEventListener('mousemove', (e) => {
-      const p = toCanvasCoords(e.clientX, e.clientY);
-      if (typeof mouse !== 'undefined') {
-        mouse.x = p.x;
-        mouse.y = p.y;
-      }
-    });
-    window.addEventListener('touchmove', (e) => {
-      const t = e.touches[0];
-      const p = toCanvasCoords(t.clientX, t.clientY);
-      if (typeof mouse !== 'undefined') {
-        mouse.x = p.x;
-        mouse.y = p.y;
-      }
-    });
-  };
-})();
-`;
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error((label || 'Request') + ' timed out after ' + ms + 'ms')), ms)
+    )
+  ]);
+}
 
 async function boot() {
+  log('boot() called with slug=' + slug);
+
   if (!slug) {
-    stage.innerHTML = '<div class="err">No game specified.</div>';
+    stage.innerHTML = '<div class="err">No game specified in the URL.</div>';
+    log('No slug in URL', true);
     return;
   }
 
-  const { data, error } = await supabase
-    .from('games')
-    .select('id, slug, title, author_id, author_name, code, engine_code, engine_version, plays')
-    .eq('slug', slug)
-    .single();
+  let data = null, error = null;
+
+  try {
+    log('Fetching game from Supabase...');
+    const result = await withTimeout(
+      supabase
+        .from('games')
+        .select('id, slug, title, author_id, author_name, code, engine_code, engine_version, plays, description')
+        .eq('slug', slug)
+        .single(),
+      8000,
+      'Game fetch'
+    );
+    data = result.data;
+    error = result.error;
+    log('Supabase responded. error=' + (error ? error.message : 'null') + ' data=' + (data ? 'yes' : 'no'));
+  } catch (e) {
+    log('Fetch threw: ' + e.message, true);
+    stage.innerHTML = '<div class="err">Could not load game: ' + e.message +
+      '\n\nCheck your internet connection and refresh.' +
+      '\n\nIf this persists, the game may not exist, or Supabase may be blocking the request.</div>';
+    return;
+  }
 
   if (error || !data) {
-    stage.innerHTML = '<div class="err">Game not found.</div>';
+    stage.innerHTML = '<div class="err">Game not found.' +
+      (error ? '\n\n' + error.message : '') + '</div>';
+    log('Game not found or error', true);
     return;
   }
+
+  log('Game loaded: ' + data.title);
+  log('Code length: ' + (data.code || '').length + ', engine length: ' + (data.engine_code || '').length);
 
   currentGameId = data.id;
 
@@ -220,21 +268,36 @@ async function boot() {
   document.getElementById('title').textContent = data.title;
   document.getElementById('side').style.display = 'block';
 
+  if (data.description) {
+    const descEl = document.getElementById('gameDescription');
+    descEl.textContent = data.description;
+    descEl.style.display = 'block';
+  }
+
+  log('Rendering game iframe...');
   renderGame(data);
+  log('Rendering author...');
   renderAuthor(data);
 
   supabase.from('games').update({ plays: (data.plays || 0) + 1 })
-    .eq('id', data.id).then(() => {});
+    .eq('id', data.id).then(() => {}).catch(() => {});
 
+  log('Wiring buttons...');
   wireButtons(data);
 
+  log('Loading likes and comments...');
   loadLikes(data.id);
   loadComments(data.id);
 
   supabase.auth.getSession().then(({ data: { session } }) => {
     currentUserId = session ? session.user.id : null;
+    log('Session loaded. User: ' + (currentUserId ? 'yes' : 'no'));
     if (currentUserId) loadLikes(data.id, currentUserId);
+  }).catch((e) => {
+    log('Session load failed: ' + e.message, true);
   });
+
+  log('boot() finished');
 }
 
 function renderGame(data) {
@@ -244,35 +307,36 @@ function renderGame(data) {
   const builtIn = data.engine_code || '';
   const engineInline = builtIn.length > 100 ? builtIn : '';
 
-  let html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' +
-    escapeHtml(data.title) +
-    '</title><style>html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%}canvas{display:block;margin:0 auto}</style>' +
+  log('Engine inline: ' + (engineInline ? 'yes (' + engineInline.length + ' chars)' : 'no - will fetch /editor/epic.js'));
+
+  let html = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<title>' + escapeHtml(data.title) + '</title>' +
+    '<style>html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%}canvas{display:block;margin:0 auto}</style>' +
     '</head><body>';
 
   if (engineInline) {
-    // Inline engine → inject patch right after, then user code
     html += '<script>' + engineInline + '<\/script>';
-    html += '<script>' + ENGINE_PATCH + '<\/script>';
     html += '<script>' +
       'window.onerror = function(msg, src, line, col, err) {' +
+      'parent.postMessage({type:"game-error",msg:msg,stack:(err&&err.stack)||""}, "*");' +
       'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">ERROR: " + msg + "\\n\\n" + (err && err.stack ? err.stack : "") + "</pre>";' +
       'return true;};' +
       safeUserCode + '<\/script>';
   } else {
-    // External engine → patch in the onload callback, before user code
     html += '<script>' +
       'window.onerror = function(msg, src, line, col, err) {' +
+      'parent.postMessage({type:"game-error",msg:msg,stack:(err&&err.stack)||""}, "*");' +
       'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">ERROR: " + msg + "\\n\\n" + (err && err.stack ? err.stack : "") + "</pre>";' +
       'return true;};' +
       'var s = document.createElement("script");' +
       's.src = "/editor/epic.js";' +
       's.onload = function() {' +
-        'try {' +
-          '(' + JSON.stringify(ENGINE_PATCH) + ' && eval(' + JSON.stringify(ENGINE_PATCH) + '));' +
-          safeUserCode +
-        '} catch(e) { document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">" + e.message + "\\n" + (e.stack||"") + "</pre>"; }' +
+        'try {' + safeUserCode + '} catch(e) {' +
+        'parent.postMessage({type:"game-error",msg:e.message,stack:e.stack||""}, "*");' +
+        'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">" + e.message + "\\n" + (e.stack||"") + "</pre>"; }' +
       '};' +
-      's.onerror = function() { document.body.innerHTML = "<div style=\\"color:#f66;padding:20px;font-family:monospace\\">Could not load engine.</div>"; };' +
+      's.onerror = function() { document.body.innerHTML = "<div style=\\"color:#f66;padding:20px;font-family:monospace\\">Could not load /editor/epic.js</div>"; };' +
       'document.head.appendChild(s);' +
       '<\/script>';
   }
@@ -281,23 +345,30 @@ function renderGame(data) {
 
   stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" allowfullscreen id="gameFrame"></iframe>';
   const frame = document.getElementById('gameFrame');
-
-  frame.addEventListener('load', applyZoom);
   frame.srcdoc = html;
 
   zoomLevel = 1;
+  updateZoomLabel();
+  log('Iframe rendered');
 }
+
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'game-error') {
+    log('GAME ERROR: ' + e.data.msg, true);
+    if (e.data.stack) log('  stack: ' + e.data.stack.slice(0, 200), true);
+  }
+});
 
 function applyZoom() {
   const frame = document.getElementById('gameFrame');
   if (!frame) return;
-  try {
-    const doc = frame.contentDocument;
-    if (!doc || !doc.body) return;
-    doc.body.style.zoom = zoomLevel;
-  } catch (e) {
-    frame.style.zoom = zoomLevel;
-  }
+  frame.style.transform = 'scale(' + zoomLevel + ')';
+  updateZoomLabel();
+}
+
+function updateZoomLabel() {
+  const el = document.getElementById('zoomVal');
+  if (el) el.textContent = Math.round(zoomLevel * 100) + '%';
 }
 
 async function renderAuthor(data) {
@@ -320,7 +391,9 @@ async function renderAuthor(data) {
       } else if (data.author_name) {
         creatorLabel = data.author_name.split('@')[0];
       }
-    } catch (e) {}
+    } catch (e) {
+      log('Profile lookup failed: ' + e.message, true);
+    }
   } else if (data.author_name) {
     creatorLabel = data.author_name.split('@')[0];
   }
@@ -332,6 +405,38 @@ async function renderAuthor(data) {
   } else {
     authorEl.textContent = 'by ' + creatorLabel;
   }
+}
+
+function showSignInPrompt() {
+  const existing = document.getElementById('signin-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'signin-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
+  modal.innerHTML =
+    '<div style="background:#15152a;border:1px solid rgba(255,255,255,0.1);' +
+    'border-radius:16px;padding:32px;max-width:320px;' +
+    'text-align:center;color:#fff;font-family:system-ui;">' +
+      '<h2 style="margin:0 0 12px;font-size:20px;">Join the fun</h2>' +
+      '<p style="margin:0 0 24px;opacity:0.7;font-size:14px;line-height:1.5;">' +
+        'Sign in to like games, leave comments, and follow your favourite creators.' +
+      '</p>' +
+      '<a href="/signup" style="display:block;padding:12px;' +
+        'background:#4af;color:#fff;text-decoration:none;' +
+        'border-radius:10px;font-weight:700;margin-bottom:8px;">' +
+        'Sign In / Register</a>' +
+      '<button id="signin-dismiss" style="padding:10px;background:transparent;' +
+        'color:#fff;border:1px solid rgba(255,255,255,0.2);' +
+        'border-radius:10px;font-weight:600;width:100%;' +
+        'cursor:pointer;font-family:inherit;font-size:14px;">Not now</button>' +
+    '</div>';
+  document.body.appendChild(modal);
+
+  document.getElementById('signin-dismiss').onclick = () => modal.remove();
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
+  });
 }
 
 function wireButtons(data) {
@@ -350,9 +455,7 @@ function wireButtons(data) {
   document.getElementById('fsBtn').onclick = () => {
     const frame = document.getElementById('gameFrame');
     if (!frame) return;
-
     const el = document.fullscreenElement || document.webkitFullscreenElement;
-
     if (el) {
       (document.exitFullscreen || document.webkitExitFullscreen).call(document);
     } else {
@@ -360,7 +463,7 @@ function wireButtons(data) {
                || frame.webkitRequestFullscreen
                || frame.msRequestFullscreen;
       if (req) {
-        req.call(frame).catch(err => console.warn('Fullscreen failed:', err));
+        req.call(frame).catch(err => log('Fullscreen failed: ' + err.message, true));
       } else {
         alert('Fullscreen not supported on this browser.');
       }
@@ -378,15 +481,14 @@ function wireButtons(data) {
 
     if (e.key === 'f' || e.key === 'F') {
       e.preventDefault();
-      const btn = document.getElementById('fsBtn');
-      if (btn) btn.click();
+      document.getElementById('fsBtn').click();
     } else if (e.key === '+' || e.key === '=') {
       e.preventDefault();
-      zoomLevel = Math.min(3, +(zoomLevel + 0.1).toFixed(2));
+      zoomLevel = Math.min(2, +(zoomLevel + 0.1).toFixed(2));
       applyZoom();
     } else if (e.key === '-' || e.key === '_') {
       e.preventDefault();
-      zoomLevel = Math.max(0.3, +(zoomLevel - 0.1).toFixed(2));
+      zoomLevel = Math.max(0.5, +(zoomLevel - 0.1).toFixed(2));
       applyZoom();
     } else if (e.key === '0') {
       e.preventDefault();
@@ -396,11 +498,11 @@ function wireButtons(data) {
   });
 
   document.getElementById('zoomIn').onclick = () => {
-    zoomLevel = Math.min(3, +(zoomLevel + 0.1).toFixed(2));
+    zoomLevel = Math.min(2, +(zoomLevel + 0.1).toFixed(2));
     applyZoom();
   };
   document.getElementById('zoomOut').onclick = () => {
-    zoomLevel = Math.max(0.3, +(zoomLevel - 0.1).toFixed(2));
+    zoomLevel = Math.max(0.5, +(zoomLevel - 0.1).toFixed(2));
     applyZoom();
   };
 
@@ -411,7 +513,7 @@ function wireButtons(data) {
 async function toggleLike() {
   const { data: { session } } = await supabase.auth.getSession();
   const user = session ? session.user : null;
-  if (!user) { alert('Log in to like.'); return; }
+  if (!user) { showSignInPrompt(); return; }
 
   const { data: existing } = await supabase
     .from('likes').select('id')
@@ -438,7 +540,7 @@ async function submitComment(parentId) {
 
   const { data: { session } } = await supabase.auth.getSession();
   const user = session ? session.user : null;
-  if (!user) { alert('Log in to comment.'); return; }
+  if (!user) { showSignInPrompt(); return; }
 
   const payload = {
     game_id: currentGameId,
@@ -463,28 +565,45 @@ async function submitComment(parentId) {
 }
 
 async function loadLikes(gameId, userId) {
-  const { count } = await supabase
-    .from('likes').select('*', { count: 'exact', head: true })
-    .eq('game_id', gameId);
-  document.getElementById('likeCount').textContent = count || 0;
-  if (userId) {
-    const { data } = await supabase
-      .from('likes').select('id')
-      .eq('game_id', gameId).eq('user_id', userId).maybeSingle();
-    document.getElementById('likeBtn').classList.toggle('liked', !!data);
+  try {
+    const { count } = await supabase
+      .from('likes').select('*', { count: 'exact', head: true })
+      .eq('game_id', gameId);
+    document.getElementById('likeCount').textContent = count || 0;
+    if (userId) {
+      const { data } = await supabase
+        .from('likes').select('id')
+        .eq('game_id', gameId).eq('user_id', userId).maybeSingle();
+      document.getElementById('likeBtn').classList.toggle('liked', !!data);
+    }
+  } catch (e) {
+    log('Likes load failed: ' + e.message, true);
   }
 }
 
 async function loadComments(gameId) {
-  const { data, error } = await supabase
-    .from('comments')
-    .select('id, user_id, user_name, body, created_at, parent_id')
-    .eq('game_id', gameId)
-    .order('created_at', { ascending: true })
-    .limit(200);
-
   const box = document.getElementById('comments');
-  if (error || !data || data.length === 0) {
+
+  let data;
+  try {
+    const result = await withTimeout(
+      supabase
+        .from('comments')
+        .select('id, user_id, user_name, body, created_at, parent_id')
+        .eq('game_id', gameId)
+        .order('created_at', { ascending: true })
+        .limit(200),
+      6000,
+      'Comments fetch'
+    );
+    data = result.data;
+  } catch (e) {
+    log('Comments load failed: ' + e.message, true);
+    box.innerHTML = '<div style="opacity:0.4;font-size:13px">Could not load comments.</div>';
+    return;
+  }
+
+  if (!data || data.length === 0) {
     box.innerHTML = '<div style="opacity:0.4;font-size:13px">No comments yet.</div>';
     return;
   }
@@ -492,11 +611,13 @@ async function loadComments(gameId) {
   const ids = [...new Set(data.map(c => c.user_id).filter(Boolean))];
   const profileMap = {};
   if (ids.length > 0) {
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('user_id, username, display_name')
-      .in('user_id', ids);
-    for (const p of profiles || []) profileMap[p.user_id] = p;
+    try {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, username, display_name')
+        .in('user_id', ids);
+      for (const p of profiles || []) profileMap[p.user_id] = p;
+    } catch (e) {}
   }
 
   function who(c) {
