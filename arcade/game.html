@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Playing — Arcade</title>
 <style>
   * { box-sizing: border-box; }
@@ -11,8 +11,11 @@
   .wrap { display: grid; grid-template-columns: 1fr 340px;
           min-height: 100vh; }
   .stage { background: #000; display: flex;
-           align-items: center; justify-content: center; }
-  .stage iframe { width: 100%; height: 100vh; border: 0; display: block; }
+           align-items: center; justify-content: center;
+           overflow: hidden; position: relative; }
+  .stage iframe { width: 100%; height: 100vh; border: 0; display: block;
+                  transform-origin: center center;
+                  transition: transform 0.15s ease; }
   .side { background: #10101e; padding: 20px;
           border-left: 1px solid rgba(255,255,255,0.06);
           overflow-y: auto; max-height: 100vh; }
@@ -31,6 +34,8 @@
          text-decoration: none; display: inline-block; }
   .btn:hover { background: rgba(255,255,255,0.15); }
   .btn.liked { background: #f44; }
+  .zoom-val { padding: 10px 8px; font-size: 13px; opacity: 0.6;
+              min-width: 48px; text-align: center; }
   .section { border-top: 1px solid rgba(255,255,255,0.06);
              padding-top: 16px; margin-top: 16px; }
   .section h2 { font-size: 14px; text-transform: uppercase;
@@ -45,10 +50,6 @@
   .comment .body { font-size: 14px; line-height: 1.4;
                    white-space: pre-wrap; word-break: break-word; }
   .comment .when { font-size: 11px; opacity: 0.4; margin-top: 4px; }
-  .comment .reply-link { color: #4af; opacity: 0.7;
-                         cursor: pointer; text-decoration: none;
-                         font-size: 11px; }
-  .comment .reply-link:hover { opacity: 1; }
   .replies { margin-top: 8px; margin-left: 16px;
              padding-left: 12px;
              border-left: 2px solid rgba(68,170,255,0.15); }
@@ -67,7 +68,6 @@
                        border-radius: 6px; background: #4af;
                        color: #fff; font-weight: 600;
                        font-size: 12px; cursor: pointer; }
-  .reply-form button:hover { background: #5bf; }
   .comment-form { display: flex; gap: 6px; margin-top: 12px; }
   .comment-form input { flex: 1; padding: 10px;
                         background: #1a1a2e;
@@ -153,6 +153,7 @@
       <button class="btn" id="forkBtn">✎ Fork</button>
       <button class="btn" id="fsBtn">⛶ Fullscreen</button>
       <button class="btn" id="zoomOut">−</button>
+      <span class="zoom-val" id="zoomVal">100%</span>
       <button class="btn" id="zoomIn">+</button>
       <a class="btn" href="/arcade/">← Arcade</a>
     </div>
@@ -209,70 +210,6 @@ let currentGameId = null;
 let currentUserId = null;
 let zoomLevel = 1;
 
-// ─────────────────────────────────────────────────────────────
-// Engine patch: fixes component.clicked() and mouse coords
-// when the canvas is visually scaled (zoom, transform, DPR).
-// Injected into the iframe so it runs BEFORE the game code.
-// ─────────────────────────────────────────────────────────────
-const ENGINE_PATCH = `
-(function() {
-  if (typeof Display === 'undefined') return;
-  Display.prototype.addEventListeners = function() {
-    window.addEventListener('keydown', (e) => {
-      this.keys[e.keyCode] = true;
-    });
-    window.addEventListener('keyup', (e) => {
-      this.keys[e.keyCode] = false;
-    });
-
-    const toCanvasCoords = (clientX, clientY) => {
-      const rect = this.canvas.getBoundingClientRect();
-      const scaleX = this.canvas.width  / rect.width;
-      const scaleY = this.canvas.height / rect.height;
-      return {
-        x: (clientX - rect.left) * scaleX,
-        y: (clientY - rect.top)  * scaleY
-      };
-    };
-
-    window.addEventListener('mousedown', (e) => {
-      const p = toCanvasCoords(e.clientX, e.clientY);
-      this.x = p.x + this.camera.x;
-      this.y = p.y + this.camera.y;
-    });
-    window.addEventListener('mouseup', () => {
-      this.x = false;
-      this.y = false;
-    });
-    window.addEventListener('touchstart', (e) => {
-      const t = e.touches[0];
-      const p = toCanvasCoords(t.clientX, t.clientY);
-      this.x = p.x + this.camera.x;
-      this.y = p.y + this.camera.y;
-    });
-    window.addEventListener('touchend', () => {
-      this.x = false;
-      this.y = false;
-    });
-    window.addEventListener('mousemove', (e) => {
-      const p = toCanvasCoords(e.clientX, e.clientY);
-      if (typeof mouse !== 'undefined') {
-        mouse.x = p.x;
-        mouse.y = p.y;
-      }
-    });
-    window.addEventListener('touchmove', (e) => {
-      const t = e.touches[0];
-      const p = toCanvasCoords(t.clientX, t.clientY);
-      if (typeof mouse !== 'undefined') {
-        mouse.x = p.x;
-        mouse.y = p.y;
-      }
-    });
-  };
-})();
-`;
-
 function withTimeout(promise, ms, label) {
   return Promise.race([
     promise,
@@ -286,7 +223,7 @@ async function boot() {
   log('boot() called with slug=' + slug);
 
   if (!slug) {
-    stage.innerHTML = '<div class="err">No game specified.</div>';
+    stage.innerHTML = '<div class="err">No game specified in the URL.</div>';
     log('No slug in URL', true);
     return;
   }
@@ -367,78 +304,72 @@ function renderGame(data) {
   const userCode = data.code || '';
   const safeUserCode = userCode.replace(/<\/script>/gi, '<\\/script>');
 
-  const builtIn = data.engine_code || '';
-  const engineInline = builtIn.length > 100 ? builtIn : '';
+  const version = (data.engine_version || 'v4').toLowerCase();
+  const engineFile = version.includes('v2') ? 'tcjsgame-v2.js'
+                   : version.includes('v3') ? 'tcjsgame-v3.js'
+                   : 'epic.js';
+  const engineUrl = location.origin + '/editor/' + engineFile;
 
-  log('Engine inline: ' + (engineInline ? 'yes (' + engineInline.length + ' chars)' : 'no - will fetch /editor/epic.js'));
+  log('Using engine URL: ' + engineUrl + ' (' + engineFile + ')');
 
-  let html = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+  const html = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
     '<title>' + escapeHtml(data.title) + '</title>' +
     '<style>html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%}canvas{display:block;margin:0 auto}</style>' +
-    '</head><body>';
-
-  if (engineInline) {
-    // Inline engine → inject patch right after, then user code
-    html += '<script>' + engineInline + '<\/script>';
-    html += '<script>' + ENGINE_PATCH + '<\/script>';
-    html += '<script>' +
-      'window.onerror = function(msg, src, line, col, err) {' +
-      'parent.postMessage({type:"game-error",msg:msg,stack:(err&&err.stack)||""}, "*");' +
-      'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">ERROR: " + msg + "\\n\\n" + (err && err.stack ? err.stack : "") + "</pre>";' +
-      'return true;};' +
-      safeUserCode + '<\/script>';
-  } else {
-    // External engine → patch in the onload callback, before user code
-    html += '<script>' +
+    '</head><body>' +
+    '<script>' +
       'window.onerror = function(msg, src, line, col, err) {' +
       'parent.postMessage({type:"game-error",msg:msg,stack:(err&&err.stack)||""}, "*");' +
       'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">ERROR: " + msg + "\\n\\n" + (err && err.stack ? err.stack : "") + "</pre>";' +
       'return true;};' +
       'var s = document.createElement("script");' +
-      's.src = "/editor/epic.js";' +
+      's.src = "' + engineUrl + '";' +
       's.onload = function() {' +
+        'parent.postMessage({type:"game-log", msg:"Engine loaded"}, "*");' +
         'try {' +
-          '(' + JSON.stringify(ENGINE_PATCH) + ' && eval(' + JSON.stringify(ENGINE_PATCH) + '));' +
+          'parent.postMessage({type:"game-log", msg:"Running user code"}, "*");' +
           safeUserCode +
         '} catch(e) {' +
         'parent.postMessage({type:"game-error",msg:e.message,stack:e.stack||""}, "*");' +
         'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">" + e.message + "\\n" + (e.stack||"") + "</pre>"; }' +
       '};' +
-      's.onerror = function() { document.body.innerHTML = "<div style=\\"color:#f66;padding:20px;font-family:monospace\\">Could not load engine.</div>"; };' +
+      's.onerror = function() {' +
+        'parent.postMessage({type:"game-error",msg:"Could not load " + s.src,stack:""}, "*");' +
+        'document.body.innerHTML = "<div style=\\"color:#f66;padding:20px;font-family:monospace\\">Could not load engine: ' + engineUrl + '</div>";' +
+      '};' +
       'document.head.appendChild(s);' +
-      '<\/script>';
-  }
-
-  html += '</body></html>';
+    '<\/script>' +
+    '</body></html>';
 
   stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" allowfullscreen id="gameFrame"></iframe>';
   const frame = document.getElementById('gameFrame');
-
-  frame.addEventListener('load', applyZoom);
   frame.srcdoc = html;
 
   zoomLevel = 1;
-  log('Iframe rendered');
+  updateZoomLabel();
+  log('Iframe rendered (using external engine)');
 }
 
 window.addEventListener('message', (e) => {
-  if (e.data && e.data.type === 'game-error') {
+  if (!e.data) return;
+  if (e.data.type === 'game-error') {
     log('GAME ERROR: ' + e.data.msg, true);
     if (e.data.stack) log('  stack: ' + e.data.stack.slice(0, 200), true);
+  } else if (e.data.type === 'game-log') {
+    log('IFRAME: ' + e.data.msg);
   }
 });
 
 function applyZoom() {
   const frame = document.getElementById('gameFrame');
   if (!frame) return;
-  try {
-    const doc = frame.contentDocument;
-    if (!doc || !doc.body) return;
-    doc.body.style.zoom = zoomLevel;
-  } catch (e) {
-    frame.style.zoom = zoomLevel;
-  }
+  frame.style.transform = 'scale(' + zoomLevel + ')';
+  updateZoomLabel();
+}
+
+function updateZoomLabel() {
+  const el = document.getElementById('zoomVal');
+  if (el) el.textContent = Math.round(zoomLevel * 100) + '%';
 }
 
 async function renderAuthor(data) {
@@ -525,9 +456,7 @@ function wireButtons(data) {
   document.getElementById('fsBtn').onclick = () => {
     const frame = document.getElementById('gameFrame');
     if (!frame) return;
-
     const el = document.fullscreenElement || document.webkitFullscreenElement;
-
     if (el) {
       (document.exitFullscreen || document.webkitExitFullscreen).call(document);
     } else {
@@ -553,15 +482,14 @@ function wireButtons(data) {
 
     if (e.key === 'f' || e.key === 'F') {
       e.preventDefault();
-      const btn = document.getElementById('fsBtn');
-      if (btn) btn.click();
+      document.getElementById('fsBtn').click();
     } else if (e.key === '+' || e.key === '=') {
       e.preventDefault();
-      zoomLevel = Math.min(3, +(zoomLevel + 0.1).toFixed(2));
+      zoomLevel = Math.min(2, +(zoomLevel + 0.1).toFixed(2));
       applyZoom();
     } else if (e.key === '-' || e.key === '_') {
       e.preventDefault();
-      zoomLevel = Math.max(0.3, +(zoomLevel - 0.1).toFixed(2));
+      zoomLevel = Math.max(0.5, +(zoomLevel - 0.1).toFixed(2));
       applyZoom();
     } else if (e.key === '0') {
       e.preventDefault();
@@ -571,11 +499,11 @@ function wireButtons(data) {
   });
 
   document.getElementById('zoomIn').onclick = () => {
-    zoomLevel = Math.min(3, +(zoomLevel + 0.1).toFixed(2));
+    zoomLevel = Math.min(2, +(zoomLevel + 0.1).toFixed(2));
     applyZoom();
   };
   document.getElementById('zoomOut').onclick = () => {
-    zoomLevel = Math.max(0.3, +(zoomLevel - 0.1).toFixed(2));
+    zoomLevel = Math.max(0.5, +(zoomLevel - 0.1).toFixed(2));
     applyZoom();
   };
 
