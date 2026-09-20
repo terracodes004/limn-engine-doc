@@ -210,6 +210,66 @@ let currentGameId = null;
 let currentUserId = null;
 let zoomLevel = 1;
 
+// Engine patch from First Code: fixes input coordinates when canvas is scaled
+const ENGINE_PATCH = `
+(function() {
+  if (typeof Display === 'undefined') return;
+  Display.prototype.addEventListeners = function() {
+    window.addEventListener('keydown', (e) => {
+      this.keys[e.keyCode] = true;
+    });
+    window.addEventListener('keyup', (e) => {
+      this.keys[e.keyCode] = false;
+    });
+
+    const toCanvasCoords = (clientX, clientY) => {
+      const rect = this.canvas.getBoundingClientRect();
+      const scaleX = this.canvas.width  / rect.width;
+      const scaleY = this.canvas.height / rect.height;
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top)  * scaleY
+      };
+    };
+
+    window.addEventListener('mousedown', (e) => {
+      const p = toCanvasCoords(e.clientX, e.clientY);
+      this.x = p.x + this.camera.x;
+      this.y = p.y + this.camera.y;
+    });
+    window.addEventListener('mouseup', () => {
+      this.x = false;
+      this.y = false;
+    });
+    window.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      const p = toCanvasCoords(t.clientX, t.clientY);
+      this.x = p.x + this.camera.x;
+      this.y = p.y + this.camera.y;
+    });
+    window.addEventListener('touchend', () => {
+      this.x = false;
+      this.y = false;
+    });
+    window.addEventListener('mousemove', (e) => {
+      const p = toCanvasCoords(e.clientX, e.clientY);
+      if (typeof mouse !== 'undefined') {
+        mouse.x = p.x;
+        mouse.y = p.y;
+      }
+    });
+    window.addEventListener('touchmove', (e) => {
+      const t = e.touches[0];
+      const p = toCanvasCoords(t.clientX, t.clientY);
+      if (typeof mouse !== 'undefined') {
+        mouse.x = p.x;
+        mouse.y = p.y;
+      }
+    });
+  };
+})();
+`;
+
 function withTimeout(promise, ms, label) {
   return Promise.race([
     promise,
@@ -316,7 +376,9 @@ function renderGame(data) {
     '</head><body>';
 
   if (engineInline) {
+    // Engine inline: Inject engine script, engine patch, then user code
     html += '<script>' + engineInline + '<\/script>';
+    html += '<script>' + ENGINE_PATCH + '<\/script>';
     html += '<script>' +
       'window.onerror = function(msg, src, line, col, err) {' +
       'parent.postMessage({type:"game-error",msg:msg,stack:(err&&err.stack)||""}, "*");' +
@@ -324,6 +386,7 @@ function renderGame(data) {
       'return true;};' +
       safeUserCode + '<\/script>';
   } else {
+    // External engine: Patch in onload before executing user code
     html += '<script>' +
       'window.onerror = function(msg, src, line, col, err) {' +
       'parent.postMessage({type:"game-error",msg:msg,stack:(err&&err.stack)||""}, "*");' +
@@ -332,7 +395,10 @@ function renderGame(data) {
       'var s = document.createElement("script");' +
       's.src = "/editor/epic.js";' +
       's.onload = function() {' +
-        'try {' + safeUserCode + '} catch(e) {' +
+        'try {' +
+          '(' + JSON.stringify(ENGINE_PATCH) + ' && eval(' + JSON.stringify(ENGINE_PATCH) + '));' +
+          safeUserCode +
+        '} catch(e) {' +
         'parent.postMessage({type:"game-error",msg:e.message,stack:e.stack||""}, "*");' +
         'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">" + e.message + "\\n" + (e.stack||"") + "</pre>"; }' +
       '};' +
