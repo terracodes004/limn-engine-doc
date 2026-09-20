@@ -34,7 +34,6 @@
             display: block;
         }
 
-        /* ── Zoom + Fullscreen overlay (outside the dialog) ── */
         .dialog-controls {
             position: fixed;
             bottom: 14px;
@@ -218,7 +217,6 @@
     <script src="function.js" defer></script>
 </head>
 <body>
-    <!-- Controls OUTSIDE the dialog so nothing can cover them -->
     <div class="dialog-controls" id="dialogControls">
         <button id="zoomOutBtn" title="Zoom out">−</button>
         <button id="zoomInBtn"  title="Zoom in">+</button>
@@ -292,22 +290,22 @@
                 <div class="build-left">
                     <label class="build-label">Template</label>
                     <select id="templateSelect">
-  <option value="dressup">Dress-Up</option>
-  <option value="platformer">Platformer</option>
-  <option value="runner">Runner</option>
-  <option value="shooter">Shooter</option>
-  <option value="clicker">Clicker</option>
-  <option value="breakout">Breakout</option>
-  <option value="flappy">Flappy</option>
-  <option value="snake">Snake</option>
-  <option value="catch">Catch</option>
-  <option value="dodge">Dodge</option>
-  <option value="tank">Tank Battle</option>
-  <option value="dungeon">Dungeon Crawler</option>
-  <option value="soccer">Soccer</option>
-  <option value="race">Car Race</option>
-  <option value="asteroids">Asteroids</option>
-</select>
+                        <option value="dressup">Dress-Up</option>
+                        <option value="platformer">Platformer</option>
+                        <option value="runner">Runner</option>
+                        <option value="shooter">Shooter</option>
+                        <option value="clicker">Clicker</option>
+                        <option value="breakout">Breakout</option>
+                        <option value="flappy">Flappy</option>
+                        <option value="snake">Snake</option>
+                        <option value="catch">Catch</option>
+                        <option value="dodge">Dodge</option>
+                        <option value="tank">Tank Battle</option>
+                        <option value="dungeon">Dungeon Crawler</option>
+                        <option value="soccer">Soccer</option>
+                        <option value="race">Car Race</option>
+                        <option value="asteroids">Asteroids</option>
+                    </select>
                     <div id="templateFields"></div>
 
                     <div class="build-field">
@@ -410,7 +408,6 @@ function update(dt) {
     <script src="build.js"></script>
     <script type="module" src="script.js"></script>
 
-    <!-- Zoom + Fullscreen controls -->
     <script>
     (function () {
         var zoomLevel = 1;
@@ -422,14 +419,8 @@ function update(dt) {
         function applyZoom() {
             var frame = getFrame();
             if (!frame) return;
-            try {
-                var doc = frame.contentDocument;
-                if (doc && doc.body) {
-                    doc.body.style.zoom = zoomLevel;
-                    return;
-                }
-            } catch (e) { /* cross-origin fallback */ }
-            frame.style.zoom = zoomLevel;
+            frame.style.transform = 'scale(' + zoomLevel + ')';
+            frame.style.transformOrigin = 'center center';
         }
 
         function setZoom(newLevel) {
@@ -445,7 +436,6 @@ function update(dt) {
             setZoom(zoomLevel - 0.1);
         });
 
-        // Fullscreen — try the dialog, then the iframe, then the page
         document.getElementById('fsBtn').addEventListener('click', async function () {
             try {
                 if (document.fullscreenElement || document.webkitFullscreenElement) {
@@ -463,7 +453,6 @@ function update(dt) {
                        || target.msRequestFullscreen;
 
                 if (!req) {
-                    console.warn('[fullscreen] not supported on', target);
                     alert('Fullscreen not supported on this browser.');
                     return;
                 }
@@ -471,7 +460,6 @@ function update(dt) {
                 await req.call(target);
             } catch (err) {
                 console.error('[fullscreen] failed:', err);
-                // Last-resort fallback: fullscreen the whole page
                 try {
                     await document.documentElement.requestFullscreen();
                 } catch (err2) {
@@ -485,7 +473,6 @@ function update(dt) {
             if (btn) btn.textContent = document.fullscreenElement ? '⛶' : '⛶';
         });
 
-        // Re-apply zoom whenever the iframe reloads (after Run)
         var frame = getFrame();
         if (frame) {
             frame.addEventListener('load', function () {
@@ -493,7 +480,6 @@ function update(dt) {
             });
         }
 
-        // Reset zoom when the user clicks Run
         var runBtn = document.getElementById('run');
         if (runBtn) {
             runBtn.addEventListener('click', function () {
@@ -501,8 +487,6 @@ function update(dt) {
             });
         }
 
-        // Keyboard shortcuts: F = fullscreen, +/− = zoom, 0 = reset
-        // Ignored when typing inside an input / textarea
         document.addEventListener('keydown', function (e) {
             var t = e.target;
             var tag = t && t.tagName ? t.tagName.toLowerCase() : '';
