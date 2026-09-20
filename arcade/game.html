@@ -317,27 +317,13 @@ function renderGame(data) {
     '<title>' + escapeHtml(data.title) + '</title>' +
     '<style>html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%}canvas{display:block;margin:0 auto}</style>' +
     '</head><body>' +
+    '<script src="' + engineUrl + '"><\/script>' +
     '<script>' +
       'window.onerror = function(msg, src, line, col, err) {' +
       'parent.postMessage({type:"game-error",msg:msg,stack:(err&&err.stack)||""}, "*");' +
       'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">ERROR: " + msg + "\\n\\n" + (err && err.stack ? err.stack : "") + "</pre>";' +
       'return true;};' +
-      'var s = document.createElement("script");' +
-      's.src = "' + engineUrl + '";' +
-      's.onload = function() {' +
-        'parent.postMessage({type:"game-log", msg:"Engine loaded"}, "*");' +
-        'try {' +
-          'parent.postMessage({type:"game-log", msg:"Running user code"}, "*");' +
-          safeUserCode +
-        '} catch(e) {' +
-        'parent.postMessage({type:"game-error",msg:e.message,stack:e.stack||""}, "*");' +
-        'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">" + e.message + "\\n" + (e.stack||"") + "</pre>"; }' +
-      '};' +
-      's.onerror = function() {' +
-        'parent.postMessage({type:"game-error",msg:"Could not load " + s.src,stack:""}, "*");' +
-        'document.body.innerHTML = "<div style=\\"color:#f66;padding:20px;font-family:monospace\\">Could not load engine: ' + engineUrl + '</div>";' +
-      '};' +
-      'document.head.appendChild(s);' +
+      safeUserCode +
     '<\/script>' +
     '</body></html>';
 
@@ -347,7 +333,7 @@ function renderGame(data) {
 
   zoomLevel = 1;
   updateZoomLabel();
-  log('Iframe rendered (using external engine)');
+  log('Iframe rendered');
 }
 
 window.addEventListener('message', (e) => {
