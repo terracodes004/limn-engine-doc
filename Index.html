@@ -1,149 +1,116 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title> Limn engine asset store</title>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Limn Engine 2D asset store — game-ready images, audio and horizontal spritesheets.">
+  <title>Limn Engine | 2D Asset Store</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Storefront layout: kept local so the documentation pages can continue using style.css. */
+    body.store-page { background: #070a24; color: #f4f5ff; }
+    .store-page a { text-decoration: none; }
+    .store-header { border-bottom: 1px solid rgba(127,255,178,.16); background: rgba(5,8,61,.9); }
+    .store-nav { max-width: 1180px; margin: auto; min-height: 72px; padding: 14px 24px; display: flex; align-items: center; gap: 28px; }
+    .brand { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 800; letter-spacing: -.4px; font-size: 1.1rem; margin-right: auto; }
+    .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; color: #070a24; background: #7fffb2; border-radius: 9px; font-family: 'Space Mono', monospace; font-weight: 700; }
+    .store-nav-links { display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; }
+    .store-nav-links a { color: #a7a9ca; padding: 8px 12px; border-radius: 7px; font-size: .9rem; }
+    .store-nav-links a:hover, .store-nav-links .active { color: #7fffb2; background: rgba(127,255,178,.08); }
+    .account-link { border: 1px solid rgba(127,255,178,.4); color: #7fffb2 !important; }
+    .store-main { max-width: 1180px; margin: auto; padding: 64px 24px 80px; }
+    .store-hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 46px; align-items: center; margin-bottom: 62px; }
+    .eyebrow { color: #7fffb2; text-transform: uppercase; letter-spacing: 2px; font: 700 .72rem 'Space Mono', monospace; }
+    .store-hero h1 { margin: 10px 0 16px; color: #fff; font-size: clamp(2.6rem, 6vw, 5.1rem); line-height: 1.02; letter-spacing: -3px; }
+    .store-hero h1 span { color: #ff638c; }
+    .store-hero p { max-width: 580px; color: #a7a9ca; font-size: 1.05rem; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 27px; }
+    .action { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border: 1px solid #7fffb2; border-radius: 7px; color: #070a24; background: #7fffb2; font-weight: 800; }
+    .action.secondary { color: #e8e8f5; border-color: rgba(255,255,255,.25); background: transparent; }
+    .hero-art { min-height: 300px; padding: 22px; border: 1px solid rgba(127,255,178,.3); background: linear-gradient(135deg, rgba(127,255,178,.13), rgba(255,99,140,.1)); position: relative; overflow: hidden; }
+    .pixel-scene { height: 255px; position: relative; background: linear-gradient(#151d58 0 55%, #27326f 55% 72%, #162045 72%); overflow: hidden; }
+    .pixel-scene:before { content: ''; position: absolute; width: 170px; height: 170px; right: 13%; top: 25px; background: #ff638c; border-radius: 50%; box-shadow: 0 0 0 18px rgba(255,99,140,.12), 0 0 0 38px rgba(255,99,140,.06); }
+    .pixel-scene:after { content: '2D'; position: absolute; left: 22px; bottom: 18px; color: #7fffb2; font: 700 4.5rem 'Space Mono', monospace; opacity: .85; }
+    .store-section { margin-top: 46px; }
+    .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin-bottom: 20px; }
+    .section-heading h2 { color: #fff; font-size: 1.7rem; }
+    .section-heading p { color: #7878a0; font-size: .9rem; }
+    .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+    .filter-btn { cursor: pointer; padding: 8px 13px; border: 1px solid rgba(255,99,140,.25); color: #a7a9ca; background: #0d1040; font: 600 .8rem Inter, sans-serif; border-radius: 5px; }
+    .filter-btn:hover, .filter-btn.selected { color: #070a24; background: #7fffb2; border-color: #7fffb2; }
+    .asset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .asset-card { min-width: 0; border: 1px solid rgba(255,99,140,.2); background: #0b0e35; overflow: hidden; transition: transform .2s, border-color .2s; }
+    .asset-card:hover { transform: translateY(-4px); border-color: #7fffb2; }
+    .asset-preview { height: 164px; display: grid; place-items: center; background: #11164a; position: relative; overflow: hidden; }
+    .asset-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .preview-icon { font-size: 3.4rem; color: #7fffb2; }
+    .wave { width: 80%; height: 55px; background: repeating-linear-gradient(90deg, #7fffb2 0 3px, transparent 3px 9px); clip-path: polygon(0 53%, 5% 38%, 10% 69%, 15% 15%, 20% 78%, 25% 40%, 30% 61%, 35% 21%, 40% 83%, 45% 36%, 50% 65%, 55% 18%, 60% 74%, 65% 43%, 70% 58%, 75% 29%, 80% 80%, 85% 36%, 90% 63%, 95% 21%, 100% 54%); }
+    .sheet-preview { width: 90%; display: flex; gap: 3px; padding: 9px; border: 1px solid rgba(127,255,178,.45); background: #070a24; }
+    .sheet-preview i { flex: 1; height: 104px; background: linear-gradient(135deg, #ff638c 25%, #ffbb6b 25% 50%, #7fffb2 50% 75%, #6e72d9 75%); opacity: .85; }
+    .asset-info { padding: 15px 16px 17px; }
+    .asset-type { color: #7fffb2; font: 700 .68rem 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 1px; }
+    .asset-info h3 { color: #fff; font-size: 1rem; margin: 5px 0 4px; }
+    .asset-info p { color: #7878a0; font-size: .82rem; min-height: 42px; }
+    .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+    .price { color: #ffbb6b; font-weight: 800; }
+    .get-btn { color: #070a24; background: #ff638c; padding: 7px 11px; border-radius: 5px; font-size: .78rem; font-weight: 800; }
+    .get-btn:hover { background: #7fffb2; }
+    .category-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .category-link { padding: 16px 14px; border: 1px solid rgba(127,255,178,.18); color: #e8e8f5; background: #0b0e35; font-size: .85rem; }
+    .category-link strong { display: block; color: #7fffb2; font-size: 1.15rem; margin-bottom: 3px; }
+    .store-footer { border-top: 1px solid rgba(255,99,140,.2); padding: 25px 24px; color: #7878a0; text-align: center; font-size: .8rem; }
+    @media (max-width: 800px) { .store-hero { grid-template-columns: 1fr; } .asset-grid { grid-template-columns: repeat(2, 1fr); } .category-strip { grid-template-columns: repeat(2, 1fr); } .store-nav-links { display: none; } }
+    @media (max-width: 500px) { .store-main { padding: 40px 16px 60px; } .asset-grid { grid-template-columns: 1fr; } .store-hero h1 { letter-spacing: -1.5px; } }
+  </style>
 </head>
-<link rel="stylesheet" href="style.css">
-<body>
-    <img class="image" src="Limnengine.jpg" alt="limn engine image">
-    <div class="head">
-        <h1> Limn engine asset store</h1>
-    </div>
-<div class="search-box">
-    <input type="text" placeholder="Search assets...">
-    <button>Search</button>
-</div><br>
-    <nav class="navbar">
-        
-    <div class="nav-links">
-       <button class="butin"> <a href="index.html">Home</a></button>
-       <button class="butin"> <a href="assets.html">Assets</a></button>
-        <button class="butin"><a href="categories.html">Categories</a></button>
-        <button class="butin"><a href="about.html">About</a></button>
-    </div>
-</nav><br><br>
+<body class="store-page">
+  <header class="store-header">
+    <nav class="store-nav" aria-label="Main navigation">
+      <a class="brand" href="Index.html"><span class="brand-mark">L</span> Limn Engine Store</a>
+      <ul class="store-nav-links">
+        <li><a class="active" href="Index.html">2D Assets</a></li>
+        <li><a href="#categories">Categories</a></li>
+        <li><a href="about.html">About</a></li>
+      </ul>
+      <a class="account-link" href="index.html">Sign in</a>
+    </nav>
+  </header>
 
-    <div id="g_id_onload"
-         data-client_id="YOUR_CLIENT_ID.apps.googleusercontent.com"
-         data-callback="handleCredentialResponse">
-    </div>
+  <main class="store-main">
+    <section class="store-hero" aria-labelledby="hero-title">
+      <div>
+        <div class="eyebrow">Limn Engine / Asset library</div>
+        <h1>Make your world <span>move.</span></h1>
+        <p>Production-ready 2D assets for your next Limn Engine game. Find illustrated backgrounds, characters, objects, audio and animation-ready horizontal spritesheets in one place.</p>
+        <div class="hero-actions"><a class="action" href="#assets">Browse assets <span>→</span></a><a class="action secondary" href="#categories">Explore categories</a></div>
+      </div>
+      <div class="hero-art" aria-label="2D pixel art preview"><div class="pixel-scene"></div></div>
+    </section>
 
-    <div class="g_id_signin"
-         data-type="standard"
-         data-size="large"
-         data-theme="outline"
-         data-text="signin_with">
-    </div>
+    <section id="assets" class="store-section" aria-labelledby="assets-title">
+      <div class="section-heading"><div><div class="eyebrow">Curated for creators</div><h2 id="assets-title">Featured 2D assets</h2></div><p>PNG, WAV and sprite-ready downloads</p></div>
+      <div class="filter-bar" role="group" aria-label="Filter assets">
+        <button class="filter-btn selected" data-filter="all">All assets</button><button class="filter-btn" data-filter="background">Backgrounds</button><button class="filter-btn" data-filter="character">Characters</button><button class="filter-btn" data-filter="object">Objects</button><button class="filter-btn" data-filter="audio">Audio</button><button class="filter-btn" data-filter="spritesheet">Spritesheets</button>
+      </div>
+      <div class="asset-grid">
+        <article class="asset-card" data-category="background"><div class="asset-preview"><img src="img/download.png" alt="Painted environment background preview" loading="lazy"></div><div class="asset-info"><div class="asset-type">Background · PNG</div><h3>Twilight Valley</h3><p>Layered scenic backdrop for platformers and adventure games.</p><div class="card-footer"><span class="price">Free</span><a class="get-btn" href="img/download.png" download>Get asset</a></div></div></article>
+        <article class="asset-card" data-category="character"><div class="asset-preview"><img src="img/alien.png" alt="Alien character illustration preview" loading="lazy"></div><div class="asset-info"><div class="asset-type">Character · PNG</div><h3>Alien Adventurer</h3><p>Transparent character art ready for dialogue or gameplay scenes.</p><div class="card-footer"><span class="price">Free</span><a class="get-btn" href="img/alien.png" download>Get asset</a></div></div></article>
+        <article class="asset-card" data-category="object"><div class="asset-preview"><img src="img/flogo.jpg" alt="Object and prop asset preview" loading="lazy"></div><div class="asset-info"><div class="asset-type">Object · JPG</div><h3>Neon Props Pack</h3><p>Bright decorative objects to add detail and color to a level.</p><div class="card-footer"><span class="price">Free</span><a class="get-btn" href="img/flogo.jpg" download>Get asset</a></div></div></article>
+        <article class="asset-card" data-category="audio"><div class="asset-preview"><div class="wave" aria-hidden="true"></div><span class="preview-icon" aria-hidden="true">♫</span></div><div class="asset-info"><div class="asset-type">Audio · WAV</div><h3>Arcade Starter SFX</h3><p>A compact collection of UI clicks, jumps and pickup sounds.</p><div class="card-footer"><span class="price">Free</span><a class="get-btn" href="#" onclick="event.preventDefault(); alert('Audio preview coming soon.');">Preview</a></div></div></article>
+        <article class="asset-card" data-category="spritesheet"><div class="asset-preview"><div class="sheet-preview" aria-label="Horizontal four-frame spritesheet preview"><i></i><i></i><i></i><i></i></div></div><div class="asset-info"><div class="asset-type">Animation · PNG</div><h3>Hero Run Cycle</h3><p>Horizontal 4-frame spritesheet with consistent frame spacing.</p><div class="card-footer"><span class="price">Free</span><a class="get-btn" href="#" onclick="event.preventDefault(); alert('Spritesheet download coming soon.');">Get asset</a></div></div></article>
+        <article class="asset-card" data-category="spritesheet"><div class="asset-preview"><div class="sheet-preview" aria-label="Horizontal six-frame effects spritesheet preview"><i></i><i></i><i></i><i></i><i></i><i></i></div></div><div class="asset-info"><div class="asset-type">Effects · PNG</div><h3>Impact FX Strip</h3><p>Six horizontal frames for hits, bursts and collectible effects.</p><div class="card-footer"><span class="price">Free</span><a class="get-btn" href="#" onclick="event.preventDefault(); alert('Spritesheet download coming soon.');">Get asset</a></div></div></article>
+      </div>
+    </section>
 
-    <script>
-        function handleCredentialResponse(response) {
-            alert("Google sign-in worked!");
-            console.log(response);
-        }
-    </script>
-    <br>
-
-<section class="hero">
-
-    <div class="hero-text">
-        <h1>Build Your Next Game<br>With Limn assets</h1>
-
-        <p>
-            Discover high-quality assets for your Limn Engine game projects.
-            Find models, environments, audio, VFX, UI and more.
-        </p>
-
-        <div class="hero-buttons">
-            <a href="assets.html" class="browse-btn">Browse Assets</a>
-            <a href="categories.html" class="category-btn">Explore Categories</a>
-        </div>
-    </div>
-
-    <div class="hero-image">
-        <img src="Limnengine.jpg " alt="Limn Engine assets">
-    </div>
-
-</section>
-<br>
-<br>
-
-<section class="category">
-    <div class="text">
-       <h2> <a href="categories.html"> categories:</a></h2>
-    </div>
-    <ul>
-        <li> 3D Models</li>
-        <li> 2D assets</li>
-        <li> Environment</li>
-        <li> Backgrounds</li>
-        <li>Characters</li>
-        <li> Audio</li>
-        <li>VFX</li>
-        <li>UI</li>
-        <li> Tools and plugins</li>
-    </ul>
-</section>
-
-<div >
-    <h2> Featured assets</h2>
-    <p> hand picked assets for your next project</p>
-</div>
-
- <table class="table">
-     <tr>
-         <th> Asset</th>
-         <th> Image</th>
-         <th> Price</th>
-     </tr>
-     <tr>
-         <td> <img src="2Droad.jpg" alt="2d road" class="Images"></td>
-         <td> 2D road for car games </td>
-         <td> Free</td>
-     </tr>
-     <tr>
-         <td> <img src="Caveman.jpg" alt="cave man" class="Images"></td>
-         <td> Cave man character</td>
-         <td> Free</td>
-     </tr>
-     <tr>
-         <td> <img src="Spacecraft.jpg" alt="spacecraft" class="Images"></td>
-         <td> Spacecraft ultra spaceship</td>
-         <td> Free</td>
-     </tr>
-     <tr>
-         
-     </tr>
- </table>
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    
+    <section id="categories" class="store-section" aria-labelledby="categories-title"><div class="section-heading"><div><div class="eyebrow">Find the right building block</div><h2 id="categories-title">Shop by category</h2></div></div><div class="category-strip"><a class="category-link" href="#assets" data-jump="background"><strong>▧</strong>Backgrounds</a><a class="category-link" href="#assets" data-jump="character"><strong>♙</strong>Characters</a><a class="category-link" href="#assets" data-jump="object"><strong>◆</strong>Objects & props</a><a class="category-link" href="#assets" data-jump="audio"><strong>♫</strong>Audio</a><a class="category-link" href="#assets" data-jump="spritesheet"><strong>▤</strong>Horizontal spritesheets</a></div></section>
+  </main>
+  <footer class="store-footer">Limn Engine 2D Asset Store · Built for indie game creators</footer>
+  <script>
+    const buttons = document.querySelectorAll('.filter-btn');
+    const cards = document.querySelectorAll('.asset-card');
+    function filterAssets(category) { cards.forEach(card => { card.hidden = category !== 'all' && card.dataset.category !== category; }); buttons.forEach(button => button.classList.toggle('selected', button.dataset.filter === category)); }
+    buttons.forEach(button => button.addEventListener('click', () => filterAssets(button.dataset.filter)));
+    document.querySelectorAll('[data-jump]').forEach(link => link.addEventListener('click', () => filterAssets(link.dataset.jump)));
+  </script>
 </body>
 </html>
