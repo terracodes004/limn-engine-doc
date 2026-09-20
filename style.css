@@ -252,7 +252,6 @@ header {
   transform: translateX(-50%) !important;
   z-index: 90 !important;
 
-  background: rgba(5, 8, 61, 0.75) !important;
   color: #ffffff !important;
   border: 2px solid transparent !important;
   border-radius: 100px !important;
@@ -269,6 +268,12 @@ header {
 
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
+
+  background:
+    linear-gradient(rgba(5, 8, 61, 0.92), rgba(5, 8, 61, 0.92)) padding-box,
+    conic-gradient(from 0deg,
+      #0066ff, #ff0000, #ff8800, #00cc00,
+      #39ff14, #ffdd00, #0066ff) border-box !important;
 
   box-shadow:
     0 0 10px rgba(0, 102, 255, 0.5),
@@ -288,17 +293,6 @@ header {
 
 #user-banner.visible {
   display: inline-flex !important;
-}
-
-#user-banner::before {
-  content: "" !important;
-  position: absolute !important;
-  inset: -2px !important;
-  border-radius: 100px !important;
-  background: conic-gradient(from 0deg,
-    #0066ff, #ff0000, #ff8800, #00cc00,
-    #39ff14, #ffdd00, #0066ff) !important;
-  z-index: -1 !important;
 }
 
 #user-banner > span {
@@ -1058,4 +1052,192 @@ aside {
 }
 
 aside.open {
-  display: bl
+  display: block;
+}
+
+aside ul {
+  list-style: none;
+  display: block;
+}
+
+aside ul li {
+  border-bottom: 1px solid var(--border);
+}
+
+aside ul li a {
+  display: block;
+  padding: 10px 20px;
+  color: #9090b8;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+aside ul li a:hover {
+  color: var(--accent2);
+  background: rgba(127, 255, 178, 0.05);
+}
+
+/* ── MOBILE RESPONSIVE (Original) ── */
+@media (max-width: 750px) {
+  .tut-grid {
+    grid-template-columns: 1fr;
+  }
+  .nav-burger {
+    display: block;
+  }
+  .con h1 {
+    font-size: 2.4rem;
+  }
+  td {
+    width: 85px;
+  }
+  article {
+    width: 85vw;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  nav ul li:not(:last-child) {
+    font-size: 13px;
+  }
+}
+
+/* ============================================================
+   🔒 FINAL OVERRIDES — DO NOT TOUCH
+   ============================================================ */
+
+/* ── FIX: Remove page border ── */
+html, body {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ── FIX: Restore original pre responsiveness ── */
+pre {
+  border: 1px solid var(--border-color, #ccc) !important;
+  border-radius: var(--border-radius, 8px) !important;
+  overflow-x: auto !important;
+  white-space: pre !important;
+  word-break: normal !important;
+  word-wrap: normal !important;
+  max-width: 100% !important;
+  width: 80vw !important;
+  box-sizing: border-box !important;
+}
+
+pre code {
+  white-space: pre !important;
+  word-break: normal !important;
+  word-wrap: normal !important;
+  display: block !important;
+  min-width: max-content !important;
+  font-size: inherit !important;
+}
+
+/* ── FIX: Restore original fieldset ── */
+fieldset {
+  overflow: auto !important;
+}
+
+/* ── FIX: Restore original article ── */
+article {
+  width: 74vw !important;
+  overflow-x: auto !important;
+}
+
+/* ── FIX: Restore original table ── */
+table {
+  width: 80vw !important;
+  overflow-x: auto !important;
+  white-space: nowrap !important;
+}
+
+/* ── FIX: Restore original mobile pre ── */
+@media (max-width: 750px) {
+  article {
+    width: 85vw !important;
+    overflow-x: auto !important;
+  }
+
+  pre {
+    font-size: 11px !important;
+    padding: 12px !important;
+  }
+}
+
+/* ============================================================
+   🚨 FORCE TUTORIAL CARD STYLES
+   ============================================================ */
+
+.tut-grid {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 16px !important;
+  margin-top: 8px !important;
+}
+
+.tut-card {
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  padding: 20px !important;
+  background: var(--surface) !important;
+  transition: border-color 0.2s, transform 0.15s !important;
+}
+
+.tut-card:hover {
+  border-color: var(--accent) !important;
+  transform: translateY(-2px) !important;
+}
+
+.tut-card h3 {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+  color: var(--text) !important;
+}
+
+.tut-card p {
+  font-size: 13px !important;
+  color: var(--muted) !important;
+  margin-bottom: 12px !important;
+}
+
+.tut-card ol {
+  font-size: 12.5px !important;
+  margin-bottom: 14px !important;
+  padding-left: 20px !important;
+}
+
+.tut-card a.start-btn {
+  display: inline-block !important;
+  padding: 6px 16px !important;
+  background: var(--accent) !important;
+  color: white !important;
+  border-radius: 6px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  transition: background 0.2s !important;
+}
+
+.tut-card a.start-btn:hover {
+  background: #e0405f !important;
+}
+
+/* ── Mobile fix ── */
+@media (max-width: 750px) {
+  .tut-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #user-banner,
+  #user-banner .greeting-emoji {
+    animation: none !important;
+  }
+}
