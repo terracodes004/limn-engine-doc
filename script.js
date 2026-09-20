@@ -102,19 +102,26 @@ async function checkUnreadBadge() {
   const badge = document.getElementById('avatar-badge');
   if (!badge) return;
 
+  let count = 0;
+
   try {
-    let allIds = [];
-
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: userDocs } = await supabase
-        .from('user_documents')
-        .select('id')
-        .eq('user_id', user.id);
 
-      if (userDocs) {
-        userDocs.forEach(doc => allIds.push('doc-' + doc.id));
-      }
+    if (!user) {
+      badge.textContent = '';
+      badge.style.display = 'none';
+      return;
+    }
+
+    const allIds = [];
+
+    const { data: userDocs } = await supabase
+      .from('user_documents')
+      .select('id')
+      .eq('user_id', user.id);
+
+    if (userDocs) {
+      userDocs.forEach(doc => allIds.push('doc-' + doc.id));
     }
 
     const { data: engineUpdates } = await supabase
@@ -127,16 +134,27 @@ async function checkUnreadBadge() {
 
     const readIds = JSON.parse(localStorage.getItem('limn_read_notifications') || '[]');
     const unreadCount = allIds.filter(id => !readIds.includes(id)).length;
+    count += unreadCount;
 
-    if (unreadCount > 0) {
-      badge.textContent = unreadCount;
-      badge.style.display = 'flex';
-    } else {
-      badge.style.display = 'none';
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!profile || !profile.username) {
+      count += 1;
     }
-
   } catch (err) {
     console.log('Error checking unread badge:', err);
+  }
+
+  if (count > 0) {
+    badge.textContent = count > 9 ? '9+' : String(count);
+    badge.style.display = 'flex';
+  } else {
+    badge.textContent = '';
+    badge.style.display = 'none';
   }
 }
 
@@ -337,4 +355,4 @@ if ('serviceWorker' in navigator) {
       window.location.reload();
     }
   });
-                                          }
+}
