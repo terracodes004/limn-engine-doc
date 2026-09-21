@@ -5,161 +5,449 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Profile — Arcade</title>
 <style>
+  :root {
+    --bg: #05060c;
+    --panel: rgba(18,20,32,0.72);
+    --border: rgba(255,255,255,0.08);
+    --border-2: rgba(255,255,255,0.14);
+    --text: #f0f3f8;
+    --text-1: #a3aac0;
+    --text-2: #6e7589;
+    --accent: #6ea8fe;
+    --accent-2: #a371f7;
+    --accent-3: #ec4899;
+    --warning: #fbbf24;
+  }
   * { box-sizing: border-box; }
-  body { margin: 0; background: #0a0a14; color: #fff;
-         font-family: system-ui, -apple-system, sans-serif;
-         min-height: 100vh; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before, body::after {
+    content: "";
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 50%;
+  }
+  body::before {
+    top: -40vh; left: -20vw;
+    width: 80vw; height: 80vh;
+    background: radial-gradient(circle, rgba(110,168,254,0.12), transparent 60%);
+    animation: float1 22s ease-in-out infinite alternate;
+  }
+  body::after {
+    bottom: -40vh; right: -20vw;
+    width: 80vw; height: 80vh;
+    background: radial-gradient(circle, rgba(163,113,247,0.1), transparent 60%);
+    animation: float2 26s ease-in-out infinite alternate;
+  }
+  @keyframes float1 {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(6vw, 6vh); }
+  }
+  @keyframes float2 {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-6vw, -6vh); }
+  }
+  @keyframes sweep {
+    0%   { background-position: -200% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+  @keyframes bannerShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes spinReverse {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+  }
+  @keyframes avatarPulse {
+    0%, 100% {
+      box-shadow:
+        0 0 0 4px rgba(5,6,12,1),
+        0 0 20px rgba(110,168,254,0.5),
+        0 0 40px rgba(163,113,247,0.35),
+        0 0 60px rgba(236,72,153,0.2);
+    }
+    50% {
+      box-shadow:
+        0 0 0 4px rgba(5,6,12,1),
+        0 0 30px rgba(110,168,254,0.8),
+        0 0 60px rgba(163,113,247,0.6),
+        0 0 90px rgba(236,72,153,0.4);
+    }
+  }
+  @keyframes badgeShine {
+    0% { background-position: -150% 50%; }
+    100% { background-position: 250% 50%; }
+  }
+  @keyframes cardFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .app { position: relative; z-index: 1; }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: rgba(5,6,12,0.72);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    border-bottom: 1px solid var(--border);
+  }
+  header::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(110,168,254,0.5) 20%,
+      rgba(163,113,247,0.6) 50%,
+      rgba(236,72,153,0.5) 80%,
+      transparent 100%);
+    background-size: 200% 100%;
+    animation: sweep 8s linear infinite;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  .brand-block { display: flex; align-items: center; gap: 12px; }
+  .brand-logo {
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .brand-logo img {
+    width: 36px; height: 36px;
+    object-fit: contain;
+    border-radius: 10px;
+    background: var(--bg);
+    padding: 3px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 0 18px rgba(110,168,254,0.35);
+  }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.05; }
+  .brand-name {
+    font-size: 16px; font-weight: 800; letter-spacing: 1.6px;
+    background: linear-gradient(120deg,
+      #f0f3f8 0%, #f0f3f8 40%, #6ea8fe 50%,
+      #a371f7 60%, #f0f3f8 70%, #f0f3f8 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: sweep 9s linear infinite;
+  }
+  .brand-sub {
+    font-size: 9.5px; font-weight: 600;
+    letter-spacing: 2.4px;
+    color: var(--text-2);
+    margin-top: 3px;
+  }
+  .nav-links { display: flex; gap: 6px; flex-wrap: wrap; }
+  .nav-links a {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .nav-links a:hover { border-color: var(--border-2); transform: translateY(-1px); background: rgba(255,255,255,0.07); }
 
   .banner {
-    height: 160px;
+    height: 200px;
     background: linear-gradient(135deg,
-      #ec4899 0%,
-      #f97316 25%,
-      #facc15 50%,
-      #22d3ee 75%,
-      #6366f1 100%);
+      #ec4899 0%, #f97316 20%, #facc15 40%,
+      #22d3ee 60%, #6366f1 80%, #a371f7 100%);
+    background-size: 300% 300%;
+    animation: bannerShift 15s ease-in-out infinite;
     position: relative;
+    overflow: hidden;
   }
-  .banner::after {
-    content: '';
+  .banner::before {
+    content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg,
-      rgba(0,0,0,0.1) 0%,
-      rgba(10,10,20,0.9) 100%);
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,0.25), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(255,255,255,0.15), transparent 40%);
+    pointer-events: none;
+  }
+  .banner::after {
+    content: "";
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(255,255,255,0.15),
+      transparent);
+    transform: rotate(20deg);
+    animation: sweep 6s linear infinite;
     pointer-events: none;
   }
 
-  .container { max-width: 1000px; margin: 0 auto;
-               padding: 0 24px; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
 
   .profile-head {
-    margin-top: -60px;
+    margin-top: -75px;
     display: flex;
     align-items: flex-end;
-    gap: 20px;
-    margin-bottom: 40px;
+    gap: 24px;
+    margin-bottom: 44px;
     flex-wrap: wrap;
     position: relative;
     z-index: 2;
+    animation: fadeUp 0.5s ease;
   }
 
-  .avatar {
-    width: 110px; height: 110px;
-    border-radius: 50%;
-    border: 4px solid #0a0a14;
-    background: #15152a;
-    object-fit: cover;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  .avatar-wrap {
+    position: relative;
+    width: 140px; height: 140px;
     flex-shrink: 0;
   }
-
-  .profile-info {
-    flex: 1;
-    min-width: 200px;
-    padding-bottom: 8px;
+  .avatar-ring {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+      #6ea8fe, #a371f7, #ec4899, #fbbf24, #4ade80, #22d3ee, #6ea8fe);
+    animation: spin 8s linear infinite;
+    filter: blur(6px);
+    opacity: 0.9;
+    z-index: 0;
   }
+  .avatar-ring-2 {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: conic-gradient(from 90deg,
+      #ec4899, #f97316, #facc15, #22d3ee, #6366f1, #a371f7, #ec4899);
+    animation: spinReverse 10s linear infinite;
+    filter: blur(3px);
+    opacity: 0.7;
+    z-index: 0;
+  }
+  .avatar {
+    position: relative;
+    z-index: 1;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    border: 4px solid var(--bg);
+    background: #15152a;
+    object-fit: cover;
+    animation: avatarPulse 4s ease-in-out infinite;
+  }
+
+  .profile-info { flex: 1; min-width: 200px; padding-bottom: 8px; }
   .username {
-    font-size: 28px; font-weight: 800;
-    margin: 0 0 4px; letter-spacing: -0.5px;
-    color: #ffffff;
+    font-size: 30px; font-weight: 800;
+    margin: 0 0 4px;
+    letter-spacing: -0.5px;
+    background: linear-gradient(120deg,
+      #f0f3f8 0%, #f0f3f8 35%, #6ea8fe 45%,
+      #a371f7 55%, #ec4899 62%, #f0f3f8 72%, #f0f3f8 100%);
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: sweep 10s linear infinite;
+    line-height: 1.1;
   }
-  .display { font-size: 15px; opacity: 0.7;
-             margin: 0; }
+  .display { font-size: 15px; color: var(--text-1); margin: 0 0 8px; }
 
-  .badges {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-    flex-wrap: wrap;
-  }
+  .badges { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   .badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 5px 12px;
+    padding: 6px 14px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 700;
-    background: linear-gradient(135deg, #f59e0b, #ef4444);
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(245,158,11,0.4);
+    color: #fff;
+    background: linear-gradient(120deg,
+      #f59e0b 0%, #ef4444 40%, #f59e0b 60%, #ef4444 100%);
+    background-size: 200% 100%;
+    box-shadow: 0 4px 14px rgba(245,158,11,0.4);
+    animation: badgeShine 4s linear infinite;
+    position: relative;
+    overflow: hidden;
+  }
+  .badge::after {
+    content: "";
+    position: absolute;
+    top: 0; left: -50%;
+    width: 30%; height: 100%;
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(255,255,255,0.5),
+      transparent);
+    transform: skewX(-20deg);
+    animation: sweep 3s linear infinite;
   }
 
   .stats {
-    display: flex; gap: 24px; margin-top: 12px;
-    font-size: 14px; opacity: 0.85;
+    display: flex; gap: 20px;
+    margin-top: 14px;
+    font-size: 14px;
+    color: var(--text-1);
     flex-wrap: wrap;
   }
-  .stats span b { color: #fbbf24; font-weight: 800; }
+  .stats span {
+    padding: 8px 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .stats span:hover {
+    border-color: var(--border-2);
+    background: rgba(255,255,255,0.07);
+    transform: translateY(-1px);
+  }
+  .stats span b { color: var(--warning); font-weight: 800; font-size: 15px; }
 
   .follow-btn {
-    padding: 14px 28px;
-    border: 2px solid rgba(68,170,255,0.6);
-    border-radius: 10px;
-    background: #4af;
-    color: #ffffff;
+    padding: 14px 30px;
+    border: 2px solid rgba(110,168,254,0.6);
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6ea8fe, #a371f7);
+    color: #fff;
     font-weight: 800;
     font-size: 15px;
     cursor: pointer;
     align-self: center;
     margin-bottom: 8px;
-    transition: transform 0.15s, background 0.15s, box-shadow 0.15s, border-color 0.15s;
-    box-shadow: 0 4px 20px rgba(68,170,255,0.35);
+    transition: all 0.2s;
+    box-shadow: 0 8px 24px rgba(110,168,254,0.4);
+    font-family: inherit;
+    position: relative;
+    overflow: hidden;
+  }
+  .follow-btn::before {
+    content: "";
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg,
+      transparent, rgba(255,255,255,0.3), transparent);
+    animation: sweep 3s linear infinite;
   }
   .follow-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 28px rgba(68,170,255,0.55);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 12px 32px rgba(110,168,254,0.6);
   }
   .follow-btn.following {
-    background: transparent;
-    border-color: rgba(255,255,255,0.4);
-    color: #ffffff;
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.2);
+    color: var(--text-1);
     box-shadow: none;
   }
+  .follow-btn.following::before { display: none; }
   .follow-btn.following:hover {
     background: rgba(255,255,255,0.1);
-    box-shadow: none;
+    color: var(--text);
+    transform: translateY(-1px);
   }
 
   h2 {
-    font-size: 14px;
+    font-size: 12px;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    opacity: 0.6;
-    margin: 40px 0 16px;
-    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-2);
+    margin: 44px 0 18px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
   }
 
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
     gap: 18px;
-    padding-bottom: 60px;
+    padding-bottom: 40px;
   }
 
   .card {
-    background: linear-gradient(180deg,#15152a,#10101e);
-    border: 1px solid rgba(255,255,255,0.12);
+    background: linear-gradient(180deg, rgba(21,21,42,0.8), rgba(16,16,30,0.8));
+    border: 1px solid var(--border);
     border-radius: 14px;
     overflow: hidden;
-    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     text-decoration: none;
     color: inherit;
     display: block;
+    animation: fadeUp 0.5s ease backwards;
+    cursor: pointer;
+    position: relative;
   }
   .card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(68,170,255,0.6);
-    box-shadow: 0 8px 24px rgba(68,170,255,0.15);
+    transform: translateY(-6px);
+    border-color: rgba(110,168,254,0.6);
+    box-shadow: 0 16px 44px rgba(0,0,0,0.5), 0 0 40px rgba(110,168,254,0.15);
   }
-
-  .thumb { width: 100%; aspect-ratio: 4/3; display: block; }
+  .card .thumb {
+    width: 100%;
+    aspect-ratio: 4/3;
+    display: block;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .card:hover .thumb { transform: scale(1.06); }
+  .card .thumb-wrap { overflow: hidden; position: relative; }
 
   .info { padding: 12px 14px; }
   .info h3 {
     margin: 0 0 4px;
-    font-size: 15px;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .info p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-2);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -169,24 +457,147 @@
     grid-column: 1 / -1;
     text-align: center;
     padding: 80px 20px;
-    opacity: 0.5;
+    color: var(--text-2);
     font-size: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .empty::before {
+    content: "🎮";
+    font-size: 56px;
+    opacity: 0.5;
+    animation: cardFloat 3s ease-in-out infinite;
+  }
+  .empty a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 10px 20px;
+    background: rgba(110,168,254,0.1);
+    border: 1px solid rgba(110,168,254,0.3);
+    border-radius: 10px;
+    transition: all 0.2s;
+  }
+  .empty a:hover { background: rgba(110,168,254,0.2); }
+
+  footer {
+    margin-top: 40px;
+    padding: 30px 24px 40px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+  }
+  .footer-logo-wrap {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .footer-logo-wrap::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 16px;
+    background: conic-gradient(from 0deg,
+      #6ea8fe, #a371f7, #ec4899, #fbbf24, #4ade80, #6ea8fe);
+    animation: spin 7s linear infinite;
+    filter: blur(8px);
+    opacity: 0.7;
+    z-index: 0;
+  }
+  .footer-logo-wrap img {
+    position: relative;
+    z-index: 1;
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: var(--bg);
+    padding: 4px;
+  }
+  .footer-text {
+    font-size: 12.5px;
+    color: var(--text-2);
+    letter-spacing: 0.5px;
+  }
+  .footer-text strong {
+    color: var(--text-1);
+    font-weight: 700;
   }
 
-  @media (max-width: 600px) {
-    .profile-head { align-items: flex-start; }
-    .follow-btn { width: 100%; margin-bottom: 0; }
+  @media (max-width: 750px) {
+    header { padding: 12px 16px; gap: 12px; }
+    .brand-logo { width: 36px; height: 36px; }
+    .brand-logo img { width: 32px; height: 32px; }
+    .brand-name { font-size: 14px; letter-spacing: 1.4px; }
+    .brand-sub { font-size: 8.5px; letter-spacing: 2px; }
+    .nav-links a { padding: 7px 10px; font-size: 12px; }
+
+    .banner { height: 150px; }
+    .container { padding: 0 16px; }
+    .profile-head {
+      margin-top: -55px;
+      gap: 18px;
+      margin-bottom: 30px;
+      align-items: flex-start;
+    }
+    .avatar-wrap { width: 110px; height: 110px; }
+    .avatar { width: 110px; height: 110px; }
     .username { font-size: 22px; }
+    .display { font-size: 13.5px; }
+    .follow-btn { width: 100%; margin-bottom: 0; }
+    .stats span { padding: 7px 12px; font-size: 12.5px; }
+    .stats span b { font-size: 13.5px; }
+
+    h2 { margin: 30px 0 14px; font-size: 11px; }
+    .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .info { padding: 10px 12px; }
+    .info h3 { font-size: 13px; }
+    .info p { font-size: 11px; }
+
+    footer { padding: 24px 16px 30px; }
+    .footer-logo-wrap { width: 44px; height: 44px; }
+    .footer-logo-wrap img { width: 38px; height: 38px; }
   }
 </style>
 </head>
 <body>
+<div class="app">
+
+<header>
+  <div class="brand-block">
+    <div class="brand-logo">
+      <img src="/editor/logo.png" alt="Limn" />
+    </div>
+    <div class="brand-text">
+      <div class="brand-name">LIMN ARCADE</div>
+      <div class="brand-sub">PLAY · CREATE · SHARE</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="/arcade/">🏠 Arcade</a>
+    <a href="/my-games.html">📁 My Games</a>
+    <a href="/arcade/leaderboard.html">🏆 Leaderboard</a>
+    <a href="/editor/">+ New</a>
+  </div>
+</header>
 
 <div class="banner"></div>
 
 <div class="container">
   <div class="profile-head">
-    <img class="avatar" id="avatar" src="https://via.placeholder.com/110" alt="">
+    <div class="avatar-wrap">
+      <div class="avatar-ring"></div>
+      <div class="avatar-ring-2"></div>
+      <img class="avatar" id="avatar" src="https://via.placeholder.com/140" alt="">
+    </div>
     <div class="profile-info">
       <h1 class="username" id="username">Loading...</h1>
       <p class="display" id="display"></p>
@@ -204,6 +615,15 @@
   <div class="grid" id="grid"><div class="empty">Loading...</div></div>
 </div>
 
+<footer>
+  <div class="footer-logo-wrap">
+    <img src="/editor/logo.png" alt="Limn" />
+  </div>
+  <div class="footer-text">Powered by <strong>LIMN</strong></div>
+</footer>
+
+</div>
+
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
@@ -219,10 +639,13 @@ const gridEl = document.getElementById('grid');
 const followBtn = document.getElementById('followBtn');
 const badgesEl = document.getElementById('badges');
 
-if (!username) {
-  document.getElementById('username').textContent = 'No user specified.';
-  gridEl.innerHTML = '';
-} else {
+async function run() {
+  if (!username) {
+    document.getElementById('username').textContent = 'No user specified.';
+    gridEl.innerHTML = '';
+    return;
+  }
+
   document.title = '@' + username + ' — Arcade';
 
   const { data: profile, error: profileErr } = await supabase
@@ -234,124 +657,341 @@ if (!username) {
   if (profileErr || !profile) {
     document.getElementById('username').textContent = 'User not found.';
     gridEl.innerHTML = '';
-  } else {
-    document.getElementById('username').textContent = '@' + profile.username;
-    document.getElementById('display').textContent = profile.display_name || '';
-    if (profile.avatar_url) {
-      document.getElementById('avatar').src = profile.avatar_url;
-    }
+    return;
+  }
 
-    const { data: games } = await supabase
-      .from('games')
-      .select('id, slug, title, config')
-      .eq('author_id', profile.user_id)
-      .order('created_at', { ascending: false });
+  document.getElementById('username').textContent = '@' + profile.username;
+  document.getElementById('display').textContent = profile.display_name || '';
+  if (profile.avatar_url) {
+    document.getElementById('avatar').src = profile.avatar_url;
+  }
 
-    const gameList = games || [];
-    document.getElementById('gameCount').textContent = gameList.length;
+  const { data: games } = await supabase
+    .from('games')
+    .select('id, slug, title, description, config')
+    .eq('author_id', profile.user_id)
+    .order('created_at', { ascending: false });
 
-    if (gameList.length > 0) {
-      const gameIds = gameList.map(g => g.id);
-      const { count: likeTotal } = await supabase
-        .from('likes')
-        .select('*', { count: 'exact', head: true })
-        .in('game_id', gameIds);
-      document.getElementById('likeCount').textContent = likeTotal || 0;
-    }
+  const gameList = games || [];
+  document.getElementById('gameCount').textContent = gameList.length;
 
-    const { count: followerTotal } = await supabase
-      .from('follows')
+  if (gameList.length > 0) {
+    const gameIds = gameList.map(g => g.id);
+    const { count: likeTotal } = await supabase
+      .from('likes')
       .select('*', { count: 'exact', head: true })
-      .eq('creator_id', profile.user_id);
-    document.getElementById('followerCount').textContent = followerTotal || 0;
+      .in('game_id', gameIds);
+    document.getElementById('likeCount').textContent = likeTotal || 0;
+  }
 
-    // Badge support (optional — will show if weekly_winners table exists)
-    try {
-      const { data: wins } = await supabase
-        .from('weekly_winners')
-        .select('week_start')
-        .eq('user_id', profile.user_id)
-        .order('week_start', { ascending: false })
-        .limit(3);
+  const { count: followerTotal } = await supabase
+    .from('follows')
+    .select('*', { count: 'exact', head: true })
+    .eq('creator_id', profile.user_id);
+  document.getElementById('followerCount').textContent = followerTotal || 0;
 
-      if (wins && wins.length > 0) {
-        badgesEl.innerHTML = wins.map(w => {
-          const d = new Date(w.week_start);
-          const label = d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
-          return '<span class="badge">🏆 Won week of ' + label + '</span>';
-        }).join('');
-      }
-    } catch (e) {
-      // weekly_winners table doesn't exist yet — skip silently
+  try {
+    const { data: wins } = await supabase
+      .from('weekly_winners')
+      .select('week_start')
+      .eq('user_id', profile.user_id)
+      .order('week_start', { ascending: false })
+      .limit(3);
+
+    if (wins && wins.length > 0) {
+      badgesEl.innerHTML = wins.map(w => {
+        const d = new Date(w.week_start);
+        const label = d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+        return '<span class="badge">🏆 Won week of ' + label + '</span>';
+      }).join('');
+    }
+  } catch (e) {}
+
+  if (gameList.length === 0) {
+    gridEl.innerHTML =
+      '<div class="empty">No games yet.<a href="/editor/">Create one →</a></div>';
+  } else {
+    gridEl.innerHTML = '';
+    gameList.forEach((g, i) => {
+      const a = document.createElement('a');
+      a.className = 'card';
+      a.style.animationDelay = (i * 0.05) + 's';
+      a.href = '/arcade/game.html?slug=' + encodeURIComponent(g.slug);
+      const desc = (g.description || '').trim();
+      a.innerHTML =
+        '<div class="thumb-wrap">' + thumbSVG(g) + '</div>' +
+        '<div class="info">' +
+          '<h3>' + esc(g.title) + '</h3>' +
+          '<p>' + (desc ? esc(desc) : 'No description') + '</p>' +
+        '</div>';
+      gridEl.appendChild(a);
+    });
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (user && user.id !== profile.user_id) {
+    followBtn.style.display = 'inline-block';
+
+    const { data: existing } = await supabase
+      .from('follows')
+      .select('follower_id')
+      .eq('follower_id', user.id)
+      .eq('creator_id', profile.user_id)
+      .maybeSingle();
+
+    if (existing) {
+      followBtn.textContent = '✓ Following';
+      followBtn.classList.add('following');
     }
 
-    if (gameList.length === 0) {
-      gridEl.innerHTML = '<div class="empty">No games yet.</div>';
-    } else {
-      gridEl.innerHTML = '';
-      for (const g of gameList) {
-        const a = document.createElement('a');
-        a.className = 'card';
-        a.href = '/arcade/game.html?slug=' + encodeURIComponent(g.slug);
-        a.innerHTML = thumbSVG(g.config) +
-          '<div class="info"><h3>' + esc(g.title) + '</h3></div>';
-        gridEl.appendChild(a);
-      }
-    }
-
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (user && user.id !== profile.user_id) {
-      followBtn.style.display = 'inline-block';
-
-      const { data: existing } = await supabase
-        .from('follows')
-        .select('follower_id')
-        .eq('follower_id', user.id)
-        .eq('creator_id', profile.user_id)
-        .maybeSingle();
-
+    followBtn.onclick = async () => {
       if (existing) {
-        followBtn.textContent = '✓ Following';
-        followBtn.classList.add('following');
+        await supabase.from('follows').delete()
+          .eq('follower_id', user.id)
+          .eq('creator_id', profile.user_id);
+      } else {
+        await supabase.from('follows').insert({
+          follower_id: user.id,
+          creator_id: profile.user_id
+        });
       }
-
-      followBtn.onclick = async () => {
-        if (existing) {
-          await supabase.from('follows').delete()
-            .eq('follower_id', user.id)
-            .eq('creator_id', profile.user_id);
-          location.reload();
-        } else {
-          await supabase.from('follows').insert({
-            follower_id: user.id,
-            creator_id: profile.user_id
-          });
-          location.reload();
-        }
-      };
-    }
+      location.reload();
+    };
   }
 }
 
-function thumbSVG(config) {
-  const w = 300, h = 225;
-  const world = (config && config.world) || { w: 800, h: 600, bg: '#0d0d2a' };
-  const slots = (config && config.slots) || [];
-  const sx = w / world.w, sy = h / world.h;
-  let rects = '';
-  for (const s of slots) {
-    rects += '<rect x="' + (s.x*sx) + '" y="' + (s.y*sy) +
-             '" width="' + (s.w*sx) + '" height="' + (s.h*sy) +
-             '" fill="' + (s.color||'#4af') + '" />';
+function hashString(str) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
   }
-  if (!rects) {
-    rects = '<text x="' + (w/2) + '" y="' + (h/2) +
-            '" text-anchor="middle" fill="#4af" font-size="40">▶</text>';
+  return h >>> 0;
+}
+
+function detectTemplate(game) {
+  const cfg = game.config || {};
+  const title = (game.title || '').toLowerCase();
+  const hasSlots = cfg.slots && cfg.slots.length > 0;
+
+  if (hasSlots) {
+    const n = cfg.slots.length;
+    if (n >= 6) return 'dressup';
+    if (n >= 2 && n <= 6) {
+      if (title.includes('snake')) return 'snake';
+      if (title.includes('shoot') || title.includes('star')) return 'shooter';
+      if (title.includes('plat') || title.includes('jump')) return 'platformer';
+      if (title.includes('run')) return 'runner';
+      if (title.includes('break') || title.includes('brick')) return 'breakout';
+      if (title.includes('flap')) return 'flappy';
+      if (title.includes('catch')) return 'catch';
+      if (title.includes('dodge')) return 'dodge';
+      if (title.includes('tank')) return 'tank';
+      if (title.includes('dungeon')) return 'dungeon';
+      if (title.includes('soccer') || title.includes('football')) return 'soccer';
+      if (title.includes('race') || title.includes('car')) return 'race';
+      if (title.includes('asteroid')) return 'asteroids';
+      if (title.includes('click')) return 'clicker';
+      return 'platformer';
+    }
   }
-  return '<svg class="thumb" viewBox="0 0 ' + w + ' ' + h +
-    '" preserveAspectRatio="xMidYMid slice" style="background:' +
-    (world.bg||'#0d0d2a') + '">' + rects + '</svg>';
+  return 'custom';
+}
+
+function thumbSVG(game) {
+  const w = 300;
+  const h = 225;
+  const cfg = game.config || {};
+  const world = cfg.world || { w: 800, h: 600, bg: '#0d0d2a' };
+  const hash = hashString(String(game.id || game.slug || game.title || Math.random()));
+  const bg = world.bg || '#0d0d2a';
+  const type = detectTemplate(game);
+
+  const palettes = {
+    platformer: ['#4f8', '#fd3', '#4af', '#1a2a1a'],
+    runner: ['#4af', '#f44', '#333', '#1a1a3a'],
+    shooter: ['#050510', '#4af', '#fd3', '#f44'],
+    clicker: ['#0d0d2a', '#4af', '#fd3', '#a371f7'],
+    breakout: ['#0d0d2a', '#4af', '#ffffff', '#ec4899'],
+    flappy: ['#fd3', '#4f8', '#4af', '#0d0d2a'],
+    snake: ['#0d0d2a', '#4f8', '#7fffb2', '#f44'],
+    catch: ['#0d0d2a', '#4af', '#4f8', '#f44'],
+    dodge: ['#0d0d2a', '#4af', '#f44', '#a371f7'],
+    tank: ['#0d0d2a', '#4af', '#f44', '#555'],
+    dungeon: ['#1a1020', '#4af', '#f44', '#fd3'],
+    soccer: ['#0a3d0a', '#4af', '#f44', '#ffffff'],
+    race: ['#1a4a1a', '#4af', '#f44', '#333'],
+    asteroids: ['#000', '#4af', '#888', '#fd3'],
+    dressup: ['#0d0d2a', '#4af', '#fd3', '#f44'],
+    custom: ['#6ea8fe', '#a371f7', '#ec4899', '#fbbf24']
+  };
+  const p = palettes[type] || palettes.custom;
+  const uid = 'g' + hash.toString(36);
+
+  return '<svg class="thumb" viewBox="0 0 ' + w + ' ' + h + '" ' +
+    'preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">' +
+    '<defs>' +
+      '<linearGradient id="sky' + uid + '" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0%" stop-color="' + p[0] + '" stop-opacity="0.9"/>' +
+        '<stop offset="100%" stop-color="' + bg + '"/>' +
+      '</linearGradient>' +
+      '<radialGradient id="glow' + uid + '" cx="50%" cy="50%" r="70%">' +
+        '<stop offset="0%" stop-color="' + p[1] + '" stop-opacity="0.5"/>' +
+        '<stop offset="100%" stop-color="' + p[1] + '" stop-opacity="0"/>' +
+      '</radialGradient>' +
+    '</defs>' +
+    '<rect width="' + w + '" height="' + h + '" fill="url(#sky' + uid + ')"/>' +
+    '<rect width="' + w + '" height="' + h + '" fill="url(#glow' + uid + ')"/>' +
+    renderScene(type, w, h, p, hash) +
+    '</svg>';
+}
+
+function renderScene(type, w, h, p, hash) {
+  const h2 = hashString(type + hash);
+  const c1 = p[1], c2 = p[2], c3 = p[3];
+  let art = '';
+
+  if (type === 'platformer') {
+    const groundY = h * 0.8;
+    art += '<rect x="0" y="' + groundY + '" width="' + w + '" height="' + (h - groundY) + '" fill="' + c3 + '"/>';
+    art += '<rect x="' + (w * 0.55) + '" y="' + (groundY - 30) + '" width="60" height="12" fill="' + c3 + '"/>';
+    art += '<rect x="' + (w * 0.15) + '" y="' + (groundY - 60) + '" width="50" height="12" fill="' + c3 + '"/>';
+    const px = w * 0.3 + (h2 % 40);
+    art += '<rect x="' + px + '" y="' + (groundY - 26) + '" width="18" height="22" fill="' + c1 + '" rx="2"/>';
+    art += '<rect x="' + (px + 5) + '" y="' + (groundY - 32) + '" width="8" height="8" fill="#fdd" rx="1"/>';
+    [[0.6, 0.35], [0.72, 0.28], [0.85, 0.35]].forEach(([cx, cy]) => {
+      art += '<circle cx="' + (w * cx) + '" cy="' + (h * cy) + '" r="6" fill="' + c2 + '"/>';
+      art += '<circle cx="' + (w * cx) + '" cy="' + (h * cy) + '" r="3" fill="#fff" opacity="0.6"/>';
+    });
+  } else if (type === 'runner') {
+    art += '<rect x="0" y="' + (h * 0.85) + '" width="' + w + '" height="' + (h * 0.15) + '" fill="' + c2 + '"/>';
+    for (let i = 0; i < 6; i++) {
+      art += '<rect x="' + (i * 55) + '" y="' + (h * 0.5) + '" width="40" height="20" fill="' + c1 + '" opacity="' + (0.3 + i * 0.1) + '"/>';
+    }
+    art += '<rect x="' + (w * 0.25) + '" y="' + (h * 0.72) + '" width="20" height="24" fill="' + c1 + '" rx="2"/>';
+    art += '<rect x="' + (w * 0.7) + '" y="' + (h * 0.68) + '" width="24" height="32" fill="' + c2 + '" rx="2"/>';
+  } else if (type === 'shooter') {
+    for (let i = 0; i < 30; i++) {
+      const sx = (hashString('s' + i + hash) % w);
+      const sy = (hashString('y' + i + hash) % h);
+      const sr = 1 + (hashString('r' + i) % 2);
+      art += '<circle cx="' + sx + '" cy="' + sy + '" r="' + sr + '" fill="#fff" opacity="0.7"/>';
+    }
+    art += '<rect x="' + (w * 0.45) + '" y="' + (h * 0.75) + '" width="30" height="30" fill="' + c1 + '" rx="3"/>';
+    art += '<rect x="' + (w * 0.5) + '" y="' + (h * 0.55) + '" width="6" height="18" fill="' + c2 + '"/>';
+    art += '<rect x="' + (w * 0.25) + '" y="' + (h * 0.25) + '" width="26" height="26" fill="' + c3 + '" rx="3"/>';
+    art += '<rect x="' + (w * 0.7) + '" y="' + (h * 0.2) + '" width="26" height="26" fill="' + c3 + '" rx="3"/>';
+  } else if (type === 'snake') {
+    const cell = 24;
+    for (let i = 0; i < w / cell; i++) {
+      for (let j = 0; j < h / cell; j++) {
+        art += '<rect x="' + (i * cell) + '" y="' + (j * cell) + '" width="' + (cell - 1) + '" height="' + (cell - 1) + '" fill="#0d0d2a" opacity="0.3"/>';
+      }
+    }
+    const path = [[3, 8], [4, 8], [5, 8], [5, 7], [5, 6], [6, 6], [7, 6], [7, 5]];
+    path.forEach((seg, i) => {
+      art += '<rect x="' + (seg[0] * cell + 1) + '" y="' + (seg[1] * cell + 1) + '" width="' + (cell - 2) + '" height="' + (cell - 2) + '" fill="' + (i === 0 ? c2 : c1) + '" rx="3"/>';
+    });
+    art += '<circle cx="' + (10 * cell + cell / 2) + '" cy="' + (6 * cell + cell / 2) + '" r="6" fill="' + c3 + '"/>';
+  } else if (type === 'breakout') {
+    const bw = 30, bh = 10, rows = 4, cols = Math.floor(w / bw) - 1;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        art += '<rect x="' + (15 + c * bw) + '" y="' + (30 + r * (bh + 4)) + '" width="' + (bw - 4) + '" height="' + bh + '" fill="' + (r < 2 ? c3 : c1) + '" rx="2"/>';
+      }
+    }
+    art += '<rect x="' + (w * 0.4) + '" y="' + (h - 30) + '" width="60" height="10" fill="' + c1 + '" rx="5"/>';
+    art += '<circle cx="' + (w * 0.5) + '" cy="' + (h - 55) + '" r="7" fill="#fff"/>';
+  } else if (type === 'flappy') {
+    art += '<rect x="' + (w * 0.4) + '" y="0" width="40" height="' + (h * 0.35) + '" fill="' + c2 + '" rx="4"/>';
+    art += '<rect x="' + (w * 0.4) + '" y="' + (h * 0.6) + '" width="40" height="' + (h * 0.4) + '" fill="' + c2 + '" rx="4"/>';
+    art += '<circle cx="' + (w * 0.25) + '" cy="' + (h * 0.45) + '" r="14" fill="' + c1 + '"/>';
+    art += '<circle cx="' + (w * 0.22) + '" cy="' + (h * 0.42) + '" r="4" fill="#fff"/>';
+    art += '<circle cx="' + (w * 0.22) + '" cy="' + (h * 0.42) + '" r="2" fill="#000"/>';
+  } else if (type === 'catch') {
+    art += '<rect x="' + (w * 0.35) + '" y="' + (h - 40) + '" width="80" height="20" fill="' + c1 + '" rx="4"/>';
+    [[0.3, 0.2], [0.5, 0.35], [0.7, 0.25], [0.4, 0.5]].forEach(([fx, fy]) => {
+      art += '<circle cx="' + (w * fx) + '" cy="' + (h * fy) + '" r="10" fill="' + c2 + '"/>';
+    });
+    art += '<circle cx="' + (w * 0.65) + '" cy="' + (h * 0.55) + '" r="10" fill="' + c3 + '"/>';
+  } else if (type === 'dodge') {
+    art += '<circle cx="' + (w * 0.5) + '" cy="' + (h * 0.5) + '" r="14" fill="' + c1 + '"/>';
+    [[0.15, 0.2], [0.85, 0.3], [0.3, 0.75], [0.75, 0.8], [0.5, 0.15]].forEach(([bx, by]) => {
+      art += '<rect x="' + (w * bx - 12) + '" y="' + (h * by - 12) + '" width="24" height="24" fill="' + c2 + '" rx="3"/>';
+    });
+  } else if (type === 'tank') {
+    art += '<rect x="0" y="' + (h * 0.7) + '" width="' + w + '" height="' + (h * 0.3) + '" fill="#1a1a2a"/>';
+    art += '<rect x="' + (w * 0.2) + '" y="' + (h * 0.3) + '" width="30" height="80" fill="' + c3 + '" rx="3"/>';
+    art += '<rect x="' + (w * 0.7) + '" y="' + (h * 0.3) + '" width="30" height="80" fill="' + c3 + '" rx="3"/>';
+    art += '<rect x="' + (w * 0.42) + '" y="' + (h * 0.75) + '" width="40" height="30" fill="' + c1 + '" rx="4"/>';
+    art += '<rect x="' + (w * 0.48) + '" y="' + (h * 0.6) + '" width="10" height="20" fill="' + c1 + '"/>';
+  } else if (type === 'dungeon') {
+    art += '<rect x="0" y="0" width="' + w + '" height="' + h + '" fill="#1a1020"/>';
+    for (let i = 0; i < 4; i++) {
+      art += '<rect x="' + (i * 70 + 20) + '" y="' + (h - 40) + '" width="60" height="40" fill="#3a2a4a"/>';
+    }
+    art += '<rect x="' + (w * 0.15) + '" y="' + (h * 0.3) + '" width="30" height="30" fill="' + c1 + '" rx="4"/>';
+    art += '<rect x="' + (w * 0.5) + '" y="' + (h * 0.4) + '" width="26" height="26" fill="' + c3 + '" rx="3"/>';
+    art += '<circle cx="' + (w * 0.75) + '" cy="' + (h * 0.35) + '" r="8" fill="' + c4 + '"/>';
+  } else if (type === 'soccer') {
+    art += '<rect x="0" y="0" width="' + w + '" height="' + h + '" fill="#0a3d0a"/>';
+    art += '<rect x="' + (w / 2 - 1) + '" y="0" width="2" height="' + h + '" fill="#fff" opacity="0.6"/>';
+    art += '<circle cx="' + (w / 2) + '" cy="' + (h / 2) + '" r="30" fill="none" stroke="#fff" stroke-width="2" opacity="0.6"/>';
+    art += '<rect x="20" y="' + (h / 2 - 40) + '" width="10" height="80" fill="' + c1 + '" rx="4"/>';
+    art += '<rect x="' + (w - 30) + '" y="' + (h / 2 - 40) + '" width="10" height="80" fill="' + c2 + '" rx="4"/>';
+    art += '<circle cx="' + (w * 0.6) + '" cy="' + (h * 0.5) + '" r="10" fill="#fff"/>';
+  } else if (type === 'race') {
+    art += '<rect x="' + (w * 0.15) + '" y="0" width="' + (w * 0.7) + '" height="' + h + '" fill="#333"/>';
+    for (let i = 0; i < 8; i++) {
+      art += '<rect x="' + (w / 2 - 3) + '" y="' + (i * 30) + '" width="6" height="15" fill="#fff"/>';
+    }
+    art += '<rect x="' + (w * 0.3) + '" y="' + (h * 0.75) + '" width="40" height="30" fill="' + c1 + '" rx="4"/>';
+    art += '<rect x="' + (w * 0.6) + '" y="' + (h * 0.25) + '" width="40" height="30" fill="' + c2 + '" rx="4"/>';
+  } else if (type === 'asteroids') {
+    for (let i = 0; i < 40; i++) {
+      const sx = (hashString('a' + i + hash) % w);
+      const sy = (hashString('b' + i + hash) % h);
+      art += '<circle cx="' + sx + '" cy="' + sy + '" r="1.5" fill="#fff"/>';
+    }
+    art += '<circle cx="' + (w * 0.3) + '" cy="' + (h * 0.35) + '" r="20" fill="' + c2 + '" opacity="0.9"/>';
+    art += '<circle cx="' + (w * 0.7) + '" cy="' + (h * 0.6) + '" r="16" fill="' + c2 + '" opacity="0.9"/>';
+    art += '<polygon points="' + (w * 0.5) + ',' + (h * 0.7) + ' ' + (w * 0.5 - 12) + ',' + (h * 0.85) + ' ' + (w * 0.5 + 12) + ',' + (h * 0.85) + '" fill="' + c1 + '"/>';
+  } else if (type === 'clicker') {
+    art += '<rect x="' + (w / 2 - 30) + '" y="' + (h / 2 - 30) + '" width="60" height="60" fill="' + c1 + '" rx="8"/>';
+    art += '<circle cx="' + (w / 2) + '" cy="' + (h / 2) + '" r="15" fill="' + c2 + '" opacity="0.7"/>';
+    art += '<text x="' + (w / 2) + '" y="' + (h / 2 + 6) + '" text-anchor="middle" font-size="20" fill="#fff">👆</text>';
+  } else if (type === 'dressup') {
+    art += '<rect x="' + (w / 2 - 20) + '" y="30" width="40" height="20" fill="' + c1 + '" rx="4"/>';
+    art += '<circle cx="' + (w / 2) + '" cy="70" r="20" fill="' + c2 + '"/>';
+    art += '<rect x="' + (w / 2 - 25) + '" y="95" width="50" height="55" fill="' + c3 + '" rx="6"/>';
+    art += '<rect x="' + (w / 2 - 22) + '" y="155" width="20" height="30" fill="' + c2 + '" rx="4"/>';
+    art += '<rect x="' + (w / 2 + 2) + '" y="155" width="20" height="30" fill="' + c2 + '" rx="4"/>';
+  } else {
+    const shapeStyle = hash % 4;
+    if (shapeStyle === 0) {
+      for (let i = 0; i < 5; i++) {
+        art += '<circle cx="' + (w / 2) + '" cy="' + (h / 2) + '" r="' + (20 + i * 18) + '" fill="none" stroke="' + c1 + '" stroke-width="2" opacity="' + (0.8 - i * 0.13) + '"/>';
+      }
+      art += '<circle cx="' + (w / 2) + '" cy="' + (h / 2) + '" r="18" fill="' + c2 + '"/>';
+    } else if (shapeStyle === 1) {
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2;
+        const x = w / 2 + Math.cos(a) * 70;
+        const y = h / 2 + Math.sin(a) * 60;
+        art += '<polygon points="' + x + ',' + (y - 30) + ' ' + (x + 30) + ',' + (y + 25) + ' ' + (x - 30) + ',' + (y + 25) + '" fill="' + (i % 2 ? c1 : c2) + '" opacity="0.85"/>';
+      }
+    } else if (shapeStyle === 2) {
+      for (let i = 0; i < 3; i++) {
+        const r = 40 + i * 30;
+        art += '<rect x="' + (w / 2 - r) + '" y="' + (h / 2 - r * 0.6) + '" width="' + (r * 2) + '" height="' + (r * 1.2) + '" fill="' + (i % 2 ? c1 : c2) + '" opacity="' + (0.5 + i * 0.15) + '" rx="12" transform="rotate(' + (i * 20) + ' ' + (w / 2) + ' ' + (h / 2) + ')"/>';
+      }
+    } else {
+      art += '<path d="M ' + (w * 0.2) + ' ' + (h * 0.7) + ' Q ' + (w * 0.5) + ' ' + (h * 0.1) + ' ' + (w * 0.8) + ' ' + (h * 0.7) + ' Z" fill="' + c1 + '" opacity="0.85"/>';
+      art += '<path d="M ' + (w * 0.35) + ' ' + (h * 0.8) + ' Q ' + (w * 0.5) + ' ' + (h * 0.4) + ' ' + (w * 0.65) + ' ' + (h * 0.8) + ' Z" fill="' + c2 + '" opacity="0.9"/>';
+    }
+  }
+  return art;
 }
 
 function esc(s) {
@@ -359,7 +999,9 @@ function esc(s) {
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   })[c]);
 }
+
+run();
 </script>
 
 </body>
- </html>
+</html>
