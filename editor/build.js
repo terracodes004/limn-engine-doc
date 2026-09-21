@@ -3,11 +3,10 @@
     var buildPanel = document.getElementById('buildPanel');
     var codeSection = document.getElementById('codeSection');
     var fieldsEl = document.getElementById('templateFields');
-    var select = document.getElementById('templateSelect');
     var textarea = document.getElementById('js');
     var resetBtn = document.getElementById('buildReset');
 
-    if (!buildPanel || !fieldsEl || !select || !textarea) return;
+    if (!buildPanel || !fieldsEl || !textarea) return;
 
     var lastGenerated = '';
 
@@ -17,8 +16,12 @@
                 || params.get('id');
     var skipNextRegenerate = isForkOrEdit;
 
+    function templateName() {
+      return window.__templateSelectValue || 'dressup';
+    }
+
     function currentTemplate() {
-      return window.LimnTemplates[select.value];
+      return window.LimnTemplates[templateName()];
     }
 
     function readFields() {
@@ -75,7 +78,13 @@
       regenerate();
     }
 
-    select.addEventListener('change', renderFields);
+    window.__regenerateBuild = function () {
+      renderFields();
+    };
+
+    window.addEventListener('templatechange', function () {
+      renderFields();
+    });
 
     if (resetBtn) {
       resetBtn.addEventListener('click', regenerate);
@@ -94,10 +103,7 @@
         buildPanel.style.display = which === 'build' ? 'grid' : 'none';
         codeSection.style.display = which === 'code' ? 'block' : 'none';
 
-        var promptPanel = document.getElementById('promptPanel');
-        if (promptPanel) {
-          promptPanel.style.display = which === 'prompt' ? 'grid' : 'none';
-        }
+        if (which === 'code' && window.__renderCode) window.__renderCode();
       });
     }
 
