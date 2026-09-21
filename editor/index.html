@@ -282,23 +282,12 @@
             letter-spacing: 0.6px;
             font-weight: 600;
         }
-        .select-wrap {
+
+        .custom-select {
             position: relative;
             width: 100%;
         }
-        .select-wrap::after {
-            content: "";
-            position: absolute;
-            right: 14px; top: 50%;
-            width: 8px; height: 8px;
-            border-right: 2px solid var(--text-1);
-            border-bottom: 2px solid var(--text-1);
-            transform: translateY(-70%) rotate(45deg);
-            pointer-events: none;
-        }
-        .build-field select {
-            appearance: none;
-            -webkit-appearance: none;
+        .custom-select-trigger {
             width: 100%;
             padding: 12px 40px 12px 14px;
             background: linear-gradient(180deg, #171c27, var(--bg-0));
@@ -309,14 +298,62 @@
             font-family: inherit;
             font-weight: 500;
             cursor: pointer;
-            transition: border-color 0.15s, box-shadow 0.15s;
+            text-align: left;
+            position: relative;
+            display: block;
         }
-        .build-field select:hover { border-color: #3d4557; }
-        .build-field select:focus {
-            outline: none;
+        .custom-select-trigger:hover { border-color: #3d4557; }
+        .custom-select-trigger::after {
+            content: "";
+            position: absolute;
+            right: 14px; top: 50%;
+            width: 8px; height: 8px;
+            border-right: 2px solid var(--text-1);
+            border-bottom: 2px solid var(--text-1);
+            transform: translateY(-70%) rotate(45deg);
+        }
+        .custom-select.open .custom-select-trigger {
             border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(110,168,254,0.15);
         }
+        .custom-select-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: var(--bg-2);
+            border: 1px solid var(--border-2);
+            border-radius: 10px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+            padding: 6px;
+            z-index: 500;
+            max-height: 320px;
+            overflow-y: auto;
+            display: none;
+        }
+        .custom-select.open .custom-select-menu { display: block; }
+        .custom-select-option {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            background: none;
+            border: none;
+            color: var(--text-0);
+            text-align: left;
+            font-size: 13.5px;
+            font-family: inherit;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .custom-select-option:hover,
+        .custom-select-option.focused {
+            background: var(--bg-3);
+        }
+        .custom-select-option.selected {
+            background: rgba(110,168,254,0.15);
+            color: #fff;
+        }
+
         .build-field input,
         .build-field textarea {
             width: 100%;
@@ -507,15 +544,13 @@
         .code-input {
             z-index: 2;
             background: transparent;
-            color: transparent;
+            color: #e6edf3;
             caret-color: var(--accent);
             resize: none;
             outline: none;
-            -webkit-text-fill-color: transparent;
         }
         .code-input::selection {
             background: rgba(110,168,254,0.35);
-            -webkit-text-fill-color: transparent;
         }
 
         .tok-keyword   { color: #ff7b72; font-weight: 500; }
@@ -634,24 +669,27 @@
 
                     <div class="build-field">
                         <label>Choose a game</label>
-                        <div class="select-wrap">
-                            <select id="templateSelect">
-                                <option value="dressup">🎀 Dress-Up</option>
-                                <option value="platformer">🏃 Platformer</option>
-                                <option value="runner">💨 Runner</option>
-                                <option value="shooter">🔫 Shooter</option>
-                                <option value="clicker">👆 Clicker</option>
-                                <option value="breakout">🧱 Breakout</option>
-                                <option value="flappy">🐤 Flappy</option>
-                                <option value="snake">🐍 Snake</option>
-                                <option value="catch">🧺 Catch</option>
-                                <option value="dodge">🌀 Dodge</option>
-                                <option value="tank">💥 Tank Battle</option>
-                                <option value="dungeon">🗡️ Dungeon Crawler</option>
-                                <option value="soccer">⚽ Soccer</option>
-                                <option value="race">🏎️ Car Race</option>
-                                <option value="asteroids">☄️ Asteroids</option>
-                            </select>
+                        <div class="custom-select" id="templateSelect">
+                            <button type="button" class="custom-select-trigger" id="templateSelectTrigger">
+                                <span id="templateSelectLabel">🎀 Dress-Up</span>
+                            </button>
+                            <div class="custom-select-menu" id="templateSelectMenu">
+                                <button type="button" class="custom-select-option selected" data-value="dressup">🎀 Dress-Up</button>
+                                <button type="button" class="custom-select-option" data-value="platformer">🏃 Platformer</button>
+                                <button type="button" class="custom-select-option" data-value="runner">💨 Runner</button>
+                                <button type="button" class="custom-select-option" data-value="shooter">🔫 Shooter</button>
+                                <button type="button" class="custom-select-option" data-value="clicker">👆 Clicker</button>
+                                <button type="button" class="custom-select-option" data-value="breakout">🧱 Breakout</button>
+                                <button type="button" class="custom-select-option" data-value="flappy">🐤 Flappy</button>
+                                <button type="button" class="custom-select-option" data-value="snake">🐍 Snake</button>
+                                <button type="button" class="custom-select-option" data-value="catch">🧺 Catch</button>
+                                <button type="button" class="custom-select-option" data-value="dodge">🌀 Dodge</button>
+                                <button type="button" class="custom-select-option" data-value="tank">💥 Tank Battle</button>
+                                <button type="button" class="custom-select-option" data-value="dungeon">🗡️ Dungeon Crawler</button>
+                                <button type="button" class="custom-select-option" data-value="soccer">⚽ Soccer</button>
+                                <button type="button" class="custom-select-option" data-value="race">🏎️ Car Race</button>
+                                <button type="button" class="custom-select-option" data-value="asteroids">☄️ Asteroids</button>
+                            </div>
                         </div>
                     </div>
 
@@ -758,7 +796,62 @@ function update(dt) {
     <script src="jquery-3.7.1.min.js"></script>
     <script src="function.js"></script>
     <script src="templates.js"></script>
+
+    <script>
+    window.__templateSelectValue = "dressup";
+    (function () {
+        var root = document.getElementById('templateSelect');
+        var trigger = document.getElementById('templateSelectTrigger');
+        var label = document.getElementById('templateSelectLabel');
+        var menu = document.getElementById('templateSelectMenu');
+        if (!root || !trigger || !menu) return;
+
+        function close() { root.classList.remove('open'); }
+
+        function open() { root.classList.add('open'); }
+
+        function pick(btn) {
+            var val = btn.dataset.value;
+            window.__templateSelectValue = val;
+            label.textContent = btn.textContent;
+            var opts = menu.querySelectorAll('.custom-select-option');
+            for (var i = 0; i < opts.length; i++) opts[i].classList.remove('selected');
+            btn.classList.add('selected');
+            close();
+            window.dispatchEvent(new CustomEvent('templatechange', { detail: { value: val } }));
+        }
+
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (root.classList.contains('open')) close();
+            else open();
+        });
+
+        menu.addEventListener('click', function (e) {
+            var btn = e.target.closest('.custom-select-option');
+            if (!btn) return;
+            e.stopPropagation();
+            pick(btn);
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!root.contains(e.target)) close();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') close();
+        });
+    })();
+    </script>
+
+    <script>
+    window.__getTemplateValue = function () {
+        return window.__templateSelectValue || 'dressup';
+    };
+    </script>
+
     <script src="build.js"></script>
+    <script type="module" src="script.js"></script>
 
     <script>
     (function () {
@@ -779,12 +872,8 @@ function update(dt) {
         var openBtn = document.getElementById('openBtn');
         if (openBtn) {
             openBtn.addEventListener('click', function () {
-                if (window.jQuery) {
-                    window.jQuery('.file').fadeIn(300);
-                } else {
-                    var f = document.querySelector('.file');
-                    if (f) f.style.display = 'block';
-                }
+                if (window.jQuery) window.jQuery('.file').fadeIn(300);
+                else { var f = document.querySelector('.file'); if (f) f.style.display = 'block'; }
             });
         }
 
@@ -799,6 +888,7 @@ function update(dt) {
                 var cs = document.getElementById('codeSection');
                 if (bp) bp.style.display = which === 'build' ? 'grid' : 'none';
                 if (cs) cs.style.display = which === 'code' ? 'block' : 'none';
+                if (which === 'code' && window.__renderCode) window.__renderCode();
             });
         }
     })();
@@ -1090,9 +1180,7 @@ function update(dt) {
                 var req = target.requestFullscreen || target.webkitRequestFullscreen || target.msRequestFullscreen;
                 if (!req) { alert('Fullscreen not supported on this browser.'); return; }
                 await req.call(target);
-            } catch (err) {
-                console.error('[fullscreen] failed:', err);
-            }
+            } catch (err) { console.error('[fullscreen] failed:', err); }
         });
         var frame = getFrame();
         if (frame) frame.addEventListener('load', function () { setTimeout(applyZoom, 60); });
