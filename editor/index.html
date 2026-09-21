@@ -5,320 +5,82 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Limn playground</title>
-
     <style>
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; background: #0d1117; color: #c9d1d9; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
-
-        dialog {
-            width: 100vw; height: 100vh;
-            max-width: 100vw; max-height: 100vh;
-            padding: 0; margin: 0; border: 0;
-            background: #0a0a0a;
-        }
-        dialog > button {
-            position: absolute; top: 12px; left: 12px; z-index: 10;
-            padding: 6px 12px;
-            background: rgba(0,0,0,0.6); color: #fff;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 8px; cursor: pointer; font-size: 16px;
-        }
+        dialog { width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh; padding: 0; margin: 0; border: 0; background: #0a0a0a; }
+        dialog > button { position: absolute; top: 12px; left: 12px; z-index: 10; padding: 6px 12px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer; font-size: 16px; }
         iframe { width: 100%; height: 100%; border: 0; display: block; }
-
-        .dialog-controls {
-            position: fixed; bottom: 14px; right: 14px;
-            display: flex; gap: 6px; z-index: 2147483647;
-        }
-        .dialog-controls button {
-            width: 30px; height: 30px; padding: 0;
-            background: #2563eb; color: #fff;
-            border: 2px solid rgba(255,255,255,0.25);
-            border-radius: 10px; cursor: pointer;
-            font-size: 20px; font-weight: 700;
-            font-family: system-ui, sans-serif; line-height: 1;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-            transition: background 0.15s, transform 0.1s;
-        }
+        .dialog-controls { position: fixed; bottom: 14px; right: 14px; display: flex; gap: 6px; z-index: 2147483647; }
+        .dialog-controls button { width: 30px; height: 30px; padding: 0; background: #2563eb; color: #fff; border: 2px solid rgba(255,255,255,0.25); border-radius: 10px; cursor: pointer; font-size: 20px; font-weight: 700; font-family: system-ui, sans-serif; line-height: 1; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4); transition: background 0.15s, transform 0.1s; }
         .dialog-controls button:hover { background: #3b82f6; }
         .dialog-controls button:active { transform: scale(0.94); }
         .dialog-controls button#fsBtn { background: #7c3aed; width: 52px; }
         .dialog-controls button#fsBtn:hover { background: #8b5cf6; }
-
         .dropdown { position: relative; display: inline-block; }
-        .dropbtn {
-            background-color: #2563eb; color: white;
-            padding: 8px 16px; font-size: 14px; border: none;
-            cursor: pointer; border-radius: 4px;
-        }
-        .dropdown-content {
-            display: none; position: absolute; right: 0;
-            background-color: #161b22; min-width: 140px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
-            z-index: 1000; border-radius: 4px;
-            border: 1px solid #30363d;
-        }
-        .dropdown-content button,
-        .dropdown-content a {
-            color: #c9d1d9; padding: 10px 14px; text-decoration: none;
-            display: block; width: 100%; text-align: left;
-            background: none; border: none; cursor: pointer;
-        }
-        .dropdown-content button:hover,
-        .dropdown-content a:hover { background-color: #21262d; }
+        .dropbtn { background-color: #2563eb; color: white; padding: 8px 16px; font-size: 14px; border: none; cursor: pointer; border-radius: 4px; }
+        .dropdown-content { display: none; position: absolute; right: 0; background-color: #161b22; min-width: 140px; box-shadow: 0 8px 16px rgba(0,0,0,0.4); z-index: 1000; border-radius: 4px; border: 1px solid #30363d; }
+        .dropdown-content button, .dropdown-content a { color: #c9d1d9; padding: 10px 14px; text-decoration: none; display: block; width: 100%; text-align: left; background: none; border: none; cursor: pointer; }
+        .dropdown-content button:hover, .dropdown-content a:hover { background-color: #21262d; }
         .dropdown:hover .dropdown-content { display: block; }
-
-        .tabs {
-            display: flex; gap: 4px;
-            padding: 8px 16px;
-            background: #010409;
-            border-bottom: 1px solid #30363d;
-        }
-        .tab {
-            background: transparent; border: none; color: #8b949e;
-            padding: 8px 16px; border-radius: 6px; cursor: pointer;
-            font-size: 14px; font-weight: 600;
-        }
+        .tabs { display: flex; gap: 4px; padding: 8px 16px; background: #010409; border-bottom: 1px solid #30363d; }
+        .tab { background: transparent; border: none; color: #8b949e; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
         .tab:hover { color: #c9d1d9; }
         .tab.active { background: #21262d; color: #f0f6fc; }
-
-        .build-panel {
-            display: grid; grid-template-columns: 300px 1fr;
-            gap: 20px; padding: 20px; min-height: 400px;
-        }
+        .build-panel { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 20px; min-height: 400px; }
         .build-field { margin-bottom: 12px; }
-        .build-field label,
-        .build-label {
-            display: block; font-size: 12px; color: #8b949e;
-            margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .build-field input,
-        .build-field select {
-            width: 100%; padding: 8px;
-            background: #0d1117; border: 1px solid #30363d;
-            border-radius: 6px; color: #c9d1d9; font-size: 14px;
-        }
+        .build-field label, .build-label { display: block; font-size: 12px; color: #8b949e; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .build-field input, .build-field select { width: 100%; padding: 8px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; font-size: 14px; }
         .build-field input[type="color"] { height: 40px; padding: 4px; cursor: pointer; }
-        .build-field textarea {
-            width: 100%; padding: 8px;
-            background: #0d1117; border: 1px solid #30363d;
-            border-radius: 6px; color: #c9d1d9; font-size: 14px;
-            font-family: inherit; resize: vertical; min-height: 60px;
-        }
-        .build-field input:focus,
-        .build-field select:focus,
-        .build-field textarea:focus {
-            outline: none; border-color: #58a6ff;
-            box-shadow: 0 0 0 3px rgba(88,166,255,0.15);
-        }
-        .build-reset {
-            margin-top: 16px; padding: 10px 16px;
-            background: #21262d; color: #c9d1d9;
-            border: 1px solid #30363d; border-radius: 6px;
-            cursor: pointer; font-size: 13px;
-        }
+        .build-field textarea { width: 100%; padding: 8px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; font-size: 14px; font-family: inherit; resize: vertical; min-height: 60px; }
+        .build-field input:focus, .build-field select:focus, .build-field textarea:focus { outline: none; border-color: #58a6ff; box-shadow: 0 0 0 3px rgba(88,166,255,0.15); }
+        .build-reset { margin-top: 16px; padding: 10px 16px; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; cursor: pointer; font-size: 13px; }
         .build-reset:hover { background: #30363d; }
         .build-hint { color: #6e7681; font-size: 13px; }
-
-        .code-shell {
-            margin: 12px 16px;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            overflow: hidden;
-            font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-            font-size: 13px;
-            line-height: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .code-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 12px;
-            background: #161b22;
-            border-bottom: 1px solid #30363d;
-            font-family: system-ui, -apple-system, sans-serif;
-            font-size: 12px;
-            color: #8b949e;
-        }
-        .code-header-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .code-filename {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 6px 6px 0 0;
-            color: #c9d1d9;
-            font-weight: 500;
-            font-size: 12px;
-            font-family: ui-monospace, Menlo, monospace;
-        }
-        .code-dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: #f0b429;
-        }
-        .code-header-right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .code-btn {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 5px 10px;
-            background: #21262d;
-            color: #c9d1d9;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            font-size: 12px; font-weight: 500;
-            cursor: pointer;
-            transition: background 0.12s, border-color 0.12s;
-        }
+        .code-shell { margin: 12px 16px; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; overflow: hidden; font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; font-size: 13px; line-height: 20px; display: flex; flex-direction: column; }
+        .code-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #161b22; border-bottom: 1px solid #30363d; font-family: system-ui, -apple-system, sans-serif; font-size: 12px; color: #8b949e; }
+        .code-header-left { display: flex; align-items: center; gap: 8px; }
+        .code-filename { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px 6px 0 0; color: #c9d1d9; font-weight: 500; font-size: 12px; font-family: ui-monospace, Menlo, monospace; }
+        .code-dot { width: 8px; height: 8px; border-radius: 50%; background: #f0b429; }
+        .code-header-right { display: flex; align-items: center; gap: 8px; }
+        .code-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: background 0.12s, border-color 0.12s; }
         .code-btn:hover { background: #30363d; border-color: #8b949e; }
         .code-btn:active { transform: translateY(1px); }
-        .code-btn.copied {
-            background: #238636;
-            border-color: #2ea043;
-            color: #fff;
-        }
-        .code-select {
-            padding: 5px 8px;
-            background: #21262d;
-            color: #c9d1d9;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-        }
+        .code-btn.copied { background: #238636; border-color: #2ea043; color: #fff; }
+        .code-select { padding: 5px 8px; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; font-size: 12px; cursor: pointer; }
         .code-select:focus { outline: none; border-color: #58a6ff; }
-
-        .editor-body {
-            display: flex;
-            height: 62vh;
-            min-height: 380px;
-            overflow: hidden;
-            background: #0d1117;
-        }
-
-        .gutter {
-            flex: 0 0 56px;
-            padding: 12px 0;
-            background: #0d1117;
-            color: #484f58;
-            text-align: right;
-            user-select: none;
-            overflow: hidden;
-            font-variant-numeric: tabular-nums;
-            border-right: 1px solid #21262d;
-        }
-        .gutter-line {
-            height: 20px;
-            line-height: 20px;
-            padding-right: 14px;
-            font-size: 13px;
-        }
+        .editor-body { display: flex; height: 62vh; min-height: 380px; overflow: hidden; background: #0d1117; }
+        .gutter { flex: 0 0 56px; padding: 12px 0; background: #0d1117; color: #484f58; text-align: right; user-select: none; overflow: hidden; font-variant-numeric: tabular-nums; border-right: 1px solid #21262d; }
+        .gutter-line { height: 20px; line-height: 20px; padding-right: 14px; font-size: 13px; }
         .gutter-line.active { color: #c9d1d9; }
-
-        .editor-scroll {
-            position: relative;
-            flex: 1;
-            overflow: hidden;
-        }
-        .highlight-layer,
-        .code-input {
-            position: absolute;
-            top: 0; left: 0;
-            margin: 0;
-            padding: 12px 16px 12px 16px;
-            border: 0;
-            font-family: inherit;
-            font-size: inherit;
-            line-height: inherit;
-            white-space: pre;
-            tab-size: 4;
-            box-sizing: border-box;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-        }
-
-        .highlight-layer {
-            pointer-events: none;
-            z-index: 1;
-            color: #c9d1d9;
-            background: transparent;
-            overflow: hidden;
-            word-wrap: normal;
-        }
-
-        .code-input {
-            z-index: 2;
-            background: transparent;
-            color: transparent;
-            caret-color: #58a6ff;
-            resize: none;
-            outline: none;
-            -webkit-text-fill-color: transparent;
-            word-wrap: normal;
-        }
-        .code-input::selection {
-            background: rgba(56,139,253,0.4);
-            -webkit-text-fill-color: transparent;
-        }
+        .editor-scroll { position: relative; flex: 1; overflow: hidden; }
+        .highlight-layer, .code-input { position: absolute; top: 0; left: 0; margin: 0; padding: 12px 16px 12px 16px; border: 0; font-family: inherit; font-size: inherit; line-height: inherit; white-space: pre; tab-size: 4; box-sizing: border-box; width: 100%; height: 100%; overflow: auto; }
+        .highlight-layer { pointer-events: none; z-index: 1; color: #c9d1d9; background: transparent; overflow: hidden; word-wrap: normal; }
+        .code-input { z-index: 2; background: transparent; color: transparent; caret-color: #58a6ff; resize: none; outline: none; -webkit-text-fill-color: transparent; word-wrap: normal; }
+        .code-input::selection { background: rgba(56,139,253,0.4); -webkit-text-fill-color: transparent; }
         .code-input::placeholder { color: #484f58; }
-
-        .tok-keyword   { color: #ff7b72; }
-        .tok-string    { color: #a5d6ff; }
-        .tok-number    { color: #79c0ff; }
-        .tok-comment   { color: #8b949e; font-style: italic; }
-        .tok-function  { color: #d2a8ff; }
-        .tok-builtin   { color: #ffa657; }
-        .tok-class     { color: #ffa657; }
-        .tok-punct     { color: #c9d1d9; }
-        .tok-operator  { color: #ff7b72; }
-        .tok-boolean   { color: #79c0ff; }
-        .tok-property  { color: #79c0ff; }
-
+        .tok-keyword { color: #ff7b72; }
+        .tok-string { color: #a5d6ff; }
+        .tok-number { color: #79c0ff; }
+        .tok-comment { color: #8b949e; font-style: italic; }
+        .tok-function { color: #d2a8ff; }
+        .tok-builtin { color: #ffa657; }
+        .tok-class { color: #ffa657; }
+        .tok-punct { color: #c9d1d9; }
+        .tok-operator { color: #ff7b72; }
+        .tok-boolean { color: #79c0ff; }
+        .tok-property { color: #79c0ff; }
         .container { max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; }
-        header {
-            display: flex; align-items: center; gap: 16px;
-            padding: 12px 0;
-            border-bottom: 1px solid #21262d;
-            margin-bottom: 16px;
-        }
-        header h1 {
-            font-size: 18px; margin: 0; color: #f0f6fc;
-            letter-spacing: 1px;
-        }
-        header nav ul {
-            list-style: none; padding: 0; margin: 0;
-            display: flex; gap: 8px; align-items: center;
-        }
-        header nav button {
-            padding: 6px 12px; border-radius: 6px;
-            border: 1px solid #30363d; background: #21262d;
-            color: #c9d1d9; cursor: pointer; font-size: 13px;
-        }
+        header { display: flex; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid #21262d; margin-bottom: 16px; }
+        header h1 { font-size: 18px; margin: 0; color: #f0f6fc; letter-spacing: 1px; }
+        header nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 8px; align-items: center; }
+        header nav button { padding: 6px 12px; border-radius: 6px; border: 1px solid #30363d; background: #21262d; color: #c9d1d9; cursor: pointer; font-size: 13px; }
         header nav button:hover { background: #30363d; }
         #run { background: #238636; border-color: #2ea043; color: #fff; }
         #run:hover { background: #2ea043; }
         #title { margin-left: auto; color: #8b949e; font-weight: 400; font-size: 13px; }
-
-        .file {
-            background: #161b22; border: 1px solid #30363d;
-            border-radius: 8px; padding: 16px; margin-bottom: 16px;
-            display: none;
-        }
+        .file { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin-bottom: 16px; display: none; }
         .file h2 { margin: 0 0 12px; font-size: 14px; color: #c9d1d9; }
-
         .con { margin-top: 16px; }
         summary { cursor: pointer; color: #8b949e; padding: 6px 0; }
         summary:hover { color: #c9d1d9; }
@@ -327,15 +89,13 @@
 <body>
     <div class="dialog-controls" id="dialogControls">
         <button id="zoomOutBtn" title="Zoom out">−</button>
-        <button id="zoomInBtn"  title="Zoom in">+</button>
-        <button id="fsBtn"      title="Fullscreen (F)">⛶</button>
+        <button id="zoomInBtn" title="Zoom in">+</button>
+        <button id="fsBtn" title="Fullscreen (F)">⛶</button>
     </div>
-
-    <dialog open="">
+    <dialog>
         <button onclick="$('dialog').fadeToggle(500)">⛔</button>
         <iframe id="gameFrame" srcdoc="<center><h1>Loading ...</h1><progress></progress></center>"></iframe>
     </dialog>
-
     <div class="container">
         <header>
             <h1>LIMN STUDIO</h1>
@@ -356,44 +116,20 @@
             </nav>
             <h5 id="title">*Untitled*</h5>
         </header>
-
         <main>
             <div class="file" title="File bar">
                 <h2>
                     Files
                     <button style="float: right;" onclick="$('.file').fadeOut('500')">⛔</button>
                 </h2>
-                <button onclick="
-                    con = confirm('Are you sure to create a new file? Unsaved changes will be lost.');
-                    if(con){
-                        $('textarea').val('');
-                        $('#title').text('*Untitled*');
-                    }
-                ">🆕</button>
-                <button onclick="
-                    con = confirm('Are you sure to open a file? Unsaved changes will be lost.');
-                    if(con){
-                        inp.click();
-                        inp.onchange = e => {
-                            let file = e.target.files[0];
-                            let reader = new FileReader();
-                            reader.readAsText(file,'UTF-8');
-                            reader.onload = readerEvent => {
-                                let content = readerEvent.target.result;
-                                $('textarea').val(content);
-                                $('#title').text(file.name);
-                            }
-                        }
-                    }
-                ">📂</button>
+                <button onclick="con = confirm('Are you sure to create a new file? Unsaved changes will be lost.'); if(con){ $('textarea').val(''); $('#title').text('*Untitled*'); }">🆕</button>
+                <button onclick="con = confirm('Are you sure to open a file? Unsaved changes will be lost.'); if(con){ inp.click(); inp.onchange = e => { let file = e.target.files[0]; let reader = new FileReader(); reader.readAsText(file,'UTF-8'); reader.onload = readerEvent => { let content = readerEvent.target.result; $('textarea').val(content); $('#title').text(file.name); } } }">📂</button>
                 <div id="file"></div>
             </div>
-
             <div class="tabs">
                 <button class="tab active" data-tab="build">Build</button>
                 <button class="tab" data-tab="code">Code</button>
             </div>
-
             <div id="buildPanel" class="build-panel">
                 <div class="build-left">
                     <label class="build-label">Template</label>
@@ -415,19 +151,16 @@
                         <option value="asteroids">Asteroids</option>
                     </select>
                     <div id="templateFields"></div>
-
                     <div class="build-field">
                         <label>Description (optional)</label>
                         <textarea id="gameDescription" rows="3" placeholder="Tell people what your game is about..." maxlength="200"></textarea>
                     </div>
-
                     <button id="buildReset" class="build-reset">↻ Reset from template</button>
                 </div>
                 <div class="build-right">
                     <p class="build-hint">Click <strong>Run</strong> to see your game.</p>
                 </div>
             </div>
-
             <section id="codeSection" style="display:none">
                 <div class="code-shell">
                     <div class="code-header">
@@ -454,7 +187,6 @@
                             <button id="formatCodeBtn" class="code-btn" title="Re-indent code">⤸ Format</button>
                         </div>
                     </div>
-
                     <div class="editor-body">
                         <div class="gutter" id="gutter"></div>
                         <div class="editor-scroll">
@@ -463,7 +195,7 @@
 display.perform();
 display.start(800, 600);
 display.backgroundColor("#0a0a0a");
-display.camera.worldWidth  = 2000;
+display.camera.worldWidth = 2000;
 display.camera.worldHeight = 2000;
 display.clearMargin = [2000, 2000];
 fake.mapWidth = 2000;
@@ -476,14 +208,16 @@ TCJSgameGameArea.height = 2000;
 fake.tile = [
     new Component(64, 64, "#1a3a1a", 0, 0),
     new Component(64, 64, "#2244aa", 0, 0),
-    new Component(64, 64, "#555",    0, 0),
+    new Component(64, 64, "#555", 0, 0),
 ];
+
 fake.map = [
     [1,1,1,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     [1,1,1,2,2,1,1,1,1,3,3,3,1,1,1,1,1,1,1,3,3,3,1,1,1,1,1,1,1,1],
     [1,1,1,2,2,2,2,2,1,3,3,3,1,1,1,1,1,1,1,3,3,3,1,1,1,1,1,1,1,1],
     [1,1,1,1,1,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
 ];
+
 fake.tileMap();
 fake.tileFace.show();
 
@@ -503,9 +237,9 @@ function update(dt) {
     player.speedX = 0;
     player.speedY = 0;
     if (display.keys[87]) player.speedY = -SPEED * dt;
-    if (display.keys[83]) player.speedY =  SPEED * dt;
+    if (display.keys[83]) player.speedY = SPEED * dt;
     if (display.keys[65]) player.speedX = -SPEED * dt;
-    if (display.keys[68]) player.speedX =  SPEED * dt;
+    if (display.keys[68]) player.speedX = SPEED * dt;
 
     move.particles.sparkle(ps, player.x + 18, player.y + 18);
 
@@ -520,7 +254,6 @@ function update(dt) {
                     </div>
                 </div>
             </section>
-
             <div class="con">
                 <details>
                     <summary>console</summary>
@@ -529,9 +262,7 @@ function update(dt) {
             </div>
         </main>
     </div>
-
     <div class="c"></div>
-
     <script>
         let inp = document.createElement("input");
         inp.type = "file";
@@ -540,7 +271,6 @@ function update(dt) {
     <script src="templates.js"></script>
     <script src="build.js"></script>
     <script type="module" src="script.js"></script>
-
     <script>
     (function () {
         var textarea = document.getElementById('js');
@@ -550,208 +280,13 @@ function update(dt) {
         var copyBtn = document.getElementById('copyCodeBtn');
         var copyLabel = document.getElementById('copyCodeLabel');
         var formatBtn = document.getElementById('formatCodeBtn');
-        var scrollHost = textarea && textarea.parentElement;
-
         if (!textarea || !highlight || !gutter) return;
-
-        var KEYWORDS = {
-            'const':1,'let':1,'var':1,'function':1,'return':1,'if':1,'else':1,
-            'for':1,'while':1,'do':1,'break':1,'continue':1,'new':1,'this':1,
-            'class':1,'extends':1,'super':1,'try':1,'catch':1,'finally':1,
-            'throw':1,'switch':1,'case':1,'default':1,'typeof':1,'instanceof':1,
-            'in':1,'of':1,'delete':1,'void':1,'yield':1,'await':1,'async':1,
-            'static':1,'get':1,'set':1,'import':1,'export':1,'from':1,'as':1
-        };
-        var BUILTINS = {
-            'Display':1,'Component':1,'Tctxt':1,'Camera':1,'Sprite':1,'AnimatedSprite':1,
-            'Tile':1,'TileMap':1,'Particle':1,'ParticleSystem':1,'Sound':1,'SoundManager':1,
-            'Math':1,'JSON':1,'Object':1,'Array':1,'String':1,'Number':1,'Boolean':1,
-            'Date':1,'Set':1,'Map':1,'Promise':1,'Error':1,'console':1,'window':1,
-            'document':1,'display':1,'fake':1,'move':1,'state':1,'mouse':1,'comm':1,
-            'TCJSgameGameArea':1
-        };
+        var KEYWORDS = { 'const':1,'let':1,'var':1,'function':1,'return':1,'if':1,'else':1,'for':1,'while':1,'do':1,'break':1,'continue':1,'new':1,'this':1,'class':1,'extends':1,'super':1,'try':1,'catch':1,'finally':1,'throw':1,'switch':1,'case':1,'default':1,'typeof':1,'instanceof':1,'in':1,'of':1,'delete':1,'void':1,'yield':1,'await':1,'async':1,'static':1,'get':1,'set':1,'import':1,'export':1,'from':1,'as':1 };
+        var BUILTINS = { 'Display':1,'Component':1,'Tctxt':1,'Camera':1,'Sprite':1,'AnimatedSprite':1,'Tile':1,'TileMap':1,'Particle':1,'ParticleSystem':1,'Sound':1,'SoundManager':1,'Math':1,'JSON':1,'Object':1,'Array':1,'String':1,'Number':1,'Boolean':1,'Date':1,'Set':1,'Map':1,'Promise':1,'Error':1,'console':1,'window':1,'document':1,'display':1,'fake':1,'move':1,'state':1,'mouse':1,'comm':1,'TCJSgameGameArea':1 };
         var LITERALS = { 'true':1,'false':1,'null':1,'undefined':1,'NaN':1,'Infinity':1 };
-
-        function esc(s) {
-            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        }
-
+        function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
         function tokenize(code) {
-            var out = '';
-            var i = 0;
-            var n = code.length;
-
+            var out = ''; var i = 0; var n = code.length;
             while (i < n) {
                 var ch = code[i];
-
-                if (ch === '/' && code[i+1] === '/') {
-                    var j = i;
-                    while (j < n && code[j] !== '\n') j++;
-                    out += '<span class="tok-comment">' + esc(code.slice(i, j)) + '</span>';
-                    i = j;
-                    continue;
-                }
-                if (ch === '/' && code[i+1] === '*') {
-                    var k = i + 2;
-                    while (k < n && !(code[k] === '*' && code[k+1] === '/')) k++;
-                    k = Math.min(k + 2, n);
-                    out += '<span class="tok-comment">' + esc(code.slice(i, k)) + '</span>';
-                    i = k;
-                    continue;
-                }
-
-                if (ch === '"' || ch === "'" || ch === '`') {
-                    var q = ch;
-                    var m = i + 1;
-                    while (m < n) {
-                        if (code[m] === '\\') { m += 2; continue; }
-                        if (code[m] === q) { m++; break; }
-                        m++;
-                    }
-                    out += '<span class="tok-string">' + esc(code.slice(i, m)) + '</span>';
-                    i = m;
-                    continue;
-                }
-
-                if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(code[i+1]))) {
-                    var p = i;
-                    while (p < n && /[0-9a-fA-FxX._]/.test(code[p])) p++;
-                    out += '<span class="tok-number">' + esc(code.slice(i, p)) + '</span>';
-                    i = p;
-                    continue;
-                }
-
-                if (/[A-Za-z_$]/.test(ch)) {
-                    var s = i;
-                    while (s < n && /[A-Za-z0-9_$]/.test(code[s])) s++;
-                    var word = code.slice(i, s);
-
-                    var la = s;
-                    while (la < n && (code[la] === ' ' || code[la] === '\t')) la++;
-                    var isCall = code[la] === '(';
-
-                    var lb = i - 1;
-                    while (lb >= 0 && (code[lb] === ' ' || code[lb] === '\t')) lb--;
-                    var isProperty = lb >= 0 && code[lb] === '.';
-
-                    var cls = 'tok-punct';
-                    if (LITERALS[word]) cls = 'tok-boolean';
-                    else if (KEYWORDS[word]) cls = 'tok-keyword';
-                    else if (BUILTINS[word]) cls = 'tok-builtin';
-                    else if (isProperty) cls = 'tok-property';
-                    else if (isCall) cls = 'tok-function';
-                    else if (/^[A-Z]/.test(word)) cls = 'tok-class';
-
-                    out += '<span class="' + cls + '">' + esc(word) + '</span>';
-                    i = s;
-                    continue;
-                }
-
-                if (/[+\-*/%=<>!&|^~?:]/.test(ch)) {
-                    var o = i;
-                    while (o < n && /[+\-*/%=<>!&|^~?:]/.test(code[o])) o++;
-                    out += '<span class="tok-operator">' + esc(code.slice(i, o)) + '</span>';
-                    i = o;
-                    continue;
-                }
-
-                if (/[{}()[\];,.]/.test(ch)) {
-                    out += '<span class="tok-punct">' + esc(ch) + '</span>';
-                    i++;
-                    continue;
-                }
-
-                out += esc(ch);
-                i++;
-            }
-
-            return out;
-        }
-
-        function render() {
-            var code = textarea.value;
-
-            var html = tokenize(code);
-            if (code.endsWith('\n')) html += ' ';
-            highlight.innerHTML = html;
-
-            var lineCount = code.split('\n').length;
-            var g = '';
-            for (var i = 1; i <= lineCount; i++) {
-                g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
-            }
-            gutter.innerHTML = g;
-
-            if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
-
-            syncScroll();
-        }
-
-        function syncScroll() {
-            highlight.scrollTop = textarea.scrollTop;
-            highlight.scrollLeft = textarea.scrollLeft;
-            gutter.scrollTop = textarea.scrollTop;
-        }
-        textarea.addEventListener('scroll', syncScroll);
-
-        function updateActiveLine() {
-            var before = textarea.value.slice(0, textarea.selectionStart);
-            var line = before.split('\n').length;
-            var lines = gutter.children;
-            for (var i = 0; i < lines.length; i++) {
-                lines[i].classList.toggle('active', i + 1 === line);
-            }
-        }
-
-        var PAIRS = { '(':')', '[':']', '{':'}', '"':'"', "'":"'", '`':'`' };
-        var CLOSERS = { ')':1, ']':1, '}':1 };
-
-        function insertAtCursor(text) {
-            var start = textarea.selectionStart;
-            var end = textarea.selectionEnd;
-            var val = textarea.value;
-            textarea.value = val.slice(0, start) + text + val.slice(end);
-            var pos = start + text.length;
-            textarea.selectionStart = textarea.selectionEnd = pos;
-            render();
-            updateActiveLine();
-        }
-
-        function indentSelection() {
-            var start = textarea.selectionStart;
-            var end = textarea.selectionEnd;
-            var val = textarea.value;
-            var lineStart = val.lastIndexOf('\n', start - 1) + 1;
-            var lineEnd = val.indexOf('\n', end);
-            if (lineEnd === -1) lineEnd = val.length;
-
-            var block = val.slice(lineStart, lineEnd);
-            var indented = block.split('\n').map(function (l) { return '    ' + l; }).join('\n');
-            textarea.value = val.slice(0, lineStart) + indented + val.slice(lineEnd);
-            textarea.selectionStart = lineStart;
-            textarea.selectionEnd = lineStart + indented.length;
-            render();
-        }
-
-        textarea.addEventListener('keydown', function (e) {
-            var start = textarea.selectionStart;
-            var end = textarea.selectionEnd;
-            var val = textarea.value;
-
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                if (start === end) {
-                    insertAtCursor('    ');
-                } else {
-                    indentSelection();
-                }
-                return;
-            }
-
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                var lineStart = val.lastIndexOf('\n', start - 1) + 1;
-                var currentLine = val.slice(lineStart, start);
-                var indentMatch = currentLine.match(/^[ \t]*/);
-                var indent = indentMatch ? indentMatch[0] : '';
-                if (/[{[(]\s*$/.test(currentLine)) indent += '    ';
+                if (ch === '/' && code[i+1] === '/') { var j
