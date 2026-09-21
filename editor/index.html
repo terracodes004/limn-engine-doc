@@ -37,10 +37,13 @@
             padding: 0; margin: 0; border: 0;
             background: #000;
             color: #fff;
+            position: fixed;
+            inset: 0;
+            z-index: 9000;
         }
-        dialog::backdrop { background: rgba(0,0,0,0.9); }
+        dialog::backdrop { background: rgba(0,0,0,0.95); }
         dialog > button {
-            position: absolute; top: 14px; left: 14px; z-index: 10;
+            position: absolute; top: 14px; left: 14px; z-index: 9500;
             width: 36px; height: 36px; padding: 0;
             background: rgba(255,255,255,0.08);
             color: #fff;
@@ -50,7 +53,11 @@
             font-size: 16px;
         }
         dialog > button:hover { background: rgba(255,255,255,0.16); }
-        iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
+        iframe {
+            width: 100%; height: 100%;
+            border: 0; display: block;
+            background: #000;
+        }
 
         .dialog-controls {
             position: fixed; bottom: 20px; right: 20px;
@@ -472,7 +479,7 @@
             box-shadow: 8px 0 32px rgba(0,0,0,0.5);
             transform: translateX(-100%);
             transition: transform 0.25s ease;
-            z-index: 5000;
+            z-index: 6000;
             display: flex;
             flex-direction: column;
         }
@@ -524,24 +531,26 @@
             border-radius: 8px;
             margin-bottom: 6px;
         }
-        .sidebar-file button {
+        .sidebar-file > button {
             background: transparent; border: none;
             color: var(--text-0); cursor: pointer;
             font-size: 13px; font-family: inherit;
             text-align: left; padding: 0;
             flex: 1;
         }
-        .sidebar-file button:hover { color: var(--accent); }
-        .sidebar-file .sidebar-file-actions {
+        .sidebar-file > button:hover { color: var(--accent); }
+        .sidebar-file-actions {
             display: flex; gap: 4px;
         }
-        .sidebar-file .sidebar-file-actions button {
-            flex: 0 0 auto;
+        .sidebar-file-actions button {
+            background: transparent; border: none;
             padding: 4px 8px;
             color: var(--text-1);
+            cursor: pointer;
             border-radius: 6px;
+            font-size: 13px;
         }
-        .sidebar-file .sidebar-file-actions button:hover {
+        .sidebar-file-actions button:hover {
             color: var(--text-0); background: var(--bg-3);
         }
         .sidebar-empty { color: var(--text-2); font-size: 13px; padding: 8px 0; }
@@ -551,7 +560,7 @@
             background: rgba(0,0,0,0.6);
             opacity: 0; pointer-events: none;
             transition: opacity 0.25s ease;
-            z-index: 4999;
+            z-index: 5999;
         }
         .sidebar-backdrop.open {
             opacity: 1; pointer-events: auto;
@@ -795,7 +804,7 @@ function update(dt) {
             for (var i = 0; i < opts.length; i++) opts[i].classList.remove('selected');
             btn.classList.add('selected');
             close();
-            if (window.__regenerateBuild) window.__regenerateBuild(val);
+            window.dispatchEvent(new CustomEvent('templatechange', { detail: { value: val } }));
         }
 
         trigger.addEventListener('click', function (e) {
@@ -890,24 +899,26 @@ function update(dt) {
             var list = document.getElementById('fileList');
             if (!list) return;
             list.innerHTML = '';
-            if (typeof files === 'undefined' || !filesName || filesName.length === 0) {
+            var names = window.filesName || [];
+            var store = window.files || {};
+            if (!names || names.length === 0) {
                 var empty = document.createElement('div');
                 empty.className = 'sidebar-empty';
                 empty.textContent = 'No saved files yet.';
                 list.appendChild(empty);
                 return;
             }
-            filesName.forEach(function (name) {
+            names.forEach(function (name) {
                 if (!name) return;
                 var row = document.createElement('div');
                 row.className = 'sidebar-file';
 
-                var openBtn = document.createElement('button');
-                openBtn.textContent = name;
-                openBtn.title = 'Open';
-                openBtn.addEventListener('click', function () {
+                var openFile = document.createElement('button');
+                openFile.textContent = name;
+                openFile.title = 'Open';
+                openFile.addEventListener('click', function () {
                     var ta = document.getElementById('js');
-                    if (ta) ta.value = files[name] || '';
+                    if (ta) ta.value = store[name] || '';
                     var t = document.getElementById('title');
                     if (t) t.textContent = name;
                     if (window.__renderCode) window.__renderCode();
@@ -929,8 +940,8 @@ function update(dt) {
                 rm.title = 'Delete';
                 rm.addEventListener('click', function () {
                     if (confirm('Delete "' + name + '"?')) {
-                        delete files[name];
-                        filesName = filesName.filter(function (e) { return e !== name; });
+                        delete store[name];
+                        window.filesName = names.filter(function (e) { return e !== name; });
                         if (window.__persistFiles) window.__persistFiles();
                         renderFileList();
                     }
@@ -939,7 +950,7 @@ function update(dt) {
                 actions.appendChild(dl);
                 actions.appendChild(rm);
 
-                row.appendChild(openBtn);
+                row.appendChild(openFile);
                 row.appendChild(actions);
                 list.appendChild(row);
             });
@@ -1217,7 +1228,7 @@ function update(dt) {
 
         setTimeout(function () {
             if (window.__renderFileSidebar) window.__renderFileSidebar();
-        }, 800);
+        }, 1200);
     })();
 
     (function () {
