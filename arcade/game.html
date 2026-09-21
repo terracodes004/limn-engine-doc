@@ -491,11 +491,11 @@ function wireButtons(data) {
       document.getElementById('fsBtn').click();
     } else if (e.key === '+' || e.key === '=') {
       e.preventDefault();
-      zoomLevel = Math.min(2, +(zoomLevel + 0.1).toFixed(2));
+      zoomLevel = +(zoomLevel + 0.1).toFixed(2);
       applyZoom();
     } else if (e.key === '-' || e.key === '_') {
       e.preventDefault();
-      zoomLevel = Math.max(0.5, +(zoomLevel - 0.1).toFixed(2));
+      zoomLevel = +(zoomLevel - 0.1).toFixed(2);
       applyZoom();
     } else if (e.key === '0') {
       e.preventDefault();
@@ -505,11 +505,11 @@ function wireButtons(data) {
   });
 
   document.getElementById('zoomIn').onclick = () => {
-    zoomLevel = Math.min(2, +(zoomLevel + 0.1).toFixed(2));
+    zoomLevel = +(zoomLevel + 0.1).toFixed(2);
     applyZoom();
   };
   document.getElementById('zoomOut').onclick = () => {
-    zoomLevel = Math.max(0.5, +(zoomLevel - 0.1).toFixed(2));
+    zoomLevel = +(zoomLevel - 0.1).toFixed(2);
     applyZoom();
   };
 
