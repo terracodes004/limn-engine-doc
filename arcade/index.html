@@ -8,7 +8,7 @@
   :root {
     --bg: #05060c;
     --bg-1: #0a0c16;
-    --panel: rgba(18,20,32,0.6);
+    --panel: rgba(18,20,32,0.65);
     --border: rgba(255,255,255,0.08);
     --border-2: rgba(255,255,255,0.14);
     --text: #f0f3f8;
@@ -38,51 +38,41 @@
     position: fixed;
     top: -40vh; left: -20vw;
     width: 80vw; height: 80vh;
-    background: radial-gradient(circle, rgba(110,168,254,0.14), transparent 60%);
+    background: radial-gradient(circle, rgba(110,168,254,0.12), transparent 60%);
     pointer-events: none;
     z-index: 0;
-    animation: float1 18s ease-in-out infinite alternate;
+    animation: float1 22s ease-in-out infinite alternate;
   }
   body::after {
     content: "";
     position: fixed;
     bottom: -40vh; right: -20vw;
     width: 80vw; height: 80vh;
-    background: radial-gradient(circle, rgba(163,113,247,0.12), transparent 60%);
+    background: radial-gradient(circle, rgba(163,113,247,0.1), transparent 60%);
     pointer-events: none;
     z-index: 0;
-    animation: float2 22s ease-in-out infinite alternate;
+    animation: float2 26s ease-in-out infinite alternate;
   }
   @keyframes float1 {
     0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(5vw, 5vh) scale(1.1); }
+    100% { transform: translate(6vw, 6vh) scale(1.12); }
   }
   @keyframes float2 {
     0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(-5vw, -5vh) scale(1.15); }
+    100% { transform: translate(-6vw, -6vh) scale(1.15); }
   }
 
-  @keyframes logo-hue {
-    0%   { filter: hue-rotate(0deg) brightness(1.1); }
-    50%  { filter: hue-rotate(90deg) brightness(1.35); }
-    100% { filter: hue-rotate(0deg) brightness(1.1); }
+  @keyframes sweep {
+    0%   { background-position: -200% 50%; }
+    100% { background-position: 200% 50%; }
   }
-  @keyframes logo-spin {
-    0%   { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
   }
-  @keyframes logo-ring {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  @keyframes logo-float {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50% { transform: translateY(-6px) scale(1.03); }
-  }
-  @keyframes hero-glow {
-    0%, 100% { opacity: 0.55; transform: scale(1); }
-    50% { opacity: 0.9; transform: scale(1.08); }
+  @keyframes logoBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
   }
 
   .app { position: relative; z-index: 1; }
@@ -91,70 +81,68 @@
     position: sticky;
     top: 0;
     z-index: 50;
-    padding: 12px 20px;
+    padding: 14px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
     flex-wrap: wrap;
-    background: rgba(5,6,12,0.75);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(5,6,12,0.72);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
     border-bottom: 1px solid var(--border);
+  }
+  header::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(110,168,254,0.5) 20%,
+      rgba(163,113,247,0.6) 50%,
+      rgba(236,72,153,0.5) 80%,
+      transparent 100%);
+    background-size: 200% 100%;
+    animation: sweep 8s linear infinite;
+    opacity: 0.7;
+    pointer-events: none;
   }
 
   .brand-block {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     min-width: 0;
   }
-
   .brand-logo {
-    width: 44px;
-    height: 44px;
-    position: relative;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    animation: logo-float 5s ease-in-out infinite;
-  }
-  .brand-logo::before {
-    content: "";
-    position: absolute;
-    inset: -5px;
-    border-radius: 14px;
-    background: conic-gradient(from 0deg, #6ea8fe, #a371f7, #ec4899, #fbbf24, #4ade80, #6ea8fe);
-    animation: logo-spin 6s linear infinite;
-    filter: blur(7px);
-    opacity: 0.85;
-    z-index: 0;
-  }
-  .brand-logo::after {
-    content: "";
-    position: absolute;
-    inset: -2px;
-    border-radius: 13px;
-    background: linear-gradient(135deg, #6ea8fe, #a371f7, #ec4899);
-    background-size: 200% 200%;
-    animation: logo-ring 4s ease infinite;
-    z-index: 1;
-    box-shadow:
-      0 0 18px rgba(110,168,254,0.7),
-      0 0 36px rgba(163,113,247,0.5),
-      0 0 54px rgba(236,72,153,0.35);
+    animation: logoBob 5s ease-in-out infinite;
+    position: relative;
   }
   .brand-logo img {
-    position: relative;
-    z-index: 2;
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
     border-radius: 10px;
     background: var(--bg);
     padding: 3px;
-    animation: logo-hue 8s ease-in-out infinite;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 0 18px rgba(110,168,254,0.35),
+      0 0 36px rgba(163,113,247,0.2);
+    transition: box-shadow 0.3s;
+  }
+  .brand-logo:hover img {
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.1),
+      0 0 26px rgba(110,168,254,0.6),
+      0 0 52px rgba(163,113,247,0.4);
   }
 
   .brand-text {
@@ -164,19 +152,22 @@
     min-width: 0;
   }
   .brand-name {
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 800;
-    letter-spacing: 1.4px;
-    background: linear-gradient(135deg, #f0f3f8 0%, #6ea8fe 40%, #a371f7 70%, #ec4899 100%);
-    background-size: 200% 200%;
+    letter-spacing: 1.6px;
+    color: var(--text);
+    background: linear-gradient(120deg,
+      #f0f3f8 0%,
+      #f0f3f8 40%,
+      #6ea8fe 50%,
+      #a371f7 60%,
+      #f0f3f8 70%,
+      #f0f3f8 100%);
+    background-size: 200% 100%;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: gradText 6s ease infinite;
-  }
-  @keyframes gradText {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+    animation: sweep 9s linear infinite;
   }
   .brand-sub {
     font-size: 9.5px;
@@ -193,7 +184,7 @@
     font-weight: 600;
     padding: 8px 14px;
     border-radius: 10px;
-    background: rgba(255,255,255,0.04);
+    background: rgba(255,255,255,0.035);
     border: 1px solid var(--border);
     font-size: 13px;
     white-space: nowrap;
@@ -217,104 +208,141 @@
   .nav-links a > * { position: relative; z-index: 1; }
 
   .hero {
+    position: relative;
     max-width: 900px;
-    margin: 18px auto 0;
+    margin: 24px auto 0;
     padding: 0 20px;
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 20px;
     flex-wrap: wrap;
-    text-align: center;
+  }
+  .hero-card {
+    position: relative;
+    width: 100%;
+    border-radius: 20px;
+    padding: 26px 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(20,22,36,0.9), rgba(12,14,24,0.9));
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    backdrop-filter: blur(14px);
+    isolation: isolate;
+  }
+  .hero-card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 21px;
+    padding: 1px;
+    background: linear-gradient(120deg,
+      rgba(110,168,254,0.5),
+      rgba(163,113,247,0.5),
+      rgba(236,72,153,0.5),
+      rgba(251,191,36,0.4),
+      rgba(74,222,128,0.4),
+      rgba(110,168,254,0.5));
+    background-size: 300% 100%;
+    animation: sweep 12s linear infinite;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .hero-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 15% 20%, rgba(110,168,254,0.18), transparent 55%),
+      radial-gradient(ellipse at 85% 80%, rgba(236,72,153,0.14), transparent 55%);
+    pointer-events: none;
+    z-index: 0;
+    animation: glowPulse 6s ease-in-out infinite;
   }
 
   .hero-logo {
     position: relative;
-    width: 76px;
-    height: 76px;
+    width: 72px;
+    height: 72px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    animation: logo-float 6s ease-in-out infinite;
+    z-index: 3;
+    animation: logoBob 6s ease-in-out infinite;
   }
   .hero-logo::before {
     content: "";
     position: absolute;
-    inset: -12px;
+    inset: -10px;
     border-radius: 50%;
-    background: conic-gradient(from 0deg, #6ea8fe, #a371f7, #ec4899, #fbbf24, #4ade80, #6ea8fe);
-    animation: logo-spin 8s linear infinite;
-    filter: blur(14px);
-    opacity: 0.8;
+    background: conic-gradient(from 0deg,
+      #6ea8fe, #a371f7, #ec4899, #fbbf24, #4ade80, #6ea8fe);
+    filter: blur(16px);
+    opacity: 0.6;
+    animation: spin 10s linear infinite;
     z-index: 0;
   }
-  .hero-logo::after {
-    content: "";
-    position: absolute;
-    inset: -3px;
-    border-radius: 22px;
-    background: linear-gradient(135deg, #6ea8fe, #a371f7, #ec4899);
-    background-size: 200% 200%;
-    animation: logo-ring 5s ease infinite;
-    z-index: 1;
-    box-shadow:
-      0 0 30px rgba(110,168,254,0.65),
-      0 0 60px rgba(163,113,247,0.45),
-      0 0 90px rgba(236,72,153,0.3);
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
   .hero-logo img {
     position: relative;
-    z-index: 2;
-    width: 66px;
-    height: 66px;
+    z-index: 1;
+    width: 64px;
+    height: 64px;
     object-fit: contain;
-    border-radius: 16px;
+    border-radius: 18px;
     background: var(--bg);
     padding: 5px;
-    animation: logo-hue 10s ease-in-out infinite;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.08),
+      0 0 24px rgba(110,168,254,0.45),
+      0 0 48px rgba(163,113,247,0.3);
   }
 
   .hero-text {
     flex: 1;
     min-width: 200px;
-    text-align: left;
+    z-index: 3;
   }
   .hero-text h2 {
-    margin: 0 0 4px;
+    margin: 0 0 6px;
     font-size: 26px;
-    font-weight: 900;
-    letter-spacing: -0.6px;
-    background: linear-gradient(135deg, #f0f3f8 0%, #6ea8fe 45%, #a371f7 75%, #ec4899 100%);
-    background-size: 200% 200%;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+    color: var(--text);
+    background: linear-gradient(120deg,
+      #f0f3f8 0%,
+      #f0f3f8 35%,
+      #6ea8fe 45%,
+      #a371f7 55%,
+      #ec4899 62%,
+      #f0f3f8 72%,
+      #f0f3f8 100%);
+    background-size: 250% 100%;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: gradText 7s ease infinite;
-    line-height: 1.1;
+    animation: sweep 11s linear infinite;
   }
   .hero-text p {
     margin: 0;
     color: var(--text-1);
     font-size: 13.5px;
-    line-height: 1.5;
+    line-height: 1.55;
+    max-width: 520px;
   }
-
-  .hero::before {
-    content: "";
-    position: absolute;
-    top: 60px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 400px;
-    height: 200px;
-    background: radial-gradient(ellipse, rgba(110,168,254,0.15), transparent 70%);
-    filter: blur(20px);
-    animation: hero-glow 5s ease-in-out infinite;
-    pointer-events: none;
-    z-index: -1;
-  }
-  .hero { position: relative; }
 
   .search-bar {
     padding: 16px 20px 0;
@@ -421,21 +449,11 @@
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  .creator-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(110,168,254,0.06), transparent 50%);
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-  }
   .creator-card:hover {
     border-color: rgba(110,168,254,0.35);
     transform: translateY(-2px);
     box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 40px rgba(110,168,254,0.08);
   }
-  .creator-card:hover::before { opacity: 1; }
   .creator-card.expanded { border-color: rgba(110,168,254,0.55); }
 
   .creator-head {
@@ -454,14 +472,20 @@
     border-radius: 50%;
     object-fit: cover;
     background: #202040;
-    border: 2px solid transparent;
-    background-clip: padding-box;
     flex-shrink: 0;
-    position: relative;
     box-shadow: 0 0 0 2px rgba(110,168,254,0.35),
                 0 0 20px rgba(110,168,254,0.25);
     transition: box-shadow 0.3s;
     cursor: pointer;
+  }
+  .creator-avatar.fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 18px;
+    color: #fff;
+    background: linear-gradient(135deg, #6ea8fe, #a371f7);
   }
   .creator-head:hover .creator-avatar {
     box-shadow: 0 0 0 2px rgba(163,113,247,0.55),
@@ -611,11 +635,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .project-card .p-info a {
-    color: var(--warning);
-    text-decoration: none;
-    font-weight: 600;
-  }
 
   .load-more-wrap {
     display: flex;
@@ -682,11 +701,7 @@
     content: "🎮";
     font-size: 56px;
     opacity: 0.6;
-    animation: floatEmoji 3s ease-in-out infinite;
-  }
-  @keyframes floatEmoji {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
+    animation: logoBob 3s ease-in-out infinite;
   }
   .empty a {
     color: var(--accent);
@@ -799,27 +814,28 @@
   }
 
   @media (max-width: 750px) {
-    header { padding: 10px 14px; }
-    .brand-logo { width: 38px; height: 38px; }
+    header { padding: 12px 16px; gap: 12px; }
+    .brand-logo { width: 36px; height: 36px; }
     .brand-logo img { width: 32px; height: 32px; }
-    .brand-name { font-size: 15px; }
+    .brand-name { font-size: 14px; letter-spacing: 1.4px; }
     .brand-sub { font-size: 8.5px; letter-spacing: 2px; }
     .nav-links a { padding: 7px 10px; font-size: 12px; }
 
-    .hero { padding: 0 14px; margin-top: 14px; gap: 14px; }
-    .hero-logo { width: 62px; height: 62px; }
-    .hero-logo img { width: 54px; height: 54px; }
-    .hero-text { text-align: center; min-width: 100%; }
+    .hero { margin-top: 18px; padding: 0 16px; }
+    .hero-card { padding: 20px 18px; gap: 16px; border-radius: 16px; }
+    .hero-logo { width: 60px; height: 60px; }
+    .hero-logo img { width: 52px; height: 52px; border-radius: 14px; }
+    .hero-text { min-width: 100%; text-align: left; }
     .hero-text h2 { font-size: 22px; }
-    .hero-text p { font-size: 12.5px; }
+    .hero-text p { font-size: 13px; }
 
-    .search-bar { padding: 12px 14px 0; }
-    .search-bar::before { left: 26px; }
-    .search-bar input { padding: 12px 14px 12px 40px; font-size: 13px; }
-    .view-toggle { padding: 10px 14px 0; }
+    .search-bar { padding: 14px 16px 0; }
+    .search-bar::before { left: 28px; }
+    .search-bar input { padding: 12px 14px 12px 42px; font-size: 13px; }
+    .view-toggle { padding: 10px 16px 0; }
     .view-toggle button { padding: 10px 10px; font-size: 12px; }
-    .featured-wrap { padding: 12px 14px 0; }
-    main { padding: 14px 14px 32px; }
+    .featured-wrap { padding: 12px 16px 0; }
+    main { padding: 14px 16px 32px; }
 
     .creator-head { padding: 12px 14px; gap: 10px; }
     .creator-avatar { width: 40px; height: 40px; }
@@ -855,8 +871,8 @@
       <img src="/editor/logo.png" alt="Limn" />
     </div>
     <div class="brand-text">
-      <div class="brand-name">LIMN</div>
-      <div class="brand-sub">ARCADE</div>
+      <div class="brand-name">LIMN ARCADE</div>
+      <div class="brand-sub">PLAY · CREATE · SHARE</div>
     </div>
   </div>
   <div class="nav-links">
@@ -868,12 +884,14 @@
 </header>
 
 <section class="hero">
-  <div class="hero-logo">
-    <img src="/editor/logo.png" alt="Limn" />
-  </div>
-  <div class="hero-text">
-    <h2>Play. Create. Share.</h2>
-    <p>Discover games made by the Limn community — or build your own in minutes.</p>
+  <div class="hero-card">
+    <div class="hero-logo">
+      <img src="/editor/logo.png" alt="Limn" />
+    </div>
+    <div class="hero-text">
+      <h2>Play. Create. Share.</h2>
+      <p>Discover games made by the Limn community — or build your own in minutes.</p>
+    </div>
   </div>
 </section>
 
@@ -951,21 +969,31 @@ async function boot() {
 
   const creatorMap = {};
   for (const g of allGames) {
+    let key, profile;
     if (g.author_id && profileMap[g.author_id]) {
-      const p = profileMap[g.author_id];
-      if (!creatorMap[g.author_id]) {
-        creatorMap[g.author_id] = {
-          user_id: g.author_id,
-          username: p.username || null,
-          display_name: p.display_name || null,
-          avatar_url: p.avatar_url || null,
-          games: [],
-          totalLikes: 0
-        };
-      }
-      creatorMap[g.author_id].games.push(g);
-      creatorMap[g.author_id].totalLikes += likeCountMap[g.id] || 0;
+      key = g.author_id;
+      profile = profileMap[g.author_id];
+    } else {
+      const nameKey = (g.author_name || 'anonymous').split('@')[0];
+      key = 'anon:' + nameKey;
+      profile = {
+        username: nameKey,
+        display_name: nameKey,
+        avatar_url: null
+      };
     }
+    if (!creatorMap[key]) {
+      creatorMap[key] = {
+        user_id: g.author_id || null,
+        username: profile.username || null,
+        display_name: profile.display_name || null,
+        avatar_url: profile.avatar_url || null,
+        games: [],
+        totalLikes: 0
+      };
+    }
+    creatorMap[key].games.push(g);
+    creatorMap[key].totalLikes += likeCountMap[g.id] || 0;
   }
 
   creators = Object.values(creatorMap)
@@ -1081,19 +1109,27 @@ function renderCreators(grid) {
 function renderCreatorCard(c, idx) {
   const displayName = c.display_name || (c.username ? '@' + c.username : 'Creator');
   const username = c.username ? '@' + c.username : 'anonymous';
-  const avatar = c.avatar_url || 'https://via.placeholder.com/60';
   const gameCount = c.games.length;
   const stat = gameCount + ' game' + (gameCount === 1 ? '' : 's') +
                ' · ♥ ' + c.totalLikes;
 
   const profileUrl = c.username ? '/u/?u=' + encodeURIComponent(c.username) : '#';
 
-  let html = '<div class="creator-card" data-user="' + c.user_id + '" style="animation-delay:' + (idx * 0.04) + 's">';
+  let avatarHtml;
+  if (c.avatar_url) {
+    avatarHtml = '<img class="creator-avatar" src="' + escapeHtml(c.avatar_url) +
+      '" alt="" onclick="window.location.href=\'' + profileUrl + '\'">';
+  } else {
+    const initial = (displayName || '?').trim().charAt(0).toUpperCase() || '?';
+    avatarHtml = '<div class="creator-avatar fallback" onclick="window.location.href=\'' +
+      profileUrl + '\'">' + escapeHtml(initial) + '</div>';
+  }
+
+  let html = '<div class="creator-card" data-user="' + (c.user_id || '') +
+    '" style="animation-delay:' + (idx * 0.04) + 's">';
 
   html += '<div class="creator-head">';
-  html += '<img class="creator-avatar" src="' + escapeHtml(avatar) + '" alt="" ' +
-          'onclick="window.location.href=\'' + profileUrl + '\'" ' +
-          'style="cursor:pointer">';
+  html += avatarHtml;
   html += '<div class="creator-info" onclick="window.location.href=\'' + profileUrl + '\'">';
   html += '<h3>' + escapeHtml(displayName) + '</h3>';
   html += '<p>' + escapeHtml(username) + ' · ' + stat + '</p>';
@@ -1222,13 +1258,21 @@ async function loadFeatured() {
     '</div>';
 }
 
+function hashString(str) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
 function thumbSVG(game, small) {
   const w = 300;
   const h = small ? 187 : 225;
   const config = game.config || {};
   const world = config.world || { w: 800, h: 600, bg: '#0d0d2a' };
   const slots = config.slots || [];
-  const palette = config.palette || [];
 
   const h1 = hashString(String(game.id || game.slug || game.title || Math.random()));
   const h2 = hashString(String((game.slug || '') + 'b'));
@@ -1251,7 +1295,6 @@ function thumbSVG(game, small) {
   const uid = 'g' + h1.toString(36) + h2.toString(36).slice(0, 4);
 
   let art = '';
-
   const hasSlots = slots && slots.length > 0;
 
   if (hasSlots) {
