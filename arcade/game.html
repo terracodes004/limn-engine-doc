@@ -5,87 +5,525 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Playing — Arcade</title>
 <style>
+  :root {
+    --bg: #05060c;
+    --bg-1: #0a0c16;
+    --panel: rgba(18,20,32,0.75);
+    --border: rgba(255,255,255,0.08);
+    --border-2: rgba(255,255,255,0.14);
+    --text: #f0f3f8;
+    --text-1: #a3aac0;
+    --text-2: #6e7589;
+    --accent: #6ea8fe;
+    --accent-2: #a371f7;
+    --warning: #fbbf24;
+  }
   * { box-sizing: border-box; }
-  html, body { margin: 0; background: #0a0a14; color: #fff;
-               font-family: system-ui, sans-serif; }
-  .wrap { display: grid; grid-template-columns: 1fr 340px;
-          min-height: 100vh; }
-  .stage { background: #000; display: flex;
-           align-items: center; justify-content: center;
-           overflow: hidden; position: relative; }
-  .stage iframe { width: 100%; height: 100vh; border: 0; display: block; }
-  .side { background: #10101e; padding: 20px;
-          border-left: 1px solid rgba(255,255,255,0.06);
-          overflow-y: auto; max-height: 100vh; }
-  .side h1 { margin: 0 0 4px; font-size: 20px;
-             white-space: nowrap; overflow: hidden;
-             text-overflow: ellipsis; }
-  .side .author { font-size: 13px; opacity: 0.5;
-                  margin-bottom: 16px; }
-  .side .author a { color: #4af; text-decoration: none; opacity: 0.9; }
-  .side .author a:hover { text-decoration: underline; }
-  .row { display: flex; gap: 8px; margin-bottom: 20px;
-         flex-wrap: wrap; }
-  .btn { padding: 10px 14px; border: 0; border-radius: 8px;
-         background: rgba(255,255,255,0.08); color: #fff;
-         font-weight: 600; font-size: 13px; cursor: pointer;
-         text-decoration: none; display: inline-block; }
-  .btn:hover { background: rgba(255,255,255,0.15); }
-  .btn.liked { background: #f44; }
-  .zoom-val { padding: 10px 8px; font-size: 13px; opacity: 0.6;
-              min-width: 48px; text-align: center; }
-  .section { border-top: 1px solid rgba(255,255,255,0.06);
-             padding-top: 16px; margin-top: 16px; }
-  .section h2 { font-size: 14px; text-transform: uppercase;
-                letter-spacing: 0.5px; opacity: 0.6;
-                margin: 0 0 12px; font-weight: 600; }
-  .comment { padding: 10px 0;
-             border-bottom: 1px solid rgba(255,255,255,0.05); }
-  .comment .who { font-size: 12px; font-weight: 700;
-                  color: #4af; margin-bottom: 2px; }
-  .comment .who a { color: #4af; text-decoration: none; }
-  .comment .who a:hover { text-decoration: underline; }
-  .comment .body { font-size: 14px; line-height: 1.4;
-                   white-space: pre-wrap; word-break: break-word; }
-  .comment .when { font-size: 11px; opacity: 0.4; margin-top: 4px; }
-  .replies { margin-top: 8px; margin-left: 16px;
-             padding-left: 12px;
-             border-left: 2px solid rgba(68,170,255,0.15); }
-  .replies .comment { border-bottom: 0;
-                      padding: 6px 0;
-                      border-top: 1px solid rgba(255,255,255,0.03); }
-  .replies .comment:first-child { border-top: 0; }
-  .reply-form { display: flex; gap: 6px; margin-top: 8px;
-                margin-left: 16px; }
-  .reply-form input { flex: 1; padding: 8px 12px;
-                      background: #1a1a2e;
-                      border: 1px solid rgba(255,255,255,0.1);
-                      border-radius: 6px; color: #fff;
-                      font-size: 13px; }
-  .reply-form button { padding: 8px 14px; border: 0;
-                       border-radius: 6px; background: #4af;
-                       color: #fff; font-weight: 600;
-                       font-size: 12px; cursor: pointer; }
-  .comment-form { display: flex; gap: 6px; margin-top: 12px; }
-  .comment-form input { flex: 1; padding: 10px;
-                        background: #1a1a2e;
-                        border: 1px solid rgba(255,255,255,0.1);
-                        border-radius: 8px; color: #fff;
-                        font-size: 14px; }
-  .comment-form button { padding: 10px 16px; border: 0;
-                         border-radius: 8px; background: #4af;
-                         color: #fff; font-weight: 600;
-                         cursor: pointer; }
-  .loading { color: #fff; font-family: monospace;
-             padding: 40px; opacity: 0.5; }
-  .err { color: #f66; font-family: monospace;
-         padding: 40px; white-space: pre-wrap; }
-  .side .desc { font-size: 13px; opacity: 0.75;
-                line-height: 1.5; margin-bottom: 16px;
-                padding: 12px;
-                background: rgba(255,255,255,0.03);
-                border-left: 3px solid #4af;
-                border-radius: 6px; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  @keyframes sweep {
+    0%   { background-position: -200% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+  @keyframes floatUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+
+  .wrap {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    min-height: 100vh;
+  }
+
+  .stage {
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .stage iframe {
+    width: 100%;
+    height: 100vh;
+    border: 0;
+    display: block;
+  }
+
+  .side {
+    background: var(--bg-1);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    max-height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .side::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent,
+      rgba(110,168,254,0.5),
+      rgba(163,113,247,0.5),
+      transparent);
+    background-size: 200% 100%;
+    animation: sweep 8s linear infinite;
+    opacity: 0.7;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .side-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px 22px 0;
+  }
+  .side-scroll::-webkit-scrollbar { width: 8px; }
+  .side-scroll::-webkit-scrollbar-track { background: transparent; }
+  .side-scroll::-webkit-scrollbar-thumb {
+    background: var(--border-2);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  .side-scroll::-webkit-scrollbar-thumb:hover { background: var(--border-2); background-clip: content-box; }
+
+  .game-title {
+    margin: 0 0 6px;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    line-height: 1.15;
+    word-break: break-word;
+    background: linear-gradient(120deg,
+      #f0f3f8 0%, #f0f3f8 40%, #6ea8fe 50%,
+      #a371f7 60%, #f0f3f8 70%, #f0f3f8 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: sweep 10s linear infinite;
+  }
+
+  .game-author {
+    font-size: 13px;
+    color: var(--text-2);
+    margin-bottom: 16px;
+  }
+  .game-author a {
+    color: var(--warning);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .game-author a:hover { text-decoration: underline; }
+
+  .game-desc {
+    font-size: 13.5px;
+    color: var(--text-1);
+    line-height: 1.6;
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    background: rgba(110,168,254,0.06);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    white-space: pre-wrap;
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.035);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: var(--border-2);
+    transform: translateY(-1px);
+  }
+  .btn:active { transform: translateY(0); }
+
+  .btn-like {
+    background: rgba(255,84,112,0.1);
+    border-color: rgba(255,84,112,0.3);
+    color: #ff5470;
+  }
+  .btn-like:hover { background: rgba(255,84,112,0.18); border-color: rgba(255,84,112,0.5); }
+  .btn-like.liked {
+    background: linear-gradient(135deg, #ff5470, #ec4899);
+    border-color: #ff5470;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(255,84,112,0.4);
+  }
+  .btn-like.liked .heart { animation: pop 0.4s ease; }
+  .btn-like .heart { font-size: 14px; }
+
+  .btn-play {
+    background: linear-gradient(135deg, #22c55e, #4ade80);
+    border-color: #22c55e;
+    color: #04140a;
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(34,197,94,0.3);
+  }
+  .btn-play:hover { filter: brightness(1.1); }
+
+  .zoom-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .zoom-group button {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+  }
+  .zoom-group button:hover { background: rgba(255,255,255,0.08); }
+  .zoom-val {
+    padding: 0 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-1);
+    min-width: 52px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin: 0 0 14px;
+  }
+  .section-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+  .section-title .count {
+    padding: 2px 8px;
+    background: rgba(110,168,254,0.15);
+    border: 1px solid rgba(110,168,254,0.3);
+    border-radius: 10px;
+    color: var(--accent);
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+
+  .comment {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    animation: floatUp 0.35s ease backwards;
+  }
+  .comment:last-child { border-bottom: 0; }
+
+  .comment-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .comment-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6ea8fe, #a371f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: #fff;
+    font-size: 14px;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(110,168,254,0.2);
+  }
+  .comment-who {
+    flex: 1;
+    min-width: 0;
+  }
+  .comment-who a {
+    color: var(--warning);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .comment-who a:hover { text-decoration: underline; }
+  .comment-who span {
+    color: var(--warning);
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .comment-when {
+    display: block;
+    color: var(--text-2);
+    font-size: 11px;
+    margin-top: 2px;
+  }
+  .comment-body {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--text-1);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-left: 42px;
+  }
+
+  .replies {
+    margin-top: 10px;
+    margin-left: 42px;
+    padding-left: 12px;
+    border-left: 2px solid rgba(110,168,254,0.15);
+  }
+  .replies .comment {
+    padding: 8px 0;
+    border-bottom: 0;
+  }
+  .replies .comment-avatar {
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
+  }
+  .replies .comment-body { margin-left: 36px; font-size: 13px; }
+
+  .reply-form {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    margin-left: 42px;
+  }
+  .reply-form input {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .reply-form input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(110,168,254,0.15);
+  }
+  .reply-form button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6ea8fe, #a371f7);
+    color: #fff;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: filter 0.15s;
+  }
+  .reply-form button:hover { filter: brightness(1.15); }
+
+  .comment-form-wrap {
+    margin-top: 14px;
+    padding: 14px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .comment-form {
+    display: flex;
+    gap: 8px;
+  }
+  .comment-form input {
+    flex: 1;
+    padding: 11px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 13.5px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .comment-form input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(110,168,254,0.15);
+  }
+  .comment-form input::placeholder { color: var(--text-2); }
+  .comment-form button {
+    padding: 11px 18px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6ea8fe, #a371f7);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: filter 0.15s, transform 0.1s;
+  }
+  .comment-form button:hover { filter: brightness(1.15); }
+  .comment-form button:active { transform: scale(0.97); }
+
+  .loading {
+    color: var(--text-2);
+    font-family: "JetBrains Mono", monospace;
+    padding: 20px;
+    font-size: 12.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .loading::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border-2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .err {
+    color: #f87171;
+    font-family: "JetBrains Mono", monospace;
+    padding: 20px;
+    font-size: 12.5px;
+    white-space: pre-wrap;
+    line-height: 1.5;
+  }
+
+  .empty-comments {
+    text-align: center;
+    padding: 24px 12px;
+    color: var(--text-2);
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .empty-comments::before {
+    content: "💬";
+    font-size: 32px;
+    opacity: 0.5;
+  }
+
+  .side-footer {
+    padding: 18px 22px 22px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-1);
+    flex-shrink: 0;
+  }
+  .side-footer-logo {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .side-footer-logo::before {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    border-radius: 13px;
+    background: conic-gradient(from 0deg,
+      #6ea8fe, #a371f7, #ec4899, #fbbf24, #4ade80, #6ea8fe);
+    animation: spin 7s linear infinite;
+    filter: blur(7px);
+    opacity: 0.7;
+    z-index: 0;
+  }
+  .side-footer-logo img {
+    position: relative;
+    z-index: 1;
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    border-radius: 10px;
+    background: var(--bg);
+    padding: 3px;
+  }
+  .side-footer-text {
+    font-size: 11.5px;
+    color: var(--text-2);
+    letter-spacing: 0.5px;
+  }
+  .side-footer-text strong {
+    color: var(--text-1);
+    font-weight: 800;
+    letter-spacing: 1px;
+  }
+
   #debugLog {
     position: fixed;
     bottom: 8px;
@@ -95,7 +533,7 @@
     overflow-y: auto;
     background: rgba(0,0,0,0.85);
     color: #34d399;
-    font-family: monospace;
+    font-family: "JetBrains Mono", monospace;
     font-size: 10px;
     line-height: 1.4;
     padding: 8px 10px;
@@ -124,11 +562,20 @@
     align-items: center;
     justify-content: center;
   }
-  @media (max-width: 800px) {
-    .wrap { grid-template-columns: 1fr; }
-    .side { max-height: none; border-left: 0;
-            border-top: 1px solid rgba(255,255,255,0.06); }
-    .stage iframe { height: 60vh; }
+
+  @media (max-width: 900px) {
+    .wrap {
+      grid-template-columns: 1fr;
+    }
+    .stage iframe { height: 55vh; }
+    .side {
+      max-height: none;
+      overflow: visible;
+    }
+    .side-scroll {
+      padding: 18px 18px 0;
+    }
+    .game-title { font-size: 19px; }
   }
 </style>
 </head>
@@ -142,27 +589,48 @@
     <div class="loading">Loading game...</div>
   </div>
   <aside class="side" id="side" style="display:none">
-    <h1 id="title">...</h1>
-    <div class="author" id="author">...</div>
-    <div id="gameDescription" class="desc" style="display:none;"></div>
-    <div class="row">
-      <button class="btn" id="likeBtn">♥ <span id="likeCount">0</span></button>
-      <button class="btn" id="shareBtn">🔗 Share</button>
-      <button class="btn" id="forkBtn">✎ Fork</button>
-      <button class="btn" id="fsBtn">⛶ Fullscreen</button>
-      <button class="btn" id="zoomOut">−</button>
-      <span class="zoom-val" id="zoomVal">100%</span>
-      <button class="btn" id="zoomIn">+</button>
-      <a class="btn" href="/arcade/">← Arcade</a>
-    </div>
-    <div class="section">
-      <h2>Comments</h2>
-      <div id="comments"><div class="loading">Loading...</div></div>
-      <div class="comment-form">
-        <input id="commentInput" placeholder="Add a comment..." maxlength="200">
-        <button id="commentSubmit">Send</button>
+    <div class="side-scroll">
+      <h1 class="game-title" id="title">...</h1>
+      <div class="game-author" id="author">...</div>
+      <div id="gameDescription" class="game-desc" style="display:none;"></div>
+
+      <div class="actions">
+        <button class="btn btn-like" id="likeBtn">
+          <span class="heart">♥</span>
+          <span id="likeCount">0</span>
+        </button>
+        <button class="btn" id="shareBtn">🔗 Share</button>
+        <button class="btn" id="forkBtn">✎ Fork</button>
+        <button class="btn" id="fsBtn">⛶ Fullscreen</button>
+        <div class="zoom-group">
+          <button id="zoomOut" title="Zoom out">−</button>
+          <span class="zoom-val" id="zoomVal">100%</span>
+          <button id="zoomIn" title="Zoom in">+</button>
+        </div>
+        <a class="btn" href="/arcade/">← Arcade</a>
+      </div>
+
+      <div class="section">
+        <h2 class="section-title">
+          <span>Comments</span>
+          <span class="count" id="commentCount">0</span>
+        </h2>
+        <div id="comments"><div class="loading">Loading...</div></div>
+        <div class="comment-form-wrap">
+          <div class="comment-form">
+            <input id="commentInput" placeholder="Add a comment..." maxlength="200">
+            <button id="commentSubmit">Send</button>
+          </div>
+        </div>
       </div>
     </div>
+
+    <footer class="side-footer">
+      <div class="side-footer-logo">
+        <img src="/editor/logo.png" alt="Limn" />
+      </div>
+      <div class="side-footer-text">Powered by <strong>LIMN</strong></div>
+    </footer>
   </aside>
 </div>
 
@@ -264,7 +732,7 @@ async function boot() {
 
   document.title = data.title + ' — Arcade';
   document.getElementById('title').textContent = data.title;
-  document.getElementById('side').style.display = 'block';
+  document.getElementById('side').style.display = 'flex';
 
   if (data.description) {
     const descEl = document.getElementById('gameDescription');
@@ -328,9 +796,7 @@ function renderGame(data) {
   stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" allowfullscreen id="gameFrame"></iframe>';
   const frame = document.getElementById('gameFrame');
 
-  // Re-apply zoom whenever the iframe finishes loading
   frame.addEventListener('load', () => {
-    // slight delay so the game's canvas is sized before we zoom
     setTimeout(applyZoom, 60);
   });
 
@@ -355,8 +821,6 @@ function applyZoom() {
   const frame = document.getElementById('gameFrame');
   if (!frame) return;
 
-  // Zoom the iframe's BODY (so the game canvas fills the viewport correctly)
-  // Falls back to iframe-element zoom if the doc isn't reachable.
   try {
     const doc = frame.contentDocument;
     if (doc && doc.body) {
@@ -364,11 +828,8 @@ function applyZoom() {
       updateZoomLabel();
       return;
     }
-  } catch (e) {
-    // cross-origin fallback below
-  }
+  } catch (e) {}
 
-  // Fallback: zoom the iframe element itself
   frame.style.zoom = zoomLevel;
   updateZoomLabel();
 }
@@ -420,22 +881,23 @@ function showSignInPrompt() {
 
   const modal = document.createElement('div');
   modal.id = 'signin-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
   modal.innerHTML =
-    '<div style="background:#15152a;border:1px solid rgba(255,255,255,0.1);' +
-    'border-radius:16px;padding:32px;max-width:320px;' +
-    'text-align:center;color:#fff;font-family:system-ui;">' +
-      '<h2 style="margin:0 0 12px;font-size:20px;">Join the fun</h2>' +
-      '<p style="margin:0 0 24px;opacity:0.7;font-size:14px;line-height:1.5;">' +
+    '<div style="background:#15152a;border:1px solid rgba(255,255,255,0.12);' +
+    'border-radius:20px;padding:32px;max-width:340px;' +
+    'text-align:center;color:#fff;font-family:system-ui;box-shadow:0 20px 60px rgba(0,0,0,0.6);">' +
+      '<div style="font-size:36px;margin-bottom:12px;">✦</div>' +
+      '<h2 style="margin:0 0 10px;font-size:20px;font-weight:800;">Join the fun</h2>' +
+      '<p style="margin:0 0 22px;opacity:0.7;font-size:13.5px;line-height:1.55;">' +
         'Sign in to like games, leave comments, and follow your favourite creators.' +
       '</p>' +
-      '<a href="/signup" style="display:block;padding:12px;' +
-        'background:#4af;color:#fff;text-decoration:none;' +
-        'border-radius:10px;font-weight:700;margin-bottom:8px;">' +
+      '<a href="/signup" style="display:block;padding:14px;' +
+        'background:linear-gradient(135deg,#6ea8fe,#a371f7);color:#fff;text-decoration:none;' +
+        'border-radius:12px;font-weight:700;margin-bottom:10px;font-size:14.5px;">' +
         'Sign In / Register</a>' +
-      '<button id="signin-dismiss" style="padding:10px;background:transparent;' +
-        'color:#fff;border:1px solid rgba(255,255,255,0.2);' +
-        'border-radius:10px;font-weight:600;width:100%;' +
+      '<button id="signin-dismiss" style="padding:12px;background:transparent;' +
+        'color:#fff;border:1px solid rgba(255,255,255,0.15);' +
+        'border-radius:12px;font-weight:600;width:100%;' +
         'cursor:pointer;font-family:inherit;font-size:14px;">Not now</button>' +
     '</div>';
   document.body.appendChild(modal);
@@ -590,6 +1052,7 @@ async function loadLikes(gameId, userId) {
 
 async function loadComments(gameId) {
   const box = document.getElementById('comments');
+  const countEl = document.getElementById('commentCount');
 
   let data;
   try {
@@ -610,8 +1073,10 @@ async function loadComments(gameId) {
     return;
   }
 
+  if (countEl) countEl.textContent = (data || []).length;
+
   if (!data || data.length === 0) {
-    box.innerHTML = '<div style="opacity:0.4;font-size:13px">No comments yet.</div>';
+    box.innerHTML = '<div class="empty-comments">No comments yet. Be the first!</div>';
     return;
   }
 
@@ -627,14 +1092,21 @@ async function loadComments(gameId) {
     } catch (e) {}
   }
 
-  function who(c) {
+  function whoHtml(c) {
     const p = profileMap[c.user_id];
     if (p && p.username) {
       return '<a href="/u/?u=' + encodeURIComponent(p.username) + '">@' +
         escapeHtml(p.username) + '</a>';
     }
-    if (p && p.display_name) return escapeHtml(p.display_name);
-    return escapeHtml(c.user_name ? c.user_name.split('@')[0] : 'anon');
+    if (p && p.display_name) return '<span>' + escapeHtml(p.display_name) + '</span>';
+    return '<span>' + escapeHtml(c.user_name ? c.user_name.split('@')[0] : 'anon') + '</span>';
+  }
+
+  function initialOf(c) {
+    const p = profileMap[c.user_id];
+    const name = (p && (p.display_name || p.username)) ||
+                 (c.user_name ? c.user_name.split('@')[0] : '?');
+    return (name || '?').replace(/^@/, '').trim().charAt(0).toUpperCase() || '?';
   }
 
   const roots = data.filter(c => !c.parent_id);
@@ -646,25 +1118,30 @@ async function loadComments(gameId) {
     }
   }
 
-  function renderOne(c, isReply) {
+  function renderOne(c, isReply, idx) {
     const kids = replies[c.id] || [];
     const replyForm = isReply ? '' :
       '<div class="reply-form">' +
-        '<input data-reply-input="' + c.id + '" placeholder="Reply..." maxlength="200">' +
+        '<input data-reply-input="' + c.id + '" placeholder="Write a reply..." maxlength="200">' +
         '<button data-reply-btn="' + c.id + '">Reply</button>' +
       '</div>';
     const kidsHtml = kids.length > 0
-      ? '<div class="replies">' + kids.map(k => renderOne(k, true)).join('') + '</div>'
+      ? '<div class="replies">' + kids.map((k, i) => renderOne(k, true, i)).join('') + '</div>'
       : '';
-    return '<div class="comment">' +
-      '<div class="who">' + who(c) + '</div>' +
-      '<div class="body">' + escapeHtml(c.body) + '</div>' +
-      '<div class="when">' + timeAgo(c.created_at) + '</div>' +
+    return '<div class="comment" style="animation-delay:' + (idx * 0.04) + 's">' +
+      '<div class="comment-head">' +
+        '<div class="comment-avatar">' + escapeHtml(initialOf(c)) + '</div>' +
+        '<div class="comment-who">' +
+          whoHtml(c) +
+          '<span class="comment-when">' + timeAgo(c.created_at) + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="comment-body">' + escapeHtml(c.body) + '</div>' +
       kidsHtml + replyForm +
       '</div>';
   }
 
-  box.innerHTML = roots.map(c => renderOne(c, false)).join('');
+  box.innerHTML = roots.map((c, i) => renderOne(c, false, i)).join('');
 
   box.querySelectorAll('[data-reply-btn]').forEach(btn => {
     btn.addEventListener('click', () => submitComment(btn.dataset.replyBtn));
