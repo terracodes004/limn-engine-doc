@@ -5,136 +5,715 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Leaderboard — Arcade</title>
 <style>
+  :root {
+    --bg: #05060c;
+    --panel: rgba(18,20,32,0.72);
+    --border: rgba(255,255,255,0.08);
+    --border-2: rgba(255,255,255,0.14);
+    --text: #f0f3f8;
+    --text-1: #a3aac0;
+    --text-2: #6e7589;
+    --accent: #6ea8fe;
+    --accent-2: #a371f7;
+    --warning: #fbbf24;
+  }
   * { box-sizing: border-box; }
-  body { margin: 0; background: #0a0a14; color: #fff;
-         font-family: system-ui, -apple-system, sans-serif;
-         min-height: 100vh; }
-  header { padding: 24px 32px;
-           border-bottom: 1px solid rgba(255,255,255,0.06); }
-  header h1 { margin: 0 0 4px; font-size: 24px;
-              letter-spacing: -0.5px; }
-  header p { margin: 0; opacity: 0.55; font-size: 14px; }
-  main { padding: 32px; max-width: 800px; margin: 0 auto; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before, body::after {
+    content: "";
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 50%;
+  }
+  body::before {
+    top: -40vh; left: -20vw;
+    width: 80vw; height: 80vh;
+    background: radial-gradient(circle, rgba(110,168,254,0.12), transparent 60%);
+    animation: float1 22s ease-in-out infinite alternate;
+  }
+  body::after {
+    bottom: -40vh; right: -20vw;
+    width: 80vw; height: 80vh;
+    background: radial-gradient(circle, rgba(251,191,36,0.08), transparent 60%);
+    animation: float2 26s ease-in-out infinite alternate;
+  }
+  @keyframes float1 {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(6vw, 6vh); }
+  }
+  @keyframes float2 {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-6vw, -6vh); }
+  }
+  @keyframes sweep {
+    0%   { background-position: -200% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+  @keyframes logoBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes shine {
+    0%   { background-position: -300% 50%; }
+    100% { background-position: 300% 50%; }
+  }
+  @keyframes crownBob {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50% { transform: translateY(-4px) rotate(4deg); }
+  }
+  @keyframes floatUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50% { opacity: 0.95; transform: scale(1.06); }
+  }
+  @keyframes borderShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
 
-  h2 { font-size: 13px; text-transform: uppercase;
-       letter-spacing: 1.5px; opacity: 0.55;
-       margin: 40px 0 16px; font-weight: 700; }
-  h2:first-of-type { margin-top: 8px; }
+  .app { position: relative; z-index: 1; }
+
+  header.top {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: rgba(5,6,12,0.72);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    border-bottom: 1px solid var(--border);
+  }
+  header.top::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(110,168,254,0.5) 20%,
+      rgba(163,113,247,0.6) 50%,
+      rgba(236,72,153,0.5) 80%,
+      transparent 100%);
+    background-size: 200% 100%;
+    animation: sweep 8s linear infinite;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  .brand-block { display: flex; align-items: center; gap: 12px; }
+  .brand-logo {
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    animation: logoBob 5s ease-in-out infinite;
+  }
+  .brand-logo img {
+    width: 36px; height: 36px;
+    object-fit: contain;
+    border-radius: 10px;
+    background: var(--bg);
+    padding: 3px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 0 18px rgba(110,168,254,0.35);
+  }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.05; }
+  .brand-name {
+    font-size: 16px; font-weight: 800; letter-spacing: 1.6px;
+    background: linear-gradient(120deg,
+      #f0f3f8 0%, #f0f3f8 40%, #6ea8fe 50%,
+      #a371f7 60%, #f0f3f8 70%, #f0f3f8 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: sweep 9s linear infinite;
+  }
+  .brand-sub {
+    font-size: 9.5px; font-weight: 600;
+    letter-spacing: 2.4px;
+    color: var(--text-2);
+    margin-top: 3px;
+  }
+  .nav-links { display: flex; gap: 6px; flex-wrap: wrap; }
+  .nav-links a {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .nav-links a:hover {
+    border-color: var(--border-2);
+    transform: translateY(-1px);
+    background: rgba(255,255,255,0.07);
+  }
+
+  .page-head {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 24px 8px;
+    text-align: center;
+    position: relative;
+  }
+  .page-head h1 {
+    margin: 0 0 8px;
+    font-size: 38px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    background: linear-gradient(120deg,
+      #f0f3f8 0%, #fbbf24 25%, #f0f3f8 50%,
+      #fbbf24 75%, #f0f3f8 100%);
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: sweep 8s linear infinite;
+  }
+  .page-head p {
+    margin: 0;
+    color: var(--text-1);
+    font-size: 14px;
+    letter-spacing: 0.4px;
+  }
+  .week-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 8px 16px;
+    background: rgba(251,191,36,0.1);
+    border: 1px solid rgba(251,191,36,0.3);
+    border-radius: 20px;
+    color: var(--warning);
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .week-chip::before {
+    content: "📅";
+    font-size: 14px;
+  }
+
+  main {
+    padding: 8px 24px 60px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 40px 0 18px;
+  }
+  .section-head h2 {
+    margin: 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 800;
+    color: var(--text-1);
+    white-space: nowrap;
+  }
+  .section-head::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  .podium {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+    align-items: end;
+  }
+
+  .podium-card {
+    text-decoration: none;
+    color: inherit;
+    border-radius: 20px;
+    padding: 22px 18px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: floatUp 0.55s ease backwards;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    isolation: isolate;
+  }
+  .podium-card:hover { transform: translateY(-6px); }
+
+  .podium-card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: 21px;
+    padding: 1.5px;
+    background: linear-gradient(120deg,
+      rgba(255,255,255,0.5), rgba(255,255,255,0.1),
+      rgba(255,255,255,0.4), rgba(255,255,255,0.1),
+      rgba(255,255,255,0.5));
+    background-size: 300% 100%;
+    animation: borderShift 6s linear infinite;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.6;
+  }
+
+  .podium-card::after {
+    content: "";
+    position: absolute;
+    top: -40%; left: -40%;
+    width: 60%; height: 180%;
+    background: linear-gradient(90deg,
+      transparent, rgba(255,255,255,0.2), transparent);
+    transform: rotate(15deg);
+    animation: shine 5s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .podium-card > * { position: relative; z-index: 3; }
+
+  .podium-1 {
+    background: linear-gradient(135deg, #7c2d12 0%, #b45309 40%, #fbbf24 100%);
+    box-shadow: 0 20px 60px rgba(251,191,36,0.3);
+    min-height: 250px;
+    padding-top: 30px;
+    grid-row: 1;
+    grid-column: 2;
+  }
+  .podium-2 {
+    background: linear-gradient(135deg, #1e293b 0%, #475569 50%, #94a3b8 100%);
+    box-shadow: 0 16px 44px rgba(148,163,184,0.25);
+    min-height: 200px;
+    grid-row: 1;
+    grid-column: 1;
+  }
+  .podium-3 {
+    background: linear-gradient(135deg, #4a2a1a 0%, #92400e 50%, #d97706 100%);
+    box-shadow: 0 16px 44px rgba(217,119,6,0.25);
+    min-height: 200px;
+    grid-row: 1;
+    grid-column: 3;
+  }
+
+  .podium-crown {
+    font-size: 42px;
+    margin-bottom: 6px;
+    animation: crownBob 2.5s ease-in-out infinite;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+  }
+  .podium-2 .podium-crown,
+  .podium-3 .podium-crown { font-size: 34px; }
+
+  .podium-rank {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.95);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    margin-bottom: 8px;
+  }
+
+  .podium-title {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    color: #fff;
+    margin: 0 0 6px;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    line-height: 1.15;
+    word-break: break-word;
+  }
+  .podium-1 .podium-title { font-size: 22px; }
+
+  .podium-creator {
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    margin-bottom: 12px;
+    word-break: break-word;
+  }
+  .podium-creator a {
+    color: inherit;
+    text-decoration: none;
+    font-weight: 700;
+    border-bottom: 1px dashed currentColor;
+  }
+  .podium-creator a:hover { border-bottom-style: solid; }
+
+  .podium-stats {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(0,0,0,0.35);
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #fff;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .podium-stats .heart {
+    color: #ff5470;
+    filter: drop-shadow(0 0 4px rgba(255,84,112,0.6));
+  }
+
+  .banners {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
 
   .banner {
     display: block;
-    padding: 22px 26px;
+    padding: 18px 22px;
     border-radius: 16px;
     text-decoration: none;
     color: inherit;
-    margin-bottom: 14px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s;
     position: relative;
     overflow: hidden;
+    animation: floatUp 0.5s ease backwards;
+    isolation: isolate;
   }
-  .banner:hover { transform: translateY(-2px); }
+  .banner:hover { transform: translateX(4px); }
 
-  .banner-1 {
-    background: linear-gradient(135deg, #7c2d12 0%, #b45309 45%, #f59e0b 100%);
-    box-shadow: 0 8px 32px rgba(245, 158, 11, 0.25);
+  .banner::before {
+    content: "";
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: linear-gradient(90deg,
+      transparent, rgba(255,255,255,0.1), transparent);
+    transform: rotate(15deg);
+    animation: shine 8s linear infinite;
+    pointer-events: none;
   }
-  .banner-2 {
-    background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #64748b 100%);
-    box-shadow: 0 6px 24px rgba(148, 163, 184, 0.18);
-  }
-  .banner-3 {
-    background: linear-gradient(135deg, #4a2a1a 0%, #7c4a2c 50%, #c68a5a 100%);
-    box-shadow: 0 6px 24px rgba(198, 138, 90, 0.2);
-  }
+
+  .banner > * { position: relative; z-index: 1; }
+
   .banner-4 {
     background: linear-gradient(135deg, #131a2a 0%, #1e2740 50%, #2e3a55 100%);
-    box-shadow: 0 4px 18px rgba(46, 58, 85, 0.25);
+    box-shadow: 0 6px 20px rgba(46,58,85,0.3);
+    border: 1px solid rgba(110,168,254,0.15);
   }
   .banner-5 {
     background: linear-gradient(135deg, #101625 0%, #1a2235 50%, #28324a 100%);
-    box-shadow: 0 4px 16px rgba(40, 50, 74, 0.2);
+    box-shadow: 0 5px 18px rgba(40,50,74,0.25);
+    border: 1px solid rgba(110,168,254,0.1);
   }
   .banner-6 {
     background: linear-gradient(135deg, #0d1220 0%, #151c2e 50%, #1f283e 100%);
-    box-shadow: 0 3px 14px rgba(31, 40, 62, 0.18);
+    box-shadow: 0 4px 16px rgba(31,40,62,0.22);
+    border: 1px solid rgba(110,168,254,0.08);
   }
 
   .banner-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    gap: 14px;
   }
+  .banner-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .banner-rank {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(110,168,254,0.2), rgba(163,113,247,0.2));
+    border: 1px solid rgba(110,168,254,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 900;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 0 16px rgba(110,168,254,0.2);
+  }
+
+  .banner-content { min-width: 0; flex: 1; }
+
   .banner-tag {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 800;
     letter-spacing: 2px;
     text-transform: uppercase;
-    opacity: 0.9;
-    color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    color: var(--text-2);
+    margin-bottom: 3px;
   }
-
-  .banner-trophy { font-size: 32px; line-height: 1; }
-  .banner-4 .banner-trophy,
-  .banner-5 .banner-trophy,
-  .banner-6 .banner-trophy { font-size: 22px; }
-
   .banner-title {
-    font-size: 22px;
+    font-size: 16px;
     font-weight: 800;
-    letter-spacing: -0.5px;
-    margin: 0 0 6px;
-    color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    letter-spacing: -0.3px;
+    color: var(--text);
+    margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .banner-4 .banner-title,
-  .banner-5 .banner-title,
-  .banner-6 .banner-title { font-size: 18px; }
-
-  .banner-sub {
-    font-size: 13px;
-    opacity: 0.9;
-    margin-bottom: 12px;
-    color: #ffffff;
+  .banner-creator {
+    font-size: 12px;
+    color: var(--text-2);
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .banner-sub a {
-    color: inherit;
+  .banner-creator a {
+    color: var(--warning);
     text-decoration: none;
-    font-weight: 700;
-    border-bottom: 1px dashed currentColor;
+    font-weight: 600;
   }
-  .banner-sub a:hover { border-bottom-style: solid; }
+  .banner-creator a:hover { text-decoration: underline; }
 
   .banner-stats {
-    display: flex;
-    gap: 16px;
-    font-size: 14px;
-    font-weight: 700;
-    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .banner-stats .heart {
+    color: #ff5470;
+    filter: drop-shadow(0 0 4px rgba(255,84,112,0.5));
   }
 
-  .empty { text-align: center; padding: 60px 20px;
-           opacity: 0.4; }
+  .creator-banner {
+    border-left: 3px solid rgba(110,168,254,0.5);
+    cursor: default;
+  }
+  .creator-banner:hover { transform: translateX(4px); }
+
+  .creator-avatar-mini {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6ea8fe, #a371f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    color: #fff;
+    font-size: 17px;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(110,168,254,0.3), 0 0 16px rgba(110,168,254,0.25);
+  }
+
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-2);
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    border: 1px dashed var(--border);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.02);
+  }
+  .empty::before {
+    content: "🏆";
+    font-size: 52px;
+    opacity: 0.5;
+    animation: logoBob 3s ease-in-out infinite;
+  }
+
+  footer {
+    margin-top: 40px;
+    padding: 30px 24px 40px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+  }
+  .footer-logo-wrap {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .footer-logo-wrap::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 16px;
+    background: conic-gradient(from 0deg,
+      #6ea8fe, #a371f7, #ec4899, #fbbf24, #4ade80, #6ea8fe);
+    animation: spin 7s linear infinite;
+    filter: blur(8px);
+    opacity: 0.7;
+    z-index: 0;
+  }
+  .footer-logo-wrap img {
+    position: relative;
+    z-index: 1;
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: var(--bg);
+    padding: 4px;
+  }
+  .footer-text {
+    font-size: 12.5px;
+    color: var(--text-2);
+    letter-spacing: 0.5px;
+  }
+  .footer-text strong {
+    color: var(--text-1);
+    font-weight: 700;
+  }
+
+  @media (max-width: 750px) {
+    header.top { padding: 12px 16px; gap: 12px; }
+    .brand-logo { width: 36px; height: 36px; }
+    .brand-logo img { width: 32px; height: 32px; }
+    .brand-name { font-size: 14px; letter-spacing: 1.4px; }
+    .brand-sub { font-size: 8.5px; letter-spacing: 2px; }
+    .nav-links a { padding: 7px 10px; font-size: 12px; }
+
+    .page-head { padding: 24px 16px 8px; }
+    .page-head h1 { font-size: 28px; }
+    .page-head p { font-size: 13px; }
+    .week-chip { font-size: 11.5px; padding: 7px 14px; }
+
+    main { padding: 8px 16px 40px; }
+
+    .podium {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 10px;
+    }
+    .podium-1 {
+      grid-row: 1;
+      grid-column: 1 / span 2;
+      min-height: auto;
+      padding: 22px 18px;
+    }
+    .podium-2 { grid-row: 2; grid-column: 1; min-height: auto; padding: 16px 12px; }
+    .podium-3 { grid-row: 2; grid-column: 2; min-height: auto; padding: 16px 12px; }
+    .podium-crown { font-size: 34px; }
+    .podium-2 .podium-crown,
+    .podium-3 .podium-crown { font-size: 26px; }
+    .podium-1 .podium-title { font-size: 19px; }
+    .podium-title { font-size: 15px; }
+    .podium-creator { font-size: 11px; }
+    .podium-stats { font-size: 12px; padding: 5px 11px; }
+
+    .banner { padding: 14px 16px; }
+    .banner-rank { width: 36px; height: 36px; font-size: 14px; border-radius: 10px; }
+    .banner-title { font-size: 14px; }
+    .banner-creator { font-size: 11px; }
+    .banner-stats { padding: 6px 11px; font-size: 12px; }
+    .creator-avatar-mini { width: 36px; height: 36px; font-size: 15px; }
+
+    footer { padding: 24px 16px 30px; }
+    .footer-logo-wrap { width: 44px; height: 44px; }
+    .footer-logo-wrap img { width: 38px; height: 38px; }
+  }
 </style>
 </head>
 <body>
+<div class="app">
 
-<header>
-  <h1>Leaderboard</h1>
-  <p id="weekLabel">This week</p>
+<header class="top">
+  <div class="brand-block">
+    <div class="brand-logo">
+      <img src="/editor/logo.png" alt="Limn" />
+    </div>
+    <div class="brand-text">
+      <div class="brand-name">LIMN ARCADE</div>
+      <div class="brand-sub">PLAY · CREATE · SHARE</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a href="/arcade/">🏠 Arcade</a>
+    <a href="/my-games.html">📁 My Games</a>
+    <a href="/arcade/leaderboard.html">🏆 Leaderboard</a>
+    <a href="/editor/">+ New</a>
+  </div>
 </header>
 
-<main>
-  <h2>Top Games</h2>
-  <div id="games"><div class="empty">Loading...</div></div>
+<div class="page-head">
+  <h1>Leaderboard</h1>
+  <p>The most-loved games and creators this week</p>
+  <div class="week-chip" id="weekLabel">Loading…</div>
+</div>
 
-  <h2>Top Creators</h2>
-  <div id="creators"><div class="empty">Loading...</div></div>
+<main>
+  <div class="section-head"><h2>Top Games</h2></div>
+  <div id="games"><div class="empty">Loading…</div></div>
+
+  <div class="section-head"><h2>Top Creators</h2></div>
+  <div id="creators"><div class="empty">Loading…</div></div>
 </main>
+
+<footer>
+  <div class="footer-logo-wrap">
+    <img src="/editor/logo.png" alt="Limn" />
+  </div>
+  <div class="footer-text">Powered by <strong>LIMN</strong></div>
+</footer>
+
+</div>
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -228,67 +807,120 @@ const rankedCreators = Object.entries(creatorCounts)
   .map(([name, count]) => ({ name, count, username: creatorUsernames[name] || null }))
   .sort((a, b) => b.count - a.count);
 
-const rankMeta = [
-  { cls: 'banner-1', tag: '🏆 1st Place · Game of the Week', trophy: '🏆' },
-  { cls: 'banner-2', tag: '🥈 2nd Place',                     trophy: '🥈' },
-  { cls: 'banner-3', tag: '🥉 3rd Place',                     trophy: '🥉' },
-  { cls: 'banner-4', tag: '4th Place',                        trophy: '4️⃣' },
-  { cls: 'banner-5', tag: '5th Place',                        trophy: '5️⃣' },
-  { cls: 'banner-6', tag: '6th Place',                        trophy: '6️⃣' }
-];
-
 const gamesEl = document.getElementById('games');
 
 if (rankedGames.length === 0) {
-  gamesEl.innerHTML = '<div class="empty">No likes yet this week.</div>';
+  gamesEl.innerHTML = '<div class="empty">No likes yet this week. Be the first!</div>';
 } else {
   const top = rankedGames.slice(0, 6);
+  const top3 = top.slice(0, 3);
+  const rest = top.slice(3);
 
-  gamesEl.innerHTML = top.map((x, i) => {
-    const meta = rankMeta[i] || { cls: 'banner-6', tag: (i + 1) + 'th Place', trophy: String(i + 1) };
-    return `
-      <a class="banner ${meta.cls}" href="/arcade/game.html?slug=${encodeURIComponent(x.game.slug)}">
-        <div class="banner-head">
-          <span class="banner-tag">${meta.tag}</span>
-          <span class="banner-trophy">${meta.trophy}</span>
-        </div>
-        <h3 class="banner-title">${esc(x.game.title)}</h3>
-        <div class="banner-sub">by ${creatorLink(x.game)}</div>
-        <div class="banner-stats">
-          <span>♥ ${x.count}</span>
-        </div>
-      </a>
-    `;
-  }).join('');
+  const podiumOrder = [top3[1], top3[0], top3[2]];
+  const podiumClasses = ['podium-2', 'podium-1', 'podium-3'];
+  const podiumCrowns = ['🥈', '👑', '🥉'];
+  const podiumLabels = ['2nd Place', 'Game of the Week', '3rd Place'];
+
+  let podiumHtml = '<div class="podium">';
+  podiumOrder.forEach((x, i) => {
+    if (!x) return;
+    podiumHtml +=
+      '<a class="podium-card ' + podiumClasses[i] + '" href="/arcade/game.html?slug=' +
+        encodeURIComponent(x.game.slug) + '" style="animation-delay:' + (i * 0.08) + 's">' +
+        '<div class="podium-crown">' + podiumCrowns[i] + '</div>' +
+        '<div class="podium-rank">' + podiumLabels[i] + '</div>' +
+        '<h3 class="podium-title">' + esc(x.game.title) + '</h3>' +
+        '<div class="podium-creator">by ' + creatorLink(x.game) + '</div>' +
+        '<div class="podium-stats"><span class="heart">♥</span> ' + x.count + '</div>' +
+      '</a>';
+  });
+  podiumHtml += '</div>';
+  gamesEl.innerHTML = podiumHtml;
+
+  if (rest.length > 0) {
+    const bannersHtml = '<div class="banners">' + rest.map((x, i) => {
+      const rank = i + 4;
+      const cls = 'banner-' + Math.min(6, rank);
+      return '<a class="banner ' + cls + '" href="/arcade/game.html?slug=' +
+        encodeURIComponent(x.game.slug) + '" style="animation-delay:' + ((i + 3) * 0.05) + 's">' +
+        '<div class="banner-head">' +
+          '<div class="banner-left">' +
+            '<div class="banner-rank">' + rank + '</div>' +
+            '<div class="banner-content">' +
+              '<div class="banner-tag">Rank #' + rank + '</div>' +
+              '<h3 class="banner-title">' + esc(x.game.title) + '</h3>' +
+              '<div class="banner-creator">by ' + creatorLink(x.game) + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="banner-stats"><span class="heart">♥</span> ' + x.count + '</div>' +
+        '</div>' +
+      '</a>';
+    }).join('') + '</div>';
+    gamesEl.insertAdjacentHTML('beforeend', bannersHtml);
+  }
 }
 
 const creatorsEl = document.getElementById('creators');
 
 if (rankedCreators.length === 0) {
-  creatorsEl.innerHTML = '<div class="empty">No creators yet this week.</div>';
+  creatorsEl.innerHTML = '<div class="empty">No creators yet this week. Be the first!</div>';
 } else {
   const top = rankedCreators.slice(0, 6);
+  const top3 = top.slice(0, 3);
+  const rest = top.slice(3);
 
-  creatorsEl.innerHTML = top.map((x, i) => {
-    const meta = rankMeta[i] || { cls: 'banner-6', tag: (i + 1) + 'th Place', trophy: String(i + 1) };
-    const nameHtml = x.username
-      ? '<a href="/u/?u=' + encodeURIComponent(x.username) +
-        '" style="color:inherit;text-decoration:none">' + esc(x.name) + '</a>'
-      : esc(x.name);
-    const tagText = i === 0 ? '🏆 1st Place · Creator of the Week' : meta.tag;
-    return `
-      <div class="banner ${meta.cls}" style="cursor:default">
-        <div class="banner-head">
-          <span class="banner-tag">${tagText}</span>
-          <span class="banner-trophy">${meta.trophy}</span>
-        </div>
-        <h3 class="banner-title">${nameHtml}</h3>
-        <div class="banner-stats">
-          <span>♥ ${x.count}</span>
-        </div>
-      </div>
-    `;
-  }).join('');
+  const podiumOrder = [top3[1], top3[0], top3[2]];
+  const podiumClasses = ['podium-2', 'podium-1', 'podium-3'];
+  const podiumCrowns = ['🥈', '👑', '🥉'];
+  const podiumLabels = ['2nd Place', 'Creator of the Week', '3rd Place'];
+
+  function creatorNameHtml(c) {
+    if (c.username) {
+      return '<a href="/u/?u=' + encodeURIComponent(c.username) + '">' + esc(c.name) + '</a>';
+    }
+    return esc(c.name);
+  }
+
+  function creatorInitial(name) {
+    return (name || '?').replace(/^@/, '').trim().charAt(0).toUpperCase() || '?';
+  }
+
+  let podiumHtml = '<div class="podium">';
+  podiumOrder.forEach((x, i) => {
+    if (!x) return;
+    podiumHtml +=
+      '<div class="podium-card ' + podiumClasses[i] + '" style="animation-delay:' + (i * 0.08) + 's;cursor:default">' +
+        '<div class="podium-crown">' + podiumCrowns[i] + '</div>' +
+        '<div class="podium-rank">' + podiumLabels[i] + '</div>' +
+        '<h3 class="podium-title">' + creatorNameHtml(x) + '</h3>' +
+        '<div class="podium-stats"><span class="heart">♥</span> ' + x.count + '</div>' +
+      '</div>';
+  });
+  podiumHtml += '</div>';
+  creatorsEl.innerHTML = podiumHtml;
+
+  if (rest.length > 0) {
+    const bannersHtml = '<div class="banners">' + rest.map((x, i) => {
+      const rank = i + 4;
+      const cls = 'banner-' + Math.min(6, rank);
+      const nameHtml = x.username
+        ? '<a href="/u/?u=' + encodeURIComponent(x.username) + '">' + esc(x.name) + '</a>'
+        : esc(x.name);
+      return '<div class="banner creator-banner ' + cls + '" style="animation-delay:' + ((i + 3) * 0.05) + 's">' +
+        '<div class="banner-head">' +
+          '<div class="banner-left">' +
+            '<div class="creator-avatar-mini">' + esc(creatorInitial(x.name)) + '</div>' +
+            '<div class="banner-content">' +
+              '<div class="banner-tag">Rank #' + rank + '</div>' +
+              '<h3 class="banner-title">' + nameHtml + '</h3>' +
+            '</div>' +
+          '</div>' +
+          '<div class="banner-stats"><span class="heart">♥</span> ' + x.count + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('') + '</div>';
+    creatorsEl.insertAdjacentHTML('beforeend', bannersHtml);
+  }
 }
 
 function esc(s) {
@@ -299,4 +931,4 @@ function esc(s) {
 </script>
 
 </body>
-   </html>
+</html>
