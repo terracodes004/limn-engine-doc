@@ -8,6 +8,16 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let files = {};
 let filesName = [];
 
+Object.defineProperty(window, 'files', {
+    get: function () { return files; },
+    set: function (v) { files = v; }
+});
+
+Object.defineProperty(window, 'filesName', {
+    get: function () { return filesName; },
+    set: function (v) { filesName = v; }
+});
+
 function getCodeTextarea() {
     return document.getElementById('js');
 }
@@ -34,6 +44,12 @@ function getDescriptionField() {
 function setDescriptionField(value) {
     const el = document.getElementById('gameDescription');
     if (el) el.value = value || '';
+}
+
+function refreshSidebar() {
+    if (typeof window.__renderFileSidebar === 'function') {
+        window.__renderFileSidebar();
+    }
 }
 
 async function copyText(text) {
@@ -162,6 +178,8 @@ async function loadUserData() {
                         if (h5) h5.innerText = firstFile;
                         if (window.__renderCode) window.__renderCode();
                     }
+
+                    refreshSidebar();
                     return;
                 }
             }
@@ -208,6 +226,8 @@ async function loadFilesFromCloudOrLocal() {
     const fileContainer = document.getElementById('file');
     if (fileContainer) fileContainer.innerHTML = '';
     filesName.forEach(e => { if (e) createFileUI(e); });
+
+    refreshSidebar();
 }
 
 loadUserData();
@@ -275,7 +295,10 @@ async function persistData() {
     }
     localStorage.setItem("filename", filesName.join(","));
     localStorage.setItem("files", JSON.stringify(files));
+    refreshSidebar();
 }
+
+window.__persistFiles = persistData;
 
 window.saveAs = async function() {
     const user = await getActiveUser();
@@ -303,6 +326,7 @@ window.saveAs = async function() {
 
     await persistData();
     createFileUI(name);
+    refreshSidebar();
     alert("Saved Successfully ✅");
 };
 
@@ -323,6 +347,7 @@ window.save = async function() {
     } else {
         if (textarea) files[currentFileName] = textarea.value;
         await persistData();
+        refreshSidebar();
         alert("Saved Successfully ✅");
     }
 };
@@ -483,6 +508,7 @@ async function del(name, element) {
         filesName = filesName.filter(e => e !== name);
         await persistData();
         element.remove();
+        refreshSidebar();
         alert("File deleted 🗑️");
     } else {
         alert("File is still available ✅😁");
