@@ -8,20 +8,16 @@
   :root {
     --bg: #05060c;
     --bg-1: #0a0c16;
-    --panel: rgba(18,20,32,0.75);
-    --border: rgba(255,255,255,0.08);
-    --border-2: rgba(255,255,255,0.14);
+    --surface: rgba(18,20,32,0.75);
+    --muted: #6e7589;
     --text: #f0f3f8;
     --text-1: #a3aac0;
-    --text-2: #6e7589;
+    --border: rgba(255,255,255,0.08);
+    --border-2: rgba(255,255,255,0.14);
     --accent: #6ea8fe;
+    --accent2: #4ade80;
     --accent-2: #a371f7;
-    --accent-3: #ec4899;
-    --success: #4ade80;
     --warning: #fbbf24;
-    --danger: #f87171;
-    --radius: 12px;
-    --radius-lg: 16px;
   }
   * { box-sizing: border-box; }
   html, body {
@@ -76,15 +72,6 @@
   @keyframes floatUp {
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 0.6; }
-    50% { opacity: 1; }
-  }
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-3px); }
-    75% { transform: translateX(3px); }
   }
 
   .app { position: relative; z-index: 1; }
@@ -152,7 +139,7 @@
   .brand-sub {
     font-size: 9.5px; font-weight: 600;
     letter-spacing: 2.4px;
-    color: var(--text-2);
+    color: var(--muted);
     margin-top: 3px;
   }
   .nav-links { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -195,9 +182,6 @@
     font-weight: 900;
     letter-spacing: -0.8px;
     line-height: 1.1;
-    display: flex;
-    align-items: center;
-    gap: 12px;
     background: linear-gradient(120deg,
       #f0f3f8 0%, #f0f3f8 35%, #6ea8fe 45%,
       #a371f7 55%, #ec4899 62%, #f0f3f8 72%, #f0f3f8 100%);
@@ -214,33 +198,7 @@
     line-height: 1.5;
   }
 
-  .btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: rgba(255,255,255,0.035);
-    color: var(--text);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 13px;
-    transition: all 0.2s;
-    font-family: inherit;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .btn-secondary:hover {
-    background: rgba(255,255,255,0.08);
-    border-color: var(--border-2);
-    transform: translateY(-1px);
-  }
-
-  .search-wrap {
-    position: relative;
-    margin-bottom: 24px;
-  }
+  .search-wrap { position: relative; margin-bottom: 24px; }
   .search-wrap::before {
     content: "🔍";
     position: absolute;
@@ -254,7 +212,7 @@
   .search-wrap input {
     width: 100%;
     padding: 14px 18px 14px 46px;
-    background: var(--panel);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
     color: var(--text);
@@ -267,276 +225,32 @@
   .search-wrap input:focus {
     border-color: rgba(110,168,254,0.6);
     box-shadow: 0 0 0 4px rgba(110,168,254,0.15);
-    background: rgba(18,20,32,0.9);
   }
-  .search-wrap input::placeholder { color: var(--text-2); }
+  .search-wrap input::placeholder { color: var(--muted); }
 
-  .filter-row {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-  .filter-btn {
-    padding: 7px 14px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    background: rgba(255,255,255,0.03);
-    color: var(--text-2);
-    font-size: 12px;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all 0.18s;
-    letter-spacing: 0.4px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .filter-btn:hover { color: var(--text-1); border-color: var(--border-2); }
-  .filter-btn.active {
-    background: linear-gradient(135deg, rgba(110,168,254,0.2), rgba(163,113,247,0.2));
-    border-color: rgba(110,168,254,0.5);
-    color: #fff;
-  }
-
-  .notifications-list {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .notif {
-    display: flex;
-    gap: 16px;
-    padding: 18px 20px;
-    background: linear-gradient(180deg, rgba(21,21,42,0.7), rgba(16,16,30,0.7));
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(10px);
+  #notifications-list > div {
     animation: floatUp 0.4s ease backwards;
-    align-items: flex-start;
   }
-  .notif:hover {
-    border-color: rgba(110,168,254,0.4);
+
+  #notifications-list > div:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 28px rgba(0,0,0,0.4), 0 0 30px rgba(110,168,254,0.1);
-  }
-  .notif::before {
-    content: "";
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 3px;
-    background: linear-gradient(180deg, var(--accent), var(--accent-2));
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
   }
 
-  .notif-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    flex-shrink: 0;
-    background: linear-gradient(135deg, rgba(110,168,254,0.2), rgba(163,113,247,0.2));
-    border: 1px solid rgba(110,168,254,0.3);
-    box-shadow: 0 0 20px rgba(110,168,254,0.15);
+  #notifications-list a {
+    transition: all 0.15s;
   }
-  .notif-icon.update  { background: linear-gradient(135deg, rgba(110,168,254,0.2), rgba(56,189,248,0.2)); border-color: rgba(110,168,254,0.4); }
-  .notif-icon.new     { background: linear-gradient(135deg, rgba(74,222,128,0.2), rgba(34,197,94,0.2)); border-color: rgba(74,222,128,0.4); }
-  .notif-icon.winner  { background: linear-gradient(135deg, rgba(251,191,36,0.25), rgba(249,115,22,0.25)); border-color: rgba(251,191,36,0.5); }
-  .notif-icon.warning { background: linear-gradient(135deg, rgba(248,113,113,0.2), rgba(220,38,38,0.2)); border-color: rgba(248,113,113,0.4); }
-  .notif-icon.feature { background: linear-gradient(135deg, rgba(163,113,247,0.25), rgba(236,72,153,0.25)); border-color: rgba(163,113,247,0.5); }
-
-  .notif-content { flex: 1; min-width: 0; }
-  .notif-head {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 6px;
-    flex-wrap: wrap;
-  }
-  .notif-title {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 800;
-    color: var(--text);
-    letter-spacing: -0.2px;
-    line-height: 1.3;
-  }
-  .notif-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 8px;
-    background: rgba(110,168,254,0.15);
-    border: 1px solid rgba(110,168,254,0.3);
-    border-radius: 10px;
-    color: var(--accent);
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.6px;
-    text-transform: uppercase;
-  }
-  .notif-badge.winner  { background: rgba(251,191,36,0.15); border-color: rgba(251,191,36,0.4); color: var(--warning); }
-  .notif-badge.new     { background: rgba(74,222,128,0.15); border-color: rgba(74,222,128,0.4); color: var(--success); }
-  .notif-badge.warning { background: rgba(248,113,113,0.15); border-color: rgba(248,113,113,0.4); color: var(--danger); }
-  .notif-badge.feature { background: rgba(163,113,247,0.15); border-color: rgba(163,113,247,0.4); color: var(--accent-2); }
-
-  .notif-body {
-    margin: 0 0 10px;
-    font-size: 13.5px;
-    line-height: 1.6;
-    color: var(--text-1);
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-  .notif-body a {
-    color: var(--accent);
-    text-decoration: none;
-    font-weight: 600;
-    border-bottom: 1px dashed currentColor;
-  }
-  .notif-body a:hover { border-bottom-style: solid; }
-
-  .notif-media {
-    margin: 12px 0 10px;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    background: #000;
-  }
-  .notif-media img,
-  .notif-media video {
-    width: 100%;
-    display: block;
-    max-height: 360px;
-    object-fit: cover;
+  #notifications-list a:hover {
+    background: rgba(110,168,254,0.08) !important;
+    border-color: rgba(110,168,254,0.4) !important;
+    transform: translateX(2px);
   }
 
-  .notif-foot {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 11.5px;
-    color: var(--text-2);
-    flex-wrap: wrap;
-  }
-  .notif-foot .dot {
-    width: 3px; height: 3px; border-radius: 50%;
-    background: var(--text-2);
-  }
-  .notif-foot .cta {
-    margin-left: auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: #fff;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 12px;
+  #notifications-list button {
     transition: filter 0.15s, transform 0.1s;
   }
-  .notif-foot .cta:hover { filter: brightness(1.15); }
-  .notif-foot .cta:active { transform: scale(0.97); }
-
-  .notif.unread::after {
-    content: "";
-    position: absolute;
-    top: 18px;
-    right: 18px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent-3);
-    box-shadow: 0 0 12px var(--accent-3);
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  .skeleton {
-    display: flex;
-    gap: 16px;
-    padding: 18px 20px;
-    background: rgba(21,21,42,0.4);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-  .skeleton-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.06);
-    flex-shrink: 0;
-  }
-  .skeleton-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-  .skeleton-line {
-    height: 12px;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.06);
-  }
-  .skeleton-line.short { width: 40%; }
-  .skeleton-line.medium { width: 75%; }
-
-  .empty-state {
-    text-align: center;
-    padding: 60px 24px;
-    color: var(--text-2);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    border: 1px dashed var(--border);
-    border-radius: var(--radius-lg);
-    background: rgba(255,255,255,0.02);
-  }
-  .empty-state::before {
-    content: "💌";
-    font-size: 56px;
-    opacity: 0.6;
-    animation: logoBob 3s ease-in-out infinite;
-  }
-  .empty-state h3 {
-    margin: 0;
-    font-size: 17px;
-    color: var(--text);
-    font-weight: 800;
-  }
-  .empty-state p {
-    margin: 0;
-    font-size: 13.5px;
-    max-width: 320px;
-    line-height: 1.55;
-  }
-
-  .error-state {
-    padding: 20px 22px;
-    background: rgba(248,113,113,0.08);
-    border: 1px solid rgba(248,113,113,0.3);
-    border-radius: var(--radius-lg);
-    color: #fca5a5;
-    font-size: 13.5px;
-    line-height: 1.55;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    animation: shake 0.4s ease;
-  }
-  .error-state strong { color: #fecaca; font-weight: 800; }
-  .error-state code {
-    background: rgba(0,0,0,0.4);
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 12px;
-  }
+  #notifications-list button:hover { filter: brightness(1.15); }
+  #notifications-list button:active { transform: scale(0.97); }
 
   footer {
     margin-top: 40px;
@@ -580,7 +294,7 @@
   }
   .footer-text {
     font-size: 12.5px;
-    color: var(--text-2);
+    color: var(--muted);
     letter-spacing: 0.5px;
   }
   .footer-text strong {
@@ -600,11 +314,9 @@
     .page-head h1 { font-size: 26px; }
     .page-head p { font-size: 13px; }
 
-    .notif { padding: 14px 16px; gap: 12px; }
-    .notif-icon { width: 38px; height: 38px; font-size: 18px; border-radius: 10px; }
-    .notif-title { font-size: 14px; }
-    .notif-body { font-size: 13px; }
-    .notif-foot .cta { padding: 5px 10px; font-size: 11.5px; }
+    #notifications-list > div {
+      padding: 18px !important;
+    }
 
     footer { padding: 24px 16px 30px; }
     .footer-logo-wrap { width: 44px; height: 44px; }
@@ -639,23 +351,13 @@
       <h1>💌 Your Inbox</h1>
       <p>Catch up on all the latest updates and community creations.</p>
     </div>
-    <button class="btn-secondary" id="refreshBtn" type="button">↻ Refresh</button>
   </div>
 
   <div class="search-wrap">
     <input type="text" id="search-input" placeholder="Search updates..." autocomplete="off" />
   </div>
 
-  <div class="filter-row" id="filterRow">
-    <button class="filter-btn active" data-filter="all">All</button>
-    <button class="filter-btn" data-filter="update">Updates</button>
-    <button class="filter-btn" data-filter="new">New</button>
-    <button class="filter-btn" data-filter="winner">Winners</button>
-    <button class="filter-btn" data-filter="feature">Features</button>
-    <button class="filter-btn" data-filter="warning">Alerts</button>
-  </div>
-
-  <div class="notifications-list" id="notifications-list"></div>
+  <div id="notifications-list"></div>
 </main>
 
 <footer>
@@ -667,221 +369,7 @@
 
 </div>
 
-<script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-const supabase = createClient(
-  'https://pjtpesdhjfvcidfkxord.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38'
-);
-
-const listEl = document.getElementById('notifications-list');
-const searchEl = document.getElementById('search-input');
-const refreshBtn = document.getElementById('refreshBtn');
-const filterRow = document.getElementById('filterRow');
-
-let allNotifications = [];
-let activeFilter = 'all';
-let searchQuery = '';
-
-const ICONS = {
-  update:  '🔄',
-  new:     '✨',
-  winner:  '🏆',
-  feature: '⭐',
-  warning: '⚠️'
-};
-
-const BADGE_LABELS = {
-  update:  'Update',
-  new:     'New',
-  winner:  'Winner',
-  feature: 'Featured',
-  warning: 'Alert'
-};
-
-function timeAgo(iso) {
-  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return 'just now';
-  if (s < 3600) return Math.floor(s / 60) + 'm ago';
-  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
-  if (s < 2592000) return Math.floor(s / 86400) + 'd ago';
-  return new Date(iso).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  })[c]);
-}
-
-function renderSkeletons() {
-  listEl.innerHTML = Array(3).fill(0).map(() =>
-    '<div class="skeleton">' +
-      '<div class="skeleton-icon"></div>' +
-      '<div class="skeleton-lines">' +
-        '<div class="skeleton-line short"></div>' +
-        '<div class="skeleton-line medium"></div>' +
-        '<div class="skeleton-line"></div>' +
-      '</div>' +
-    '</div>'
-  ).join('');
-}
-
-function renderError(title, message) {
-  listEl.innerHTML =
-    '<div class="error-state">' +
-      '<strong>' + escapeHtml(title) + '</strong>' +
-      '<span>' + message + '</span>' +
-    '</div>';
-}
-
-function renderEmpty() {
-  listEl.innerHTML =
-    '<div class="empty-state">' +
-      '<h3>Nothing here yet</h3>' +
-      '<p>When there are updates, they will appear here. Check back soon!</p>' +
-    '</div>';
-}
-
-function renderList() {
-  let items = allNotifications.slice();
-
-  if (activeFilter !== 'all') {
-    items = items.filter(n => (n.kind || 'update') === activeFilter);
-  }
-
-  if (searchQuery.trim()) {
-    const q = searchQuery.toLowerCase();
-    items = items.filter(n =>
-      (n.title || '').toLowerCase().includes(q) ||
-      (n.body || '').toLowerCase().includes(q)
-    );
-  }
-
-  if (items.length === 0) {
-    renderEmpty();
-    return;
-  }
-
-  listEl.innerHTML = items.map((n, i) => {
-    const kind = n.kind || 'update';
-    const icon = ICONS[kind] || '📢';
-    const badgeLabel = BADGE_LABELS[kind] || 'Update';
-    const unread = n.read === false ? ' unread' : '';
-
-    let mediaHtml = '';
-    if (n.image_url) {
-      mediaHtml = '<div class="notif-media"><img src="' + escapeHtml(n.image_url) +
-        '" alt="" loading="lazy"></div>';
-    } else if (n.video_url) {
-      mediaHtml = '<div class="notif-media"><video src="' + escapeHtml(n.video_url) +
-        '" controls preload="metadata"></video></div>';
-    }
-
-    let bodyHtml = '';
-    if (n.body) {
-      let body = escapeHtml(n.body);
-      body = body.replace(/(https?:\/\/[^\s]+)/g,
-        '<a href="$1" target="_blank" rel="noopener">$1</a>');
-      bodyHtml = '<p class="notif-body">' + body + '</p>';
-    }
-
-    const ctaHtml = n.link_url
-      ? '<a class="cta" href="' + escapeHtml(n.link_url) + '">' +
-          escapeHtml(n.link_label || 'Open') + ' →' +
-        '</a>'
-      : '';
-
-    return '<div class="notif' + unread + '" style="animation-delay:' + (i * 0.05) + 's">' +
-      '<div class="notif-icon ' + kind + '">' + icon + '</div>' +
-      '<div class="notif-content">' +
-        '<div class="notif-head">' +
-          '<h3 class="notif-title">' + escapeHtml(n.title || 'Update') + '</h3>' +
-          '<span class="notif-badge ' + kind + '">' + badgeLabel + '</span>' +
-        '</div>' +
-        bodyHtml +
-        mediaHtml +
-        '<div class="notif-foot">' +
-          '<span>' + timeAgo(n.created_at) + '</span>' +
-          ctaHtml +
-        '</div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
-
-async function loadNotifications() {
-  renderSkeletons();
-
-  let data, error;
-
-  try {
-    const result = await supabase
-      .from('notifications')
-      .select('id, title, body, kind, image_url, video_url, link_url, link_label, read, created_at')
-      .order('created_at', { ascending: false })
-      .limit(100);
-
-    data = result.data;
-    error = result.error;
-  } catch (e) {
-    renderError('Connection failed',
-      'Could not reach the server. Check your internet and try again.');
-    return;
-  }
-
-  if (error) {
-    const isMissing = error.message && error.message.includes('does not exist');
-    if (isMissing) {
-      renderError('Table not set up yet',
-        'Create a table called <code>notifications</code> in Supabase to start posting updates. ' +
-        'Instructions below.');
-    } else {
-      renderError('Load failed', escapeHtml(error.message));
-    }
-    return;
-  }
-
-  allNotifications = data || [];
-  renderList();
-}
-
-searchEl.addEventListener('input', (e) => {
-  searchQuery = e.target.value;
-  renderList();
-});
-
-refreshBtn.addEventListener('click', () => {
-  refreshBtn.textContent = '↻ Loading...';
-  refreshBtn.disabled = true;
-  loadNotifications().finally(() => {
-    refreshBtn.textContent = '↻ Refresh';
-    refreshBtn.disabled = false;
-  });
-});
-
-filterRow.addEventListener('click', (e) => {
-  const btn = e.target.closest('.filter-btn');
-  if (!btn) return;
-  activeFilter = btn.dataset.filter;
-  Array.from(filterRow.querySelectorAll('.filter-btn')).forEach(b =>
-    b.classList.toggle('active', b === btn));
-  renderList();
-});
-
-loadNotifications();
-
-const channel = supabase
-  .channel('notifications-realtime')
-  .on('postgres_changes',
-    { event: 'INSERT', schema: 'public', table: 'notifications' },
-    (payload) => {
-      allNotifications.unshift(payload.new);
-      renderList();
-    })
-  .subscribe();
-</script>
+<script type="module" src="inbox.js"></script>
 
 </body>
 </html>
