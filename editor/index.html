@@ -30,26 +30,27 @@
             font-size: 14px;
             -webkit-font-smoothing: antialiased;
         }
+
         dialog {
             width: 100vw; height: 100vh;
             max-width: 100vw; max-height: 100vh;
             padding: 0; margin: 0; border: 0;
             background: #000;
+            color: #fff;
         }
-        dialog::backdrop { background: rgba(0,0,0,0.8); }
+        dialog::backdrop { background: rgba(0,0,0,0.9); }
         dialog > button {
             position: absolute; top: 14px; left: 14px; z-index: 10;
             width: 36px; height: 36px; padding: 0;
-            background: rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.08);
             color: #fff;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
             border-radius: 10px;
             cursor: pointer;
             font-size: 16px;
-            backdrop-filter: blur(8px);
         }
-        dialog > button:hover { background: rgba(255,255,255,0.12); }
-        iframe { width: 100%; height: 100%; border: 0; display: block; }
+        dialog > button:hover { background: rgba(255,255,255,0.16); }
+        iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
 
         .dialog-controls {
             position: fixed; bottom: 20px; right: 20px;
@@ -68,7 +69,6 @@
             box-shadow: 0 4px 16px rgba(0,0,0,0.4);
         }
         .dialog-controls button:hover { background: #2d3444; }
-        .dialog-controls button:active { transform: scale(0.94); }
         .dialog-controls button#fsBtn { background: var(--accent-2); border-color: #8b5cf6; width: 60px; }
         .dialog-controls button#fsBtn:hover { background: #8b5cf6; }
 
@@ -103,12 +103,9 @@
             background: var(--bg-2);
             color: var(--text-0);
             cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: background 0.15s, border-color 0.15s, transform 0.1s;
+            font-size: 13px; font-weight: 500;
         }
         header nav button:hover { background: var(--bg-3); border-color: #3d4557; }
-        header nav button:active { transform: scale(0.97); }
         #run {
             background: var(--success-2);
             border-color: #3fb950;
@@ -119,8 +116,7 @@
         #title {
             margin-left: auto;
             color: var(--text-1);
-            font-weight: 400;
-            font-size: 13px;
+            font-weight: 400; font-size: 13px;
             padding: 6px 12px;
             background: var(--bg-1);
             border: 1px solid var(--border);
@@ -129,14 +125,10 @@
 
         .dropdown { position: relative; display: inline-block; }
         .dropbtn {
-            background: var(--bg-2);
-            color: var(--text-0);
-            padding: 8px 14px;
-            font-size: 13px;
+            background: var(--bg-2); color: var(--text-0);
+            padding: 8px 14px; font-size: 13px;
             border: 1px solid var(--border-2);
-            cursor: pointer;
-            border-radius: 8px;
-            font-weight: 500;
+            cursor: pointer; border-radius: 8px; font-weight: 500;
         }
         .dropbtn:hover { background: var(--bg-3); }
         .dropdown-content {
@@ -149,22 +141,17 @@
             z-index: 1000;
             border-radius: 10px;
             border: 1px solid var(--border-2);
-            overflow: hidden;
-            padding: 6px;
+            overflow: hidden; padding: 6px;
         }
         .dropdown-content button,
         .dropdown-content a {
             color: var(--text-0);
             padding: 9px 12px;
             text-decoration: none;
-            display: block;
-            width: 100%;
+            display: block; width: 100%;
             text-align: left;
-            background: none;
-            border: none;
-            cursor: pointer;
-            border-radius: 6px;
-            font-size: 13px;
+            background: none; border: none;
+            cursor: pointer; border-radius: 6px; font-size: 13px;
         }
         .dropdown-content button:hover,
         .dropdown-content a:hover { background: var(--bg-3); }
@@ -180,15 +167,12 @@
             width: fit-content;
         }
         .tab {
-            background: transparent;
-            border: none;
+            background: transparent; border: none;
             color: var(--text-1);
             padding: 8px 18px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            transition: color 0.15s, background 0.15s;
+            font-size: 13px; font-weight: 600;
         }
         .tab:hover { color: var(--text-0); }
         .tab.active {
@@ -210,12 +194,9 @@
             padding: 22px;
         }
         .build-right {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            gap: 14px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center; gap: 14px;
             background:
                 radial-gradient(ellipse at top, rgba(110,168,254,0.06), transparent 60%),
                 var(--bg-1);
@@ -226,67 +207,35 @@
             background: linear-gradient(135deg, rgba(110,168,254,0.15), rgba(124,58,237,0.15));
             border: 1px solid rgba(110,168,254,0.25);
             display: flex; align-items: center; justify-content: center;
-            font-size: 28px;
-            margin-bottom: 4px;
+            font-size: 28px; margin-bottom: 4px;
         }
-        .build-right h3 {
-            margin: 0;
-            font-size: 15px;
-            color: var(--text-0);
-            font-weight: 600;
-        }
-        .build-right p {
-            margin: 0;
-            color: var(--text-1);
-            font-size: 13px;
-            line-height: 1.6;
-            max-width: 320px;
-        }
+        .build-right h3 { margin: 0; font-size: 15px; color: var(--text-0); font-weight: 600; }
+        .build-right p { margin: 0; color: var(--text-1); font-size: 13px; line-height: 1.6; max-width: 320px; }
         .build-right .kbd {
-            display: inline-block;
-            padding: 2px 8px;
+            display: inline-block; padding: 2px 8px;
             background: var(--bg-3);
             border: 1px solid var(--border-2);
             border-radius: 6px;
             font-family: "JetBrains Mono", ui-monospace, monospace;
-            font-size: 11px;
-            color: var(--text-0);
+            font-size: 11px; color: var(--text-0);
         }
-
         .build-section-title {
-            font-size: 11px;
-            color: var(--text-1);
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            font-weight: 700;
-            margin: 0 0 14px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 11px; color: var(--text-1);
+            text-transform: uppercase; letter-spacing: 0.6px;
+            font-weight: 700; margin: 0 0 14px 0;
+            display: flex; align-items: center; gap: 8px;
         }
         .build-section-title::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: var(--border);
+            content: ""; flex: 1; height: 1px; background: var(--border);
         }
-
         .build-field { margin-bottom: 14px; }
-        .build-field label,
-        .build-label {
-            display: block;
-            font-size: 11px;
-            color: var(--text-1);
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            font-weight: 600;
+        .build-field label, .build-label {
+            display: block; font-size: 11px; color: var(--text-1);
+            margin-bottom: 6px; text-transform: uppercase;
+            letter-spacing: 0.6px; font-weight: 600;
         }
 
-        .custom-select {
-            position: relative;
-            width: 100%;
-        }
+        .custom-select { position: relative; width: 100%; }
         .custom-select-trigger {
             width: 100%;
             padding: 12px 40px 12px 14px;
@@ -300,7 +249,6 @@
             cursor: pointer;
             text-align: left;
             position: relative;
-            display: block;
         }
         .custom-select-trigger:hover { border-color: #3d4557; }
         .custom-select-trigger::after {
@@ -319,8 +267,7 @@
         .custom-select-menu {
             position: absolute;
             top: calc(100% + 6px);
-            left: 0;
-            right: 0;
+            left: 0; right: 0;
             background: var(--bg-2);
             border: 1px solid var(--border-2);
             border-radius: 10px;
@@ -333,22 +280,15 @@
         }
         .custom-select.open .custom-select-menu { display: block; }
         .custom-select-option {
-            display: block;
-            width: 100%;
+            display: block; width: 100%;
             padding: 10px 12px;
-            background: none;
-            border: none;
-            color: var(--text-0);
-            text-align: left;
-            font-size: 13.5px;
-            font-family: inherit;
-            border-radius: 6px;
-            cursor: pointer;
+            background: none; border: none;
+            color: var(--text-0); text-align: left;
+            font-size: 13.5px; font-family: inherit;
+            border-radius: 6px; cursor: pointer;
         }
         .custom-select-option:hover,
-        .custom-select-option.focused {
-            background: var(--bg-3);
-        }
+        .custom-select-option.focused { background: var(--bg-3); }
         .custom-select-option.selected {
             background: rgba(110,168,254,0.15);
             color: #fff;
@@ -364,48 +304,31 @@
             color: var(--text-0);
             font-size: 13.5px;
             font-family: inherit;
-            transition: border-color 0.15s, box-shadow 0.15s;
         }
         .build-field input[type="color"] {
-            height: 46px;
-            padding: 5px;
-            cursor: pointer;
-            border-radius: 10px;
+            height: 46px; padding: 5px;
+            cursor: pointer; border-radius: 10px;
         }
         .build-field input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         .build-field input[type="color"]::-webkit-color-swatch {
-            border: none;
-            border-radius: 7px;
+            border: none; border-radius: 7px;
         }
-        .build-field textarea {
-            resize: vertical;
-            min-height: 78px;
-            line-height: 1.55;
-        }
-        .build-field input:focus,
-        .build-field textarea:focus {
-            outline: none;
-            border-color: var(--accent);
+        .build-field textarea { resize: vertical; min-height: 78px; line-height: 1.55; }
+        .build-field input:focus, .build-field textarea:focus {
+            outline: none; border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(110,168,254,0.15);
         }
-        .build-field input::placeholder,
-        .build-field textarea::placeholder { color: var(--text-2); }
+        .build-field input::placeholder, .build-field textarea::placeholder { color: var(--text-2); }
 
         .build-reset {
             margin-top: 18px;
             padding: 11px 16px;
-            background: var(--bg-3);
-            color: var(--text-0);
+            background: var(--bg-3); color: var(--text-0);
             border: 1px solid var(--border-2);
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            width: 100%;
-            transition: background 0.15s, border-color 0.15s;
+            border-radius: 10px; cursor: pointer;
+            font-size: 13px; font-weight: 500; width: 100%;
         }
         .build-reset:hover { background: #2d3444; border-color: #3d4557; }
-        .build-reset:active { transform: scale(0.99); }
         .build-hint { color: var(--text-2); font-size: 13px; line-height: 1.6; }
 
         .code-shell {
@@ -414,22 +337,17 @@
             border-radius: 14px;
             overflow: hidden;
             font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-            font-size: 13px;
-            line-height: 22px;
-            display: flex;
-            flex-direction: column;
+            font-size: 13px; line-height: 22px;
+            display: flex; flex-direction: column;
             box-shadow: 0 8px 32px rgba(0,0,0,0.35);
         }
         .code-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between;
             padding: 10px 14px;
             background: var(--bg-2);
             border-bottom: 1px solid var(--border);
             font-family: system-ui, -apple-system, sans-serif;
-            font-size: 12px;
-            color: var(--text-1);
+            font-size: 12px; color: var(--text-1);
         }
         .code-header-left { display: flex; align-items: center; gap: 12px; }
         .window-dots { display: flex; gap: 6px; margin-right: 4px; }
@@ -438,13 +356,9 @@
         .window-dots span:nth-child(2) { background: #febc2e; }
         .window-dots span:nth-child(3) { background: #28c840; }
         .code-filename {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 10px;
-            color: var(--text-0);
-            font-weight: 500;
-            font-size: 12.5px;
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 4px 10px; color: var(--text-0);
+            font-weight: 500; font-size: 12.5px;
             font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
             background: var(--bg-1);
             border: 1px solid var(--border);
@@ -458,35 +372,21 @@
         #codeStats { color: var(--text-2); font-variant-numeric: tabular-nums; }
         .code-header-right { display: flex; align-items: center; gap: 8px; }
         .code-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            display: inline-flex; align-items: center; gap: 6px;
             padding: 6px 12px;
-            background: var(--bg-3);
-            color: var(--text-0);
+            background: var(--bg-3); color: var(--text-0);
             border: 1px solid var(--border-2);
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 500;
+            border-radius: 8px; font-size: 12px; font-weight: 500;
             cursor: pointer;
-            transition: background 0.12s, border-color 0.12s, transform 0.1s;
         }
         .code-btn:hover { background: #2d3444; border-color: #3d4557; }
-        .code-btn:active { transform: translateY(1px); }
-        .code-btn.copied {
-            background: var(--success-2);
-            border-color: var(--success);
-            color: #fff;
-        }
+        .code-btn.copied { background: var(--success-2); border-color: var(--success); color: #fff; }
         .code-select {
             padding: 6px 10px;
-            background: var(--bg-3);
-            color: var(--text-0);
+            background: var(--bg-3); color: var(--text-0);
             border: 1px solid var(--border-2);
-            border-radius: 8px;
-            font-size: 12px;
-            cursor: pointer;
-            font-family: inherit;
+            border-radius: 8px; font-size: 12px;
+            cursor: pointer; font-family: inherit;
         }
         .code-select:focus { outline: none; border-color: var(--accent); }
 
@@ -508,12 +408,7 @@
             font-variant-numeric: tabular-nums;
             border-right: 1px solid var(--border);
         }
-        .gutter-line {
-            height: 22px;
-            line-height: 22px;
-            padding-right: 16px;
-            font-size: 13px;
-        }
+        .gutter-line { height: 22px; line-height: 22px; padding-right: 16px; font-size: 13px; }
         .gutter-line.active { color: var(--accent); }
 
         .editor-scroll { position: relative; flex: 1; overflow: hidden; }
@@ -544,13 +439,15 @@
         .code-input {
             z-index: 2;
             background: transparent;
-            color: #e6edf3;
+            color: transparent;
             caret-color: var(--accent);
             resize: none;
             outline: none;
+            -webkit-text-fill-color: transparent;
         }
         .code-input::selection {
             background: rgba(110,168,254,0.35);
+            -webkit-text-fill-color: transparent;
         }
 
         .tok-keyword   { color: #ff7b72; font-weight: 500; }
@@ -565,31 +462,109 @@
         .tok-boolean   { color: #79c0ff; }
         .tok-property  { color: #79c0ff; }
 
-        .file {
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: 320px;
+            height: 100vh;
             background: var(--bg-1);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 18px;
-            margin-bottom: 16px;
-            display: none;
+            border-right: 1px solid var(--border);
+            box-shadow: 8px 0 32px rgba(0,0,0,0.5);
+            transform: translateX(-100%);
+            transition: transform 0.25s ease;
+            z-index: 5000;
+            display: flex;
+            flex-direction: column;
         }
-        .file h2 {
-            margin: 0 0 12px;
-            font-size: 14px;
+        .sidebar.open { transform: translateX(0); }
+        .sidebar-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-header h2 {
+            margin: 0; font-size: 15px; color: var(--text-0);
+            font-weight: 700; letter-spacing: 0.4px;
+        }
+        .sidebar-close {
+            background: transparent; border: none;
+            color: var(--text-1); font-size: 18px;
+            cursor: pointer; padding: 4px 8px;
+            border-radius: 6px;
+        }
+        .sidebar-close:hover { color: var(--text-0); background: var(--bg-3); }
+        .sidebar-body {
+            flex: 1; overflow-y: auto;
+            padding: 16px 20px;
+        }
+        .sidebar-action {
+            display: flex; align-items: center; gap: 10px;
+            width: 100%; padding: 12px 14px;
+            background: var(--bg-2);
+            border: 1px solid var(--border-2);
+            border-radius: 10px;
             color: var(--text-0);
-            font-weight: 600;
+            font-size: 13.5px; font-family: inherit;
+            cursor: pointer;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        .sidebar-action:hover { background: var(--bg-3); border-color: #3d4557; }
+        .sidebar-section {
+            font-size: 11px; color: var(--text-1);
+            text-transform: uppercase; letter-spacing: 0.6px;
+            font-weight: 700;
+            margin: 22px 0 10px 0;
+        }
+        .sidebar-file {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 12px;
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 6px;
+        }
+        .sidebar-file button {
+            background: transparent; border: none;
+            color: var(--text-0); cursor: pointer;
+            font-size: 13px; font-family: inherit;
+            text-align: left; padding: 0;
+            flex: 1;
+        }
+        .sidebar-file button:hover { color: var(--accent); }
+        .sidebar-file .sidebar-file-actions {
+            display: flex; gap: 4px;
+        }
+        .sidebar-file .sidebar-file-actions button {
+            flex: 0 0 auto;
+            padding: 4px 8px;
+            color: var(--text-1);
+            border-radius: 6px;
+        }
+        .sidebar-file .sidebar-file-actions button:hover {
+            color: var(--text-0); background: var(--bg-3);
+        }
+        .sidebar-empty { color: var(--text-2); font-size: 13px; padding: 8px 0; }
+
+        .sidebar-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.25s ease;
+            z-index: 4999;
+        }
+        .sidebar-backdrop.open {
+            opacity: 1; pointer-events: auto;
         }
 
         .con { margin-top: 20px; }
         summary {
-            cursor: pointer;
-            color: var(--text-1);
+            cursor: pointer; color: var(--text-1);
             padding: 10px 14px;
             background: var(--bg-1);
             border: 1px solid var(--border);
             border-radius: 10px;
-            font-size: 13px;
-            font-weight: 500;
+            font-size: 13px; font-weight: 500;
             user-select: none;
         }
         summary:hover { color: var(--text-0); background: var(--bg-2); }
@@ -621,10 +596,25 @@
         <button id="fsBtn" title="Fullscreen (F)">⛶</button>
     </div>
 
-    <dialog>
+    <dialog id="runDialog">
         <button onclick="$('dialog').fadeToggle(500)">✕</button>
         <iframe id="gameFrame" srcdoc="<center style='padding-top:20vh;color:#8b949e;font-family:system-ui'><h1>Loading…</h1><progress></progress></center>"></iframe>
     </dialog>
+
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <aside class="sidebar" id="fileSidebar">
+        <div class="sidebar-header">
+            <h2>Files</h2>
+            <button class="sidebar-close" id="sidebarClose">✕</button>
+        </div>
+        <div class="sidebar-body">
+            <button class="sidebar-action" id="sidebarNew">🆕 New File</button>
+            <button class="sidebar-action" id="sidebarOpenFile">📂 Open from device</button>
+            <div class="sidebar-section">Saved Files</div>
+            <div id="fileList"></div>
+        </div>
+    </aside>
 
     <div class="container">
         <header>
@@ -648,16 +638,6 @@
         </header>
 
         <main>
-            <div class="file" title="File bar">
-                <h2>
-                    Files
-                    <button style="float: right;" onclick="$('.file').fadeOut(300)">✕</button>
-                </h2>
-                <button onclick="con = confirm('Are you sure to create a new file? Unsaved changes will be lost.'); if(con){ $('textarea').val(''); $('#title').text('*Untitled*'); }">🆕 New</button>
-                <button onclick="con = confirm('Are you sure to open a file? Unsaved changes will be lost.'); if(con){ inp.click(); inp.onchange = e => { let file = e.target.files[0]; let reader = new FileReader(); reader.readAsText(file,'UTF-8'); reader.onload = readerEvent => { let content = readerEvent.target.result; $('textarea').val(content); $('#title').text(file.name); } } }">📂 Open</button>
-                <div id="file"></div>
-            </div>
-
             <div class="tabs">
                 <button class="tab active" data-tab="build" type="button">Build</button>
                 <button class="tab" data-tab="code" type="button">Code</button>
@@ -786,8 +766,6 @@ function update(dt) {
         </main>
     </div>
 
-    <div class="c"></div>
-
     <script>
         var inp = document.createElement("input");
         inp.type = "file";
@@ -807,7 +785,6 @@ function update(dt) {
         if (!root || !trigger || !menu) return;
 
         function close() { root.classList.remove('open'); }
-
         function open() { root.classList.add('open'); }
 
         function pick(btn) {
@@ -818,7 +795,7 @@ function update(dt) {
             for (var i = 0; i < opts.length; i++) opts[i].classList.remove('selected');
             btn.classList.add('selected');
             close();
-            window.dispatchEvent(new CustomEvent('templatechange', { detail: { value: val } }));
+            if (window.__regenerateBuild) window.__regenerateBuild(val);
         }
 
         trigger.addEventListener('click', function (e) {
@@ -837,17 +814,7 @@ function update(dt) {
         document.addEventListener('click', function (e) {
             if (!root.contains(e.target)) close();
         });
-
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') close();
-        });
     })();
-    </script>
-
-    <script>
-    window.__getTemplateValue = function () {
-        return window.__templateSelectValue || 'dressup';
-    };
     </script>
 
     <script src="build.js"></script>
@@ -859,23 +826,126 @@ function update(dt) {
         if (runBtn) {
             runBtn.addEventListener('click', function () {
                 if (typeof runn === 'function') runn();
-                var zoomLevel = 1;
-                var frame = document.getElementById('gameFrame');
-                try {
-                    if (frame && frame.contentDocument && frame.contentDocument.body) {
-                        frame.contentDocument.body.style.zoom = zoomLevel;
-                    }
-                } catch (e) {}
             });
         }
 
+        var sidebar = document.getElementById('fileSidebar');
+        var backdrop = document.getElementById('sidebarBackdrop');
+        var closeBtn = document.getElementById('sidebarClose');
         var openBtn = document.getElementById('openBtn');
-        if (openBtn) {
-            openBtn.addEventListener('click', function () {
-                if (window.jQuery) window.jQuery('.file').fadeIn(300);
-                else { var f = document.querySelector('.file'); if (f) f.style.display = 'block'; }
+
+        function openSidebar() {
+            sidebar.classList.add('open');
+            backdrop.classList.add('open');
+            renderFileList();
+        }
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            backdrop.classList.remove('open');
+        }
+
+        if (openBtn) openBtn.addEventListener('click', openSidebar);
+        if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+        if (backdrop) backdrop.addEventListener('click', closeSidebar);
+
+        var newBtn = document.getElementById('sidebarNew');
+        if (newBtn) {
+            newBtn.addEventListener('click', function () {
+                if (confirm('Create a new file? Unsaved changes will be lost.')) {
+                    var ta = document.getElementById('js');
+                    if (ta) ta.value = '';
+                    var t = document.getElementById('title');
+                    if (t) t.textContent = '*Untitled*';
+                    if (window.__renderCode) window.__renderCode();
+                    closeSidebar();
+                }
             });
         }
+
+        var openFileBtn = document.getElementById('sidebarOpenFile');
+        if (openFileBtn) {
+            openFileBtn.addEventListener('click', function () {
+                if (confirm('Open a file from your device? Unsaved changes will be lost.')) {
+                    inp.click();
+                    inp.onchange = function (e) {
+                        var file = e.target.files[0];
+                        if (!file) return;
+                        var reader = new FileReader();
+                        reader.readAsText(file, 'UTF-8');
+                        reader.onload = function (ev) {
+                            var content = ev.target.result;
+                            var ta = document.getElementById('js');
+                            if (ta) ta.value = content;
+                            var t = document.getElementById('title');
+                            if (t) t.textContent = file.name;
+                            if (window.__renderCode) window.__renderCode();
+                            closeSidebar();
+                        };
+                    };
+                }
+            });
+        }
+
+        function renderFileList() {
+            var list = document.getElementById('fileList');
+            if (!list) return;
+            list.innerHTML = '';
+            if (typeof files === 'undefined' || !filesName || filesName.length === 0) {
+                var empty = document.createElement('div');
+                empty.className = 'sidebar-empty';
+                empty.textContent = 'No saved files yet.';
+                list.appendChild(empty);
+                return;
+            }
+            filesName.forEach(function (name) {
+                if (!name) return;
+                var row = document.createElement('div');
+                row.className = 'sidebar-file';
+
+                var openBtn = document.createElement('button');
+                openBtn.textContent = name;
+                openBtn.title = 'Open';
+                openBtn.addEventListener('click', function () {
+                    var ta = document.getElementById('js');
+                    if (ta) ta.value = files[name] || '';
+                    var t = document.getElementById('title');
+                    if (t) t.textContent = name;
+                    if (window.__renderCode) window.__renderCode();
+                    closeSidebar();
+                });
+
+                var actions = document.createElement('div');
+                actions.className = 'sidebar-file-actions';
+
+                var dl = document.createElement('button');
+                dl.textContent = '⬇';
+                dl.title = 'Download';
+                dl.addEventListener('click', function () {
+                    if (window.down) window.down(name);
+                });
+
+                var rm = document.createElement('button');
+                rm.textContent = '🗑';
+                rm.title = 'Delete';
+                rm.addEventListener('click', function () {
+                    if (confirm('Delete "' + name + '"?')) {
+                        delete files[name];
+                        filesName = filesName.filter(function (e) { return e !== name; });
+                        if (window.__persistFiles) window.__persistFiles();
+                        renderFileList();
+                    }
+                });
+
+                actions.appendChild(dl);
+                actions.appendChild(rm);
+
+                row.appendChild(openBtn);
+                row.appendChild(actions);
+                list.appendChild(row);
+            });
+        }
+
+        window.__renderFileSidebar = renderFileList;
 
         var tabs = document.querySelectorAll('.tab');
         for (var i = 0; i < tabs.length; i++) {
@@ -1144,6 +1214,10 @@ function update(dt) {
         window.__renderCode = render;
         render();
         updateActiveLine();
+
+        setTimeout(function () {
+            if (window.__renderFileSidebar) window.__renderFileSidebar();
+        }, 800);
     })();
 
     (function () {
