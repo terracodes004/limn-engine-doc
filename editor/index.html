@@ -3,218 +3,326 @@
 <head>
     <base href="/editor/">
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Limn playground</title>
+
     <style>
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; background: #0d1117; color: #c9d1d9; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+
         dialog {
-            width: 100vw;
-            height: 100vh;
-            max-width: 100vw;
-            max-height: 100vh;
-            padding: 0;
-            margin: 0;
-            border: 0;
+            width: 100vw; height: 100vh;
+            max-width: 100vw; max-height: 100vh;
+            padding: 0; margin: 0; border: 0;
             background: #0a0a0a;
         }
         dialog > button {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            z-index: 10;
+            position: absolute; top: 12px; left: 12px; z-index: 10;
             padding: 6px 12px;
-            background: rgba(0, 0, 0, 0.6);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
+            background: rgba(0,0,0,0.6); color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px; cursor: pointer; font-size: 16px;
         }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: 0;
-            display: block;
-        }
+        iframe { width: 100%; height: 100%; border: 0; display: block; }
 
         .dialog-controls {
-            position: fixed;
-            bottom: 14px;
-            right: 14px;
-            display: flex;
-            gap: 6px;
-            z-index: 2147483647;
-            pointer-events: auto;
+            position: fixed; bottom: 14px; right: 14px;
+            display: flex; gap: 6px; z-index: 2147483647;
         }
         .dialog-controls button {
-            width: 30px;
-            height: 30px;
-            padding: 0;
-            background: #2563eb;
-            color: #fff;
-            border: 2px solid rgba(255, 255, 255, 0.25);
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 20px;
-            font-weight: 700;
-            font-family: system-ui, sans-serif;
-            line-height: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            width: 30px; height: 30px; padding: 0;
+            background: #2563eb; color: #fff;
+            border: 2px solid rgba(255,255,255,0.25);
+            border-radius: 10px; cursor: pointer;
+            font-size: 20px; font-weight: 700;
+            font-family: system-ui, sans-serif; line-height: 1;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
             transition: background 0.15s, transform 0.1s;
         }
-        .dialog-controls button:hover {
-            background: #3b82f6;
-        }
-        .dialog-controls button:active {
-            transform: scale(0.94);
-        }
-        .dialog-controls button#fsBtn {
-            background: #7c3aed;
-            width: 52px;
-        }
-        .dialog-controls button#fsBtn:hover {
-            background: #8b5cf6;
-        }
+        .dialog-controls button:hover { background: #3b82f6; }
+        .dialog-controls button:active { transform: scale(0.94); }
+        .dialog-controls button#fsBtn { background: #7c3aed; width: 52px; }
+        .dialog-controls button#fsBtn:hover { background: #8b5cf6; }
 
         .dropdown { position: relative; display: inline-block; }
         .dropbtn {
-            background-color: #2563eb;
-            color: white;
-            padding: 8px 16px;
-            font-size: 14px;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px;
+            background-color: #2563eb; color: white;
+            padding: 8px 16px; font-size: 14px; border: none;
+            cursor: pointer; border-radius: 4px;
         }
         .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: #1e1e1e;
-            min-width: 140px;
-            box-shadow: 0px 8px 16px rgba(0,0,0,0.4);
-            z-index: 1000;
-            border-radius: 4px;
-            border: 1px solid #333;
+            display: none; position: absolute; right: 0;
+            background-color: #161b22; min-width: 140px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            z-index: 1000; border-radius: 4px;
+            border: 1px solid #30363d;
         }
         .dropdown-content button,
         .dropdown-content a {
-            color: white;
-            padding: 10px 14px;
-            text-decoration: none;
-            display: block;
-            width: 100%;
-            text-align: left;
-            background: none;
-            border: none;
-            cursor: pointer;
+            color: #c9d1d9; padding: 10px 14px; text-decoration: none;
+            display: block; width: 100%; text-align: left;
+            background: none; border: none; cursor: pointer;
         }
         .dropdown-content button:hover,
-        .dropdown-content a:hover {
-            background-color: #333;
-        }
+        .dropdown-content a:hover { background-color: #21262d; }
         .dropdown:hover .dropdown-content { display: block; }
 
         .tabs {
-            display: flex;
-            gap: 4px;
+            display: flex; gap: 4px;
             padding: 8px 16px;
-            background: #0d0d16;
-            border-bottom: 1px solid #222;
+            background: #010409;
+            border-bottom: 1px solid #30363d;
         }
         .tab {
-            background: transparent;
-            border: none;
-            color: #888;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
+            background: transparent; border: none; color: #8b949e;
+            padding: 8px 16px; border-radius: 6px; cursor: pointer;
+            font-size: 14px; font-weight: 600;
         }
-        .tab.active { background: #2563eb; color: #fff; }
+        .tab:hover { color: #c9d1d9; }
+        .tab.active { background: #21262d; color: #f0f6fc; }
 
         .build-panel {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 20px;
-            padding: 20px;
-            min-height: 400px;
+            display: grid; grid-template-columns: 300px 1fr;
+            gap: 20px; padding: 20px; min-height: 400px;
         }
         .build-field { margin-bottom: 12px; }
-        .build-field label {
-            display: block;
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .build-field input {
-            width: 100%;
-            padding: 8px;
-            background: #1a1a2e;
-            border: 1px solid #333;
-            border-radius: 6px;
-            color: #fff;
-            font-size: 14px;
-        }
-        .build-field input[type="color"] {
-            height: 40px;
-            padding: 4px;
-            cursor: pointer;
-        }
-        .build-field textarea {
-            width: 100%;
-            padding: 8px;
-            background: #1a1a2e;
-            border: 1px solid #333;
-            border-radius: 6px;
-            color: #fff;
-            font-size: 14px;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 60px;
-        }
-        .build-field textarea:focus {
-            outline: none;
-            border-color: #2563eb;
-        }
+        .build-field label,
         .build-label {
-            display: block;
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            display: block; font-size: 12px; color: #8b949e;
+            margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .build-field input,
+        .build-field select {
+            width: 100%; padding: 8px;
+            background: #0d1117; border: 1px solid #30363d;
+            border-radius: 6px; color: #c9d1d9; font-size: 14px;
+        }
+        .build-field input[type="color"] { height: 40px; padding: 4px; cursor: pointer; }
+        .build-field textarea {
+            width: 100%; padding: 8px;
+            background: #0d1117; border: 1px solid #30363d;
+            border-radius: 6px; color: #c9d1d9; font-size: 14px;
+            font-family: inherit; resize: vertical; min-height: 60px;
+        }
+        .build-field input:focus,
+        .build-field select:focus,
+        .build-field textarea:focus {
+            outline: none; border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88,166,255,0.15);
         }
         .build-reset {
-            margin-top: 16px;
-            padding: 10px 16px;
-            background: #333;
-            color: #fff;
-            border: none;
+            margin-top: 16px; padding: 10px 16px;
+            background: #21262d; color: #c9d1d9;
+            border: 1px solid #30363d; border-radius: 6px;
+            cursor: pointer; font-size: 13px;
+        }
+        .build-reset:hover { background: #30363d; }
+        .build-hint { color: #6e7681; font-size: 13px; }
+
+        .code-shell {
+            margin: 12px 16px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+            font-size: 13px;
+            line-height: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 12px;
+            color: #8b949e;
+        }
+        .code-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .code-filename {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px 6px 0 0;
+            color: #c9d1d9;
+            font-weight: 500;
+            font-size: 12px;
+            font-family: ui-monospace, Menlo, monospace;
+        }
+        .code-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #f0b429;
+        }
+        .code-header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .code-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 10px;
+            background: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
             border-radius: 6px;
+            font-size: 12px; font-weight: 500;
             cursor: pointer;
+            transition: background 0.12s, border-color 0.12s;
+        }
+        .code-btn:hover { background: #30363d; border-color: #8b949e; }
+        .code-btn:active { transform: translateY(1px); }
+        .code-btn.copied {
+            background: #238636;
+            border-color: #2ea043;
+            color: #fff;
+        }
+        .code-select {
+            padding: 5px 8px;
+            background: #21262d;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .code-select:focus { outline: none; border-color: #58a6ff; }
+
+        .editor-body {
+            display: flex;
+            height: 62vh;
+            min-height: 380px;
+            overflow: hidden;
+            background: #0d1117;
+        }
+
+        .gutter {
+            flex: 0 0 56px;
+            padding: 12px 0;
+            background: #0d1117;
+            color: #484f58;
+            text-align: right;
+            user-select: none;
+            overflow: hidden;
+            font-variant-numeric: tabular-nums;
+            border-right: 1px solid #21262d;
+        }
+        .gutter-line {
+            height: 20px;
+            line-height: 20px;
+            padding-right: 14px;
             font-size: 13px;
         }
-        .build-hint { color: #666; font-size: 13px; }
+        .gutter-line.active { color: #c9d1d9; }
+
+        .editor-scroll {
+            position: relative;
+            flex: 1;
+            overflow: hidden;
+        }
+        .highlight-layer,
+        .code-input {
+            position: absolute;
+            top: 0; left: 0;
+            margin: 0;
+            padding: 12px 16px 12px 16px;
+            border: 0;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            white-space: pre;
+            tab-size: 4;
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+
+        .highlight-layer {
+            pointer-events: none;
+            z-index: 1;
+            color: #c9d1d9;
+            background: transparent;
+            overflow: hidden;
+            word-wrap: normal;
+        }
+
+        .code-input {
+            z-index: 2;
+            background: transparent;
+            color: transparent;
+            caret-color: #58a6ff;
+            resize: none;
+            outline: none;
+            -webkit-text-fill-color: transparent;
+            word-wrap: normal;
+        }
+        .code-input::selection {
+            background: rgba(56,139,253,0.4);
+            -webkit-text-fill-color: transparent;
+        }
+        .code-input::placeholder { color: #484f58; }
+
+        .tok-keyword   { color: #ff7b72; }
+        .tok-string    { color: #a5d6ff; }
+        .tok-number    { color: #79c0ff; }
+        .tok-comment   { color: #8b949e; font-style: italic; }
+        .tok-function  { color: #d2a8ff; }
+        .tok-builtin   { color: #ffa657; }
+        .tok-class     { color: #ffa657; }
+        .tok-punct     { color: #c9d1d9; }
+        .tok-operator  { color: #ff7b72; }
+        .tok-boolean   { color: #79c0ff; }
+        .tok-property  { color: #79c0ff; }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; }
+        header {
+            display: flex; align-items: center; gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px solid #21262d;
+            margin-bottom: 16px;
+        }
+        header h1 {
+            font-size: 18px; margin: 0; color: #f0f6fc;
+            letter-spacing: 1px;
+        }
+        header nav ul {
+            list-style: none; padding: 0; margin: 0;
+            display: flex; gap: 8px; align-items: center;
+        }
+        header nav button {
+            padding: 6px 12px; border-radius: 6px;
+            border: 1px solid #30363d; background: #21262d;
+            color: #c9d1d9; cursor: pointer; font-size: 13px;
+        }
+        header nav button:hover { background: #30363d; }
+        #run { background: #238636; border-color: #2ea043; color: #fff; }
+        #run:hover { background: #2ea043; }
+        #title { margin-left: auto; color: #8b949e; font-weight: 400; font-size: 13px; }
+
+        .file {
+            background: #161b22; border: 1px solid #30363d;
+            border-radius: 8px; padding: 16px; margin-bottom: 16px;
+            display: none;
+        }
+        .file h2 { margin: 0 0 12px; font-size: 14px; color: #c9d1d9; }
+
+        .con { margin-top: 16px; }
+        summary { cursor: pointer; color: #8b949e; padding: 6px 0; }
+        summary:hover { color: #c9d1d9; }
     </style>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Limn playground</title>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TSFBHGDMJL"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-TSFBHGDMJL');
-    </script>
-    <meta name="robots" content="TCJSGame, Playground, TCJSgame playground">
-    <meta name="googlebots" content="TCJSGame, Playground, TCJSgame playground">
-    <link rel="stylesheet" href="style.css" />
-    <meta name="description" content="A playground for TCJSgame." />
-    <script src="jquery-3.7.1.min.js"></script>
-    <script src="function.js" defer></script>
 </head>
 <body>
     <div class="dialog-controls" id="dialogControls">
@@ -233,7 +341,7 @@
             <h1>LIMN STUDIO</h1>
             <nav>
                 <ul>
-                    <li><button id="run" onclick="runn()">Run</button></li>
+                    <li><button id="run" onclick="runn()">▶ Run</button></li>
                     <li><button onclick="$('.file').fadeIn(500)">Open</button></li>
                     <li class="dropdown">
                         <button class="dropbtn">Menu ▾</button>
@@ -253,7 +361,7 @@
             <div class="file" title="File bar">
                 <h2>
                     Files
-                    <button style="float: right; z-index:12345678909876543210;" onclick="$('.file').fadeOut('500')">⛔</button>
+                    <button style="float: right;" onclick="$('.file').fadeOut('500')">⛔</button>
                 </h2>
                 <button onclick="
                     con = confirm('Are you sure to create a new file? Unsaved changes will be lost.');
@@ -289,7 +397,7 @@
             <div id="buildPanel" class="build-panel">
                 <div class="build-left">
                     <label class="build-label">Template</label>
-                    <select id="templateSelect">
+                    <select id="templateSelect" class="build-field">
                         <option value="dressup">Dress-Up</option>
                         <option value="platformer">Platformer</option>
                         <option value="runner">Runner</option>
@@ -321,31 +429,54 @@
             </div>
 
             <section id="codeSection" style="display:none">
-                <select id="version">
-                    <option value="v2">Limn Version 2</option>
-                    <option value="v3">Limn Version 3</option>
-                    <option value="v4" selected>LIMN V4</option>
-                </select>
+                <div class="code-shell">
+                    <div class="code-header">
+                        <div class="code-header-left">
+                            <div class="code-filename">
+                                <span class="code-dot"></span>
+                                <span>main.js</span>
+                            </div>
+                            <span id="codeStats">0 lines</span>
+                        </div>
+                        <div class="code-header-right">
+                            <select id="version" class="code-select">
+                                <option value="v2">Limn v2</option>
+                                <option value="v3">Limn v3</option>
+                                <option value="v4" selected>Limn v4</option>
+                            </select>
+                            <button id="copyCodeBtn" class="code-btn" title="Copy code to clipboard">
+                                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/>
+                                    <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/>
+                                </svg>
+                                <span id="copyCodeLabel">Copy</span>
+                            </button>
+                            <button id="formatCodeBtn" class="code-btn" title="Re-indent code">⤸ Format</button>
+                        </div>
+                    </div>
 
-                <textarea id="js" wrap="off">
-const display = new Display();
-display.perform();           
+                    <div class="editor-body">
+                        <div class="gutter" id="gutter"></div>
+                        <div class="editor-scroll">
+                            <pre class="highlight-layer" id="highlightLayer" aria-hidden="true"></pre>
+                            <textarea id="js" class="code-input" wrap="off" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off">const display = new Display();
+display.perform();
 display.start(800, 600);
 display.backgroundColor("#0a0a0a");
 display.camera.worldWidth  = 2000;
 display.camera.worldHeight = 2000;
 display.clearMargin = [2000, 2000];
-fake.mapWidth= 2000
-fake.mapHeight = 2000
-fake.canvas.width = 2000
-fake.canvas.height =2000
-TCJSgameGameArea.width = 2000
-TCJSgameGameArea.height =2000
+fake.mapWidth = 2000;
+fake.mapHeight = 2000;
+fake.canvas.width = 2000;
+fake.canvas.height = 2000;
+TCJSgameGameArea.width = 2000;
+TCJSgameGameArea.height = 2000;
 
 fake.tile = [
-    new Component(64, 64, "#1a3a1a", 0, 0), 
-    new Component(64, 64, "#2244aa", 0, 0), 
-    new Component(64, 64, "#555",    0, 0), 
+    new Component(64, 64, "#1a3a1a", 0, 0),
+    new Component(64, 64, "#2244aa", 0, 0),
+    new Component(64, 64, "#555",    0, 0),
 ];
 fake.map = [
     [1,1,1,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -359,39 +490,41 @@ fake.tileFace.show();
 const player = new Component(36, 36, "blue", 400, 200, "rect");
 display.add(player);
 
-const hud = new Tctxt("16px","Arial","white",12,20,"left",false,"alphabetic","rgba(0,0,0,0.6)",8,4);
+const hud = new Tctxt("16px", "Arial", "white", 12, 20, "left", false, "alphabetic", "rgba(0,0,0,0.6)", 8, 4);
 hud.setText("WASD to move");
 display.add(hud);
 
 const ps = new ParticleSystem(display);
-
 const SPEED = 220;
 
 function update(dt) {
     ps.update();
 
-    player.speedX = 0; player.speedY = 0;
+    player.speedX = 0;
+    player.speedY = 0;
     if (display.keys[87]) player.speedY = -SPEED * dt;
     if (display.keys[83]) player.speedY =  SPEED * dt;
     if (display.keys[65]) player.speedX = -SPEED * dt;
     if (display.keys[68]) player.speedX =  SPEED * dt;
 
-    move.particles.sparkle(ps, player.x+18, player.y+18);
+    move.particles.sparkle(ps, player.x + 18, player.y + 18);
 
     display.camera.follow(player);
-    fake.camera.x = display.camera.x;  
+    fake.camera.x = display.camera.x;
     fake.camera.y = display.camera.y;
 
     hud.setText("X:" + Math.floor(player.x) + " Y:" + Math.floor(player.y));
     hud.fixed();
-}
-                </textarea>
+}</textarea>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <div class="con">
                 <details>
                     <summary>console</summary>
-                    <div id="editor-console-logs" style="background: #111; color: #34d399; font-family: monospace; min-height: 120px; max-height: 250px; padding: 12px; overflow-y: auto; border: 1px solid #333; border-radius: 4px; white-space: pre-wrap;"></div>
+                    <div id="editor-console-logs" style="background: #0d1117; color: #3fb950; font-family: ui-monospace, Menlo, monospace; min-height: 120px; max-height: 250px; padding: 12px; overflow-y: auto; border: 1px solid #30363d; border-radius: 6px; white-space: pre-wrap; font-size: 12.5px;"></div>
                 </details>
             </div>
         </main>
@@ -410,116 +543,215 @@ function update(dt) {
 
     <script>
     (function () {
-        var zoomLevel = 1;
+        var textarea = document.getElementById('js');
+        var highlight = document.getElementById('highlightLayer');
+        var gutter = document.getElementById('gutter');
+        var stats = document.getElementById('codeStats');
+        var copyBtn = document.getElementById('copyCodeBtn');
+        var copyLabel = document.getElementById('copyCodeLabel');
+        var formatBtn = document.getElementById('formatCodeBtn');
+        var scrollHost = textarea && textarea.parentElement;
 
-        function getFrame() {
-            return document.getElementById('gameFrame');
+        if (!textarea || !highlight || !gutter) return;
+
+        var KEYWORDS = {
+            'const':1,'let':1,'var':1,'function':1,'return':1,'if':1,'else':1,
+            'for':1,'while':1,'do':1,'break':1,'continue':1,'new':1,'this':1,
+            'class':1,'extends':1,'super':1,'try':1,'catch':1,'finally':1,
+            'throw':1,'switch':1,'case':1,'default':1,'typeof':1,'instanceof':1,
+            'in':1,'of':1,'delete':1,'void':1,'yield':1,'await':1,'async':1,
+            'static':1,'get':1,'set':1,'import':1,'export':1,'from':1,'as':1
+        };
+        var BUILTINS = {
+            'Display':1,'Component':1,'Tctxt':1,'Camera':1,'Sprite':1,'AnimatedSprite':1,
+            'Tile':1,'TileMap':1,'Particle':1,'ParticleSystem':1,'Sound':1,'SoundManager':1,
+            'Math':1,'JSON':1,'Object':1,'Array':1,'String':1,'Number':1,'Boolean':1,
+            'Date':1,'Set':1,'Map':1,'Promise':1,'Error':1,'console':1,'window':1,
+            'document':1,'display':1,'fake':1,'move':1,'state':1,'mouse':1,'comm':1,
+            'TCJSgameGameArea':1
+        };
+        var LITERALS = { 'true':1,'false':1,'null':1,'undefined':1,'NaN':1,'Infinity':1 };
+
+        function esc(s) {
+            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         }
 
-        function applyZoom() {
-            var frame = getFrame();
-            if (!frame) return;
+        function tokenize(code) {
+            var out = '';
+            var i = 0;
+            var n = code.length;
 
-            // Prefer zooming the iframe's BODY — resizes the game canvas correctly
-            try {
-                var doc = frame.contentDocument;
-                if (doc && doc.body) {
-                    doc.body.style.zoom = zoomLevel;
-                    return;
+            while (i < n) {
+                var ch = code[i];
+
+                if (ch === '/' && code[i+1] === '/') {
+                    var j = i;
+                    while (j < n && code[j] !== '\n') j++;
+                    out += '<span class="tok-comment">' + esc(code.slice(i, j)) + '</span>';
+                    i = j;
+                    continue;
                 }
-            } catch (e) {
-                // cross-origin fallback below
+                if (ch === '/' && code[i+1] === '*') {
+                    var k = i + 2;
+                    while (k < n && !(code[k] === '*' && code[k+1] === '/')) k++;
+                    k = Math.min(k + 2, n);
+                    out += '<span class="tok-comment">' + esc(code.slice(i, k)) + '</span>';
+                    i = k;
+                    continue;
+                }
+
+                if (ch === '"' || ch === "'" || ch === '`') {
+                    var q = ch;
+                    var m = i + 1;
+                    while (m < n) {
+                        if (code[m] === '\\') { m += 2; continue; }
+                        if (code[m] === q) { m++; break; }
+                        m++;
+                    }
+                    out += '<span class="tok-string">' + esc(code.slice(i, m)) + '</span>';
+                    i = m;
+                    continue;
+                }
+
+                if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(code[i+1]))) {
+                    var p = i;
+                    while (p < n && /[0-9a-fA-FxX._]/.test(code[p])) p++;
+                    out += '<span class="tok-number">' + esc(code.slice(i, p)) + '</span>';
+                    i = p;
+                    continue;
+                }
+
+                if (/[A-Za-z_$]/.test(ch)) {
+                    var s = i;
+                    while (s < n && /[A-Za-z0-9_$]/.test(code[s])) s++;
+                    var word = code.slice(i, s);
+
+                    var la = s;
+                    while (la < n && (code[la] === ' ' || code[la] === '\t')) la++;
+                    var isCall = code[la] === '(';
+
+                    var lb = i - 1;
+                    while (lb >= 0 && (code[lb] === ' ' || code[lb] === '\t')) lb--;
+                    var isProperty = lb >= 0 && code[lb] === '.';
+
+                    var cls = 'tok-punct';
+                    if (LITERALS[word]) cls = 'tok-boolean';
+                    else if (KEYWORDS[word]) cls = 'tok-keyword';
+                    else if (BUILTINS[word]) cls = 'tok-builtin';
+                    else if (isProperty) cls = 'tok-property';
+                    else if (isCall) cls = 'tok-function';
+                    else if (/^[A-Z]/.test(word)) cls = 'tok-class';
+
+                    out += '<span class="' + cls + '">' + esc(word) + '</span>';
+                    i = s;
+                    continue;
+                }
+
+                if (/[+\-*/%=<>!&|^~?:]/.test(ch)) {
+                    var o = i;
+                    while (o < n && /[+\-*/%=<>!&|^~?:]/.test(code[o])) o++;
+                    out += '<span class="tok-operator">' + esc(code.slice(i, o)) + '</span>';
+                    i = o;
+                    continue;
+                }
+
+                if (/[{}()[\];,.]/.test(ch)) {
+                    out += '<span class="tok-punct">' + esc(ch) + '</span>';
+                    i++;
+                    continue;
+                }
+
+                out += esc(ch);
+                i++;
             }
 
-            // Fallback: zoom the iframe element itself
-            frame.style.zoom = zoomLevel;
+            return out;
         }
 
-        function setZoom(newLevel) {
-            zoomLevel = Math.max(0.3, Math.min(3, +newLevel.toFixed(2)));
-            applyZoom();
-        }
+        function render() {
+            var code = textarea.value;
 
-        document.getElementById('zoomInBtn').addEventListener('click', function () {
-            setZoom(zoomLevel + 0.1);
-        });
+            var html = tokenize(code);
+            if (code.endsWith('\n')) html += ' ';
+            highlight.innerHTML = html;
 
-        document.getElementById('zoomOutBtn').addEventListener('click', function () {
-            setZoom(zoomLevel - 0.1);
-        });
-
-        document.getElementById('fsBtn').addEventListener('click', async function () {
-            try {
-                if (document.fullscreenElement || document.webkitFullscreenElement) {
-                    if (document.exitFullscreen) await document.exitFullscreen();
-                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-                    return;
-                }
-
-                var dialog = document.querySelector('dialog');
-                var frame = getFrame();
-                var target = dialog || frame || document.documentElement;
-
-                var req = target.requestFullscreen
-                       || target.webkitRequestFullscreen
-                       || target.msRequestFullscreen;
-
-                if (!req) {
-                    alert('Fullscreen not supported on this browser.');
-                    return;
-                }
-
-                await req.call(target);
-            } catch (err) {
-                console.error('[fullscreen] failed:', err);
-                try {
-                    await document.documentElement.requestFullscreen();
-                } catch (err2) {
-                    alert('Fullscreen failed: ' + err.message);
-                }
+            var lineCount = code.split('\n').length;
+            var g = '';
+            for (var i = 1; i <= lineCount; i++) {
+                g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
             }
-        });
+            gutter.innerHTML = g;
 
-        document.addEventListener('fullscreenchange', function () {
-            var btn = document.getElementById('fsBtn');
-            if (btn) btn.textContent = document.fullscreenElement ? '⛶' : '⛶';
-        });
+            if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
 
-        var frame = getFrame();
-        if (frame) {
-            frame.addEventListener('load', function () {
-                setTimeout(applyZoom, 60);
-            });
+            syncScroll();
         }
 
-        var runBtn = document.getElementById('run');
-        if (runBtn) {
-            runBtn.addEventListener('click', function () {
-                zoomLevel = 1;
-                applyZoom();
-            });
+        function syncScroll() {
+            highlight.scrollTop = textarea.scrollTop;
+            highlight.scrollLeft = textarea.scrollLeft;
+            gutter.scrollTop = textarea.scrollTop;
         }
+        textarea.addEventListener('scroll', syncScroll);
 
-        document.addEventListener('keydown', function (e) {
-            var t = e.target;
-            var tag = t && t.tagName ? t.tagName.toLowerCase() : '';
-            if (tag === 'input' || tag === 'textarea' || (t && t.isContentEditable)) return;
-
-            if (e.key === 'f' || e.key === 'F') {
-                e.preventDefault();
-                document.getElementById('fsBtn').click();
-            } else if (e.key === '+' || e.key === '=') {
-                e.preventDefault();
-                setZoom(zoomLevel + 0.1);
-            } else if (e.key === '-' || e.key === '_') {
-                e.preventDefault();
-                setZoom(zoomLevel - 0.1);
-            } else if (e.key === '0') {
-                e.preventDefault();
-                setZoom(1);
+        function updateActiveLine() {
+            var before = textarea.value.slice(0, textarea.selectionStart);
+            var line = before.split('\n').length;
+            var lines = gutter.children;
+            for (var i = 0; i < lines.length; i++) {
+                lines[i].classList.toggle('active', i + 1 === line);
             }
-        });
-    })();
-    </script>
-</body>
-</html>
+        }
+
+        var PAIRS = { '(':')', '[':']', '{':'}', '"':'"', "'":"'", '`':'`' };
+        var CLOSERS = { ')':1, ']':1, '}':1 };
+
+        function insertAtCursor(text) {
+            var start = textarea.selectionStart;
+            var end = textarea.selectionEnd;
+            var val = textarea.value;
+            textarea.value = val.slice(0, start) + text + val.slice(end);
+            var pos = start + text.length;
+            textarea.selectionStart = textarea.selectionEnd = pos;
+            render();
+            updateActiveLine();
+        }
+
+        function indentSelection() {
+            var start = textarea.selectionStart;
+            var end = textarea.selectionEnd;
+            var val = textarea.value;
+            var lineStart = val.lastIndexOf('\n', start - 1) + 1;
+            var lineEnd = val.indexOf('\n', end);
+            if (lineEnd === -1) lineEnd = val.length;
+
+            var block = val.slice(lineStart, lineEnd);
+            var indented = block.split('\n').map(function (l) { return '    ' + l; }).join('\n');
+            textarea.value = val.slice(0, lineStart) + indented + val.slice(lineEnd);
+            textarea.selectionStart = lineStart;
+            textarea.selectionEnd = lineStart + indented.length;
+            render();
+        }
+
+        textarea.addEventListener('keydown', function (e) {
+            var start = textarea.selectionStart;
+            var end = textarea.selectionEnd;
+            var val = textarea.value;
+
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                if (start === end) {
+                    insertAtCursor('    ');
+                } else {
+                    indentSelection();
+                }
+                return;
+            }
+
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                var lineStart = val.lastIndexOf('\n', start - 1) + 1;
+                var currentLine = val.slice(lineStart, start);
+                var indentMatch = currentLine.match(/^[ \t]*/);
+                var indent = indentMatch ? indentMatch[0] : '';
+                if (/[{[(]\s*$/.test(currentLine)) indent += '    ';
