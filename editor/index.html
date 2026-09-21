@@ -64,11 +64,6 @@
             50%  { filter: hue-rotate(90deg) brightness(1.35); }
             100% { filter: hue-rotate(0deg) brightness(1.1); }
         }
-        @keyframes logo-pulse {
-            0%   { transform: scale(1);    opacity: 0.7; }
-            50%  { transform: scale(1.15); opacity: 1; }
-            100% { transform: scale(1);    opacity: 0.7; }
-        }
         @keyframes logo-spin {
             0%   { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -164,10 +159,7 @@
             position: absolute;
             inset: -6px;
             border-radius: 16px;
-            background: conic-gradient(
-                from 0deg,
-                #6ea8fe, #a371f7, #ec4899, #fbbf24, #4ade80, #6ea8fe
-            );
+            background: conic-gradient(from 0deg, #6ea8fe, #a371f7, #ec4899, #fbbf24, #4ade80, #6ea8fe);
             animation: logo-spin 6s linear infinite;
             filter: blur(8px);
             opacity: 0.85;
@@ -254,7 +246,7 @@
             position: absolute;
             right: 0; top: calc(100% + 8px);
             background: var(--bg-2);
-            min-width: 240px;
+            min-width: 260px;
             box-shadow: 0 12px 40px rgba(0,0,0,0.6);
             z-index: 1000;
             border-radius: var(--radius);
@@ -299,7 +291,7 @@
             max-width: 1560px;
             width: 100%;
             margin: 0 auto;
-            padding: 24px 24px 100px;
+            padding: 24px 24px 120px;
         }
 
         .tabs {
@@ -669,6 +661,7 @@
             -webkit-text-fill-color: transparent;
         }
         .code-input::selection { background: rgba(110,168,254,0.35); -webkit-text-fill-color: transparent; }
+        .code-input.wrap { white-space: pre-wrap; }
 
         .minimap {
             flex: 0 0 14px;
@@ -859,7 +852,6 @@
             font-size: 13px; font-weight: 600;
             user-select: none;
             display: flex; align-items: center; gap: 10px;
-            transition: background 0.15s, color 0.15s;
         }
         summary::before { content: "▸"; transition: transform 0.2s; display: inline-block; }
         details[open] summary::before { transform: rotate(90deg); }
@@ -876,35 +868,69 @@
             font-size: 12.5px; line-height: 1.6;
         }
 
-        .float-bar {
+        .fab {
             position: fixed;
             bottom: 24px; left: 50%;
             transform: translateX(-50%);
-            display: flex; gap: 4px;
-            padding: 6px;
+            z-index: 8000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        .fab-toggle {
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            border: 1px solid var(--border-2);
+            background: linear-gradient(135deg, #7c3aed, #a371f7);
+            color: #fff;
+            font-size: 26px;
+            font-weight: 300;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(124,58,237,0.5);
+            transition: transform 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .fab-toggle:hover { transform: scale(1.05); }
+        .fab.open .fab-toggle { transform: rotate(45deg); }
+        .fab-menu {
+            display: flex;
+            gap: 6px;
+            padding: 8px;
             background: rgba(18,20,29,0.95);
             border: 1px solid var(--border-2);
-            border-radius: 16px;
+            border-radius: 18px;
             box-shadow: 0 12px 40px rgba(0,0,0,0.6);
             backdrop-filter: blur(20px);
-            z-index: 8000;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px) scale(0.95);
+            transition: opacity 0.2s, transform 0.2s;
+            flex-wrap: wrap;
+            max-width: 92vw;
+            justify-content: center;
         }
-        .float-bar button {
-            width: 42px; height: 42px;
+        .fab.open .fab-menu {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+        .fab-menu button {
+            width: 44px; height: 44px;
             padding: 0;
             background: transparent;
             color: var(--text-1);
             border: 1px solid transparent;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 17px;
+            font-size: 18px;
             display: flex; align-items: center; justify-content: center;
             transition: all 0.15s;
         }
-        .float-bar button:hover { color: var(--text-0); background: var(--bg-3); }
-        .float-bar button:active { transform: scale(0.9); }
-        .float-bar button.active { color: var(--accent); background: rgba(110,168,254,0.15); }
-        .float-bar .divider { width: 1px; background: var(--border-2); margin: 8px 4px; }
+        .fab-menu button:hover { color: var(--text-0); background: var(--bg-3); }
+        .fab-menu button:active { transform: scale(0.9); }
+        .fab-menu button.active { color: var(--accent); background: rgba(110,168,254,0.15); }
 
         .palette-backdrop {
             position: fixed; inset: 0;
@@ -942,11 +968,7 @@
             border-bottom: 1px solid var(--border);
         }
         .palette-input::placeholder { color: var(--text-3); }
-        .palette-list {
-            max-height: 50vh;
-            overflow-y: auto;
-            padding: 8px;
-        }
+        .palette-list { max-height: 50vh; overflow-y: auto; padding: 8px; }
         .palette-item {
             display: flex; align-items: center; justify-content: space-between;
             padding: 12px 16px;
@@ -969,12 +991,7 @@
         .palette-item:hover, .palette-item.focused {
             background: linear-gradient(90deg, rgba(110,168,254,0.15), transparent);
         }
-        .palette-empty {
-            padding: 30px;
-            text-align: center;
-            color: var(--text-2);
-            font-size: 13px;
-        }
+        .palette-empty { padding: 30px; text-align: center; color: var(--text-2); font-size: 13px; }
 
         .find-bar {
             display: none;
@@ -1105,7 +1122,7 @@
         <div class="topbar">
             <div class="brand">
                 <div class="brand-mark">
-                    <img src="img/logo.png" alt="Limn" />
+                    <img src="editor/logo.png" alt="Limn" />
                 </div>
                 <div class="brand-text">
                     <div class="brand-name">LIMN STUDIO</div>
@@ -1292,9 +1309,7 @@ function update(dt) {
                             <span class="status-item"><span id="statusSelection">0</span> selected</span>
                         </div>
                         <div class="status-right">
-                            <span class="status-item" id="statusState">
-                                <span class="badge">Ready</span>
-                            </span>
+                            <span class="status-item" id="statusState"><span class="badge">Ready</span></span>
                             <span class="status-item">UTF-8</span>
                             <span class="status-item">Spaces: 4</span>
                             <span class="status-item" id="statusSize">0 B</span>
@@ -1312,16 +1327,20 @@ function update(dt) {
         </main>
     </div>
 
-    <div class="float-bar">
-        <button id="floatRun" title="Run">▶</button>
-        <button id="floatSave" title="Save">💾</button>
-        <button id="floatFind" title="Find">🔍</button>
-        <button id="floatPalette" title="Palette">⌘</button>
-        <button id="floatFormat" title="Format">⤸</button>
-        <button id="floatComment" title="Toggle comment">💬</button>
-        <div class="divider"></div>
-        <button id="floatWrap" title="Word wrap">↩</button>
-        <button id="floatZoom" title="Run fullscreen">⛶</button>
+    <div class="fab" id="fab">
+        <div class="fab-menu" id="fabMenu">
+            <button id="floatRun" title="Run">▶</button>
+            <button id="floatSave" title="Save">💾</button>
+            <button id="floatUndo" title="Undo">↶</button>
+            <button id="floatRedo" title="Redo">↷</button>
+            <button id="floatFind" title="Find">🔍</button>
+            <button id="floatPalette" title="Palette">⌘</button>
+            <button id="floatFormat" title="Format">⤸</button>
+            <button id="floatComment" title="Toggle comment">💬</button>
+            <button id="floatWrap" title="Word wrap">↩</button>
+            <button id="floatZoom" title="Fullscreen">⛶</button>
+        </div>
+        <button class="fab-toggle" id="fabToggle" title="Tools">＋</button>
     </div>
 
     <div class="toast-container" id="toastContainer"></div>
@@ -1523,6 +1542,18 @@ function update(dt) {
             });
         }
 
+        var fab = document.getElementById('fab');
+        var fabToggle = document.getElementById('fabToggle');
+        if (fab && fabToggle) {
+            fabToggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                fab.classList.toggle('open');
+            });
+            document.addEventListener('click', function (e) {
+                if (!fab.contains(e.target)) fab.classList.remove('open');
+            });
+        }
+
         var floatRun = document.getElementById('floatRun');
         if (floatRun) floatRun.addEventListener('click', function () {
             if (typeof runn === 'function') runn();
@@ -1531,6 +1562,18 @@ function update(dt) {
         var floatSave = document.getElementById('floatSave');
         if (floatSave) floatSave.addEventListener('click', function () {
             if (typeof save === 'function') save();
+        });
+
+        var floatUndo = document.getElementById('floatUndo');
+        if (floatUndo) floatUndo.addEventListener('click', function () {
+            var ta = document.getElementById('js');
+            if (ta) { ta.focus(); document.execCommand('undo'); if (window.__renderCode) window.__renderCode(); }
+        });
+
+        var floatRedo = document.getElementById('floatRedo');
+        if (floatRedo) floatRedo.addEventListener('click', function () {
+            var ta = document.getElementById('js');
+            if (ta) { ta.focus(); document.execCommand('redo'); if (window.__renderCode) window.__renderCode(); }
         });
 
         var floatFind = document.getElementById('floatFind');
@@ -1666,7 +1709,7 @@ function update(dt) {
             var code = textarea.value;
             var lines = code.split('\n');
             var maxH = minimap.clientHeight || 500;
-            var lineH = Math.max(1, Math.min(2, Math.floor(maxH / lines.length)));
+            var lineH = Math.max(1, Math.min(2, Math.floor(maxH / Math.max(1, lines.length))));
             minimap.innerHTML = '';
             for (var i = 0; i < lines.length; i++) {
                 var line = lines[i];
@@ -1695,7 +1738,7 @@ function update(dt) {
             if (!vp || !minimap) return;
             var lines = textarea.value.split('\n');
             var maxH = minimap.clientHeight || 500;
-            var lineH = Math.max(1, Math.min(2, Math.floor(maxH / lines.length)));
+            var lineH = Math.max(1, Math.min(2, Math.floor(maxH / Math.max(1, lines.length))));
             var scrollRatio = textarea.scrollTop / Math.max(1, textarea.scrollHeight - textarea.clientHeight);
             var visibleRatio = textarea.clientHeight / Math.max(1, textarea.scrollHeight);
             var vpH = Math.max(20, visibleRatio * lines.length * lineH);
@@ -1713,7 +1756,7 @@ function update(dt) {
             for (var i = 1; i <= lineCount; i++) g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
             gutter.innerHTML = g;
             if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
-            if (statusSize) statusSize.textContent = (code.length) + ' chars';
+            if (statusSize) statusSize.textContent = code.length + ' chars';
             renderMinimap();
             syncScroll();
         }
@@ -1996,6 +2039,11 @@ function update(dt) {
             fontSize = Math.min(22, fontSize + 1); applyFont();
         });
 
+        var findBtn = document.getElementById('findBtn');
+        if (findBtn) findBtn.addEventListener('click', function () {
+            if (window.openFind) window.openFind();
+        });
+
         if (minimap) {
             minimap.addEventListener('click', function (e) {
                 var rect = minimap.getBoundingClientRect();
@@ -2009,22 +2057,15 @@ function update(dt) {
         render();
         updateActiveLine();
 
-        var savedState = 'saved';
         var lastSavedCode = textarea.value;
         function markDirty() {
-            if (textarea.value === lastSavedCode) {
-                savedState = 'saved';
-            } else {
-                savedState = 'unsaved';
-            }
-            if (stateDot) {
-                stateDot.className = 'dot' + (savedState === 'saved' ? ' saved' : '');
-            }
+            var state = textarea.value === lastSavedCode ? 'saved' : 'unsaved';
+            if (stateDot) stateDot.className = 'dot' + (state === 'saved' ? ' saved' : ' unsaved');
             var s = document.getElementById('statusState');
             if (s) {
-                s.className = 'status-item ' + savedState;
+                s.className = 'status-item ' + state;
                 var b = s.querySelector('.badge');
-                if (b) b.textContent = savedState === 'saved' ? 'Saved' : 'Unsaved';
+                if (b) b.textContent = state === 'saved' ? 'Saved' : 'Unsaved';
             }
         }
         textarea.addEventListener('input', markDirty);
@@ -2032,6 +2073,7 @@ function update(dt) {
             lastSavedCode = textarea.value;
             markDirty();
         };
+        markDirty();
     })();
     </script>
 
@@ -2053,7 +2095,6 @@ function update(dt) {
             { icon: '→', label: 'Go to line…', shortcut: 'Ctrl+G', action: function () { window.gotoLine(); } },
             { icon: '💬', label: 'Toggle comment', shortcut: 'Ctrl+/', action: function () { window.toggleComment(); } },
             { icon: '⤸', label: 'Format code', action: function () { var b = document.getElementById('formatCodeBtn'); if (b) b.click(); } },
-            { icon: '📄', label: 'Duplicate line', shortcut: 'Ctrl+D', action: function () { document.getElementById('js').dispatchEvent(new KeyboardEvent('keydown', { key: 'd', ctrlKey: true })); } },
             { icon: '↩', label: 'Toggle word wrap', action: function () { var ta = document.getElementById('js'); if (ta) ta.classList.toggle('wrap'); } },
             { icon: '📁', label: 'Open file sidebar', action: function () { document.getElementById('openBtn').click(); } },
             { icon: '📂', label: 'Open from device', action: function () { document.getElementById('sidebarOpenFile').click(); } },
