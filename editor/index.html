@@ -4,86 +4,503 @@
     <base href="/editor/">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Limn playground</title>
+    <title>Limn Studio</title>
     <style>
+        :root {
+            --bg-0: #0b0d12;
+            --bg-1: #0f1219;
+            --bg-2: #141821;
+            --bg-3: #1a1f2b;
+            --border: #232936;
+            --border-2: #2d3444;
+            --text-0: #e6edf3;
+            --text-1: #8b949e;
+            --text-2: #6e7681;
+            --accent: #6ea8fe;
+            --accent-2: #7c3aed;
+            --success: #3fb950;
+            --success-2: #2ea043;
+        }
         * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; background: #0d1117; color: #c9d1d9; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
-        dialog { width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh; padding: 0; margin: 0; border: 0; background: #0a0a0a; }
-        dialog > button { position: absolute; top: 12px; left: 12px; z-index: 10; padding: 6px 12px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer; font-size: 16px; }
+        html, body {
+            margin: 0; padding: 0;
+            background: var(--bg-0);
+            color: var(--text-0);
+            font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+        }
+        dialog {
+            width: 100vw; height: 100vh;
+            max-width: 100vw; max-height: 100vh;
+            padding: 0; margin: 0; border: 0;
+            background: #000;
+        }
+        dialog::backdrop { background: rgba(0,0,0,0.8); }
+        dialog > button {
+            position: absolute; top: 14px; left: 14px; z-index: 10;
+            width: 36px; height: 36px;
+            padding: 0;
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            backdrop-filter: blur(8px);
+        }
+        dialog > button:hover { background: rgba(255,255,255,0.12); }
         iframe { width: 100%; height: 100%; border: 0; display: block; }
-        .dialog-controls { position: fixed; bottom: 14px; right: 14px; display: flex; gap: 6px; z-index: 2147483647; }
-        .dialog-controls button { width: 30px; height: 30px; padding: 0; background: #2563eb; color: #fff; border: 2px solid rgba(255,255,255,0.25); border-radius: 10px; cursor: pointer; font-size: 20px; font-weight: 700; font-family: system-ui, sans-serif; line-height: 1; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4); transition: background 0.15s, transform 0.1s; }
-        .dialog-controls button:hover { background: #3b82f6; }
+
+        .dialog-controls {
+            position: fixed; bottom: 20px; right: 20px;
+            display: flex; gap: 8px;
+            z-index: 2147483647;
+        }
+        .dialog-controls button {
+            width: 38px; height: 38px;
+            padding: 0;
+            background: var(--bg-3);
+            color: var(--text-0);
+            border: 1px solid var(--border-2);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        }
+        .dialog-controls button:hover { background: #2d3444; }
         .dialog-controls button:active { transform: scale(0.94); }
-        .dialog-controls button#fsBtn { background: #7c3aed; width: 52px; }
+        .dialog-controls button#fsBtn { background: var(--accent-2); border-color: #8b5cf6; width: 60px; }
         .dialog-controls button#fsBtn:hover { background: #8b5cf6; }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 20px 60px;
+        }
+        header {
+            display: flex; align-items: center; gap: 20px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+        header h1 {
+            font-size: 16px;
+            margin: 0;
+            color: var(--text-0);
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            display: flex; align-items: center; gap: 10px;
+        }
+        header h1::before {
+            content: "";
+            width: 22px; height: 22px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #6ea8fe, #7c3aed);
+            box-shadow: 0 0 20px rgba(110,168,254,0.4);
+        }
+        header nav ul {
+            list-style: none; padding: 0; margin: 0;
+            display: flex; gap: 8px; align-items: center;
+        }
+        header nav button {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-2);
+            background: var(--bg-2);
+            color: var(--text-0);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        header nav button:hover { background: var(--bg-3); border-color: #3d4557; }
+        #run {
+            background: var(--success-2);
+            border-color: #3fb950;
+            color: #fff;
+            font-weight: 600;
+        }
+        #run:hover { background: var(--success); }
+        #title {
+            margin-left: auto;
+            color: var(--text-1);
+            font-weight: 400;
+            font-size: 13px;
+            padding: 6px 12px;
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
         .dropdown { position: relative; display: inline-block; }
-        .dropbtn { background-color: #2563eb; color: white; padding: 8px 16px; font-size: 14px; border: none; cursor: pointer; border-radius: 4px; }
-        .dropdown-content { display: none; position: absolute; right: 0; background-color: #161b22; min-width: 140px; box-shadow: 0 8px 16px rgba(0,0,0,0.4); z-index: 1000; border-radius: 4px; border: 1px solid #30363d; }
-        .dropdown-content button, .dropdown-content a { color: #c9d1d9; padding: 10px 14px; text-decoration: none; display: block; width: 100%; text-align: left; background: none; border: none; cursor: pointer; }
-        .dropdown-content button:hover, .dropdown-content a:hover { background-color: #21262d; }
+        .dropbtn {
+            background: var(--bg-2);
+            color: var(--text-0);
+            padding: 8px 14px;
+            font-size: 13px;
+            border: 1px solid var(--border-2);
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .dropbtn:hover { background: var(--bg-3); }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0; top: calc(100% + 6px);
+            background: var(--bg-2);
+            min-width: 180px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+            z-index: 1000;
+            border-radius: 10px;
+            border: 1px solid var(--border-2);
+            overflow: hidden;
+            padding: 6px;
+        }
+        .dropdown-content button,
+        .dropdown-content a {
+            color: var(--text-0);
+            padding: 9px 12px;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .dropdown-content button:hover,
+        .dropdown-content a:hover { background: var(--bg-3); }
         .dropdown:hover .dropdown-content { display: block; }
-        .tabs { display: flex; gap: 4px; padding: 8px 16px; background: #010409; border-bottom: 1px solid #30363d; }
-        .tab { background: transparent; border: none; color: #8b949e; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
-        .tab:hover { color: #c9d1d9; }
-        .tab.active { background: #21262d; color: #f0f6fc; }
-        .build-panel { display: grid; grid-template-columns: 300px 1fr; gap: 20px; padding: 20px; min-height: 400px; }
-        .build-field { margin-bottom: 12px; }
-        .build-field label, .build-label { display: block; font-size: 12px; color: #8b949e; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .build-field input, .build-field select { width: 100%; padding: 8px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; font-size: 14px; }
-        .build-field input[type="color"] { height: 40px; padding: 4px; cursor: pointer; }
-        .build-field textarea { width: 100%; padding: 8px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; font-size: 14px; font-family: inherit; resize: vertical; min-height: 60px; }
-        .build-field input:focus, .build-field select:focus, .build-field textarea:focus { outline: none; border-color: #58a6ff; box-shadow: 0 0 0 3px rgba(88,166,255,0.15); }
-        .build-reset { margin-top: 16px; padding: 10px 16px; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; cursor: pointer; font-size: 13px; }
-        .build-reset:hover { background: #30363d; }
-        .build-hint { color: #6e7681; font-size: 13px; }
-        .code-shell { margin: 12px 16px; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; overflow: hidden; font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; font-size: 13px; line-height: 20px; display: flex; flex-direction: column; }
-        .code-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #161b22; border-bottom: 1px solid #30363d; font-family: system-ui, -apple-system, sans-serif; font-size: 12px; color: #8b949e; }
-        .code-header-left { display: flex; align-items: center; gap: 8px; }
-        .code-filename { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px 6px 0 0; color: #c9d1d9; font-weight: 500; font-size: 12px; font-family: ui-monospace, Menlo, monospace; }
-        .code-dot { width: 8px; height: 8px; border-radius: 50%; background: #f0b429; }
-        .code-header-right { display: flex; align-items: center; gap: 8px; }
-        .code-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: background 0.12s, border-color 0.12s; }
-        .code-btn:hover { background: #30363d; border-color: #8b949e; }
+
+        .tabs {
+            display: flex; gap: 4px;
+            padding: 6px;
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            width: fit-content;
+        }
+        .tab {
+            background: transparent;
+            border: none;
+            color: var(--text-1);
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .tab:hover { color: var(--text-0); }
+        .tab.active {
+            background: var(--bg-3);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .build-panel {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+            min-height: 400px;
+        }
+        .build-left, .build-right {
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+        }
+        .build-field { margin-bottom: 14px; }
+        .build-field label,
+        .build-label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-1);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 600;
+        }
+        .build-field input,
+        .build-field select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-0);
+            border: 1px solid var(--border-2);
+            border-radius: 8px;
+            color: var(--text-0);
+            font-size: 13px;
+            font-family: inherit;
+        }
+        .build-field input[type="color"] {
+            height: 44px;
+            padding: 4px;
+            cursor: pointer;
+        }
+        .build-field textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-0);
+            border: 1px solid var(--border-2);
+            border-radius: 8px;
+            color: var(--text-0);
+            font-size: 13px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 70px;
+            line-height: 1.5;
+        }
+        .build-field input:focus,
+        .build-field select:focus,
+        .build-field textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(110,168,254,0.15);
+        }
+        .build-reset {
+            margin-top: 16px;
+            padding: 10px 16px;
+            background: var(--bg-3);
+            color: var(--text-0);
+            border: 1px solid var(--border-2);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            width: 100%;
+        }
+        .build-reset:hover { background: #2d3444; }
+        .build-hint { color: var(--text-2); font-size: 13px; line-height: 1.6; }
+
+        .code-shell {
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+            font-size: 13px;
+            line-height: 22px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--bg-2);
+            border-bottom: 1px solid var(--border);
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 12px;
+            color: var(--text-1);
+        }
+        .code-header-left {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .window-dots {
+            display: flex; gap: 6px; margin-right: 4px;
+        }
+        .window-dots span {
+            width: 11px; height: 11px; border-radius: 50%;
+            display: inline-block;
+        }
+        .window-dots span:nth-child(1) { background: #ff5f57; }
+        .window-dots span:nth-child(2) { background: #febc2e; }
+        .window-dots span:nth-child(3) { background: #28c840; }
+        .code-filename {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 10px;
+            color: var(--text-0);
+            font-weight: 500;
+            font-size: 12.5px;
+            font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+        .code-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #f0b429;
+            box-shadow: 0 0 8px rgba(240,180,41,0.6);
+        }
+        #codeStats {
+            color: var(--text-2);
+            font-variant-numeric: tabular-nums;
+        }
+        .code-header-right {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .code-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--bg-3);
+            color: var(--text-0);
+            border: 1px solid var(--border-2);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .code-btn:hover { background: #2d3444; border-color: #3d4557; }
         .code-btn:active { transform: translateY(1px); }
-        .code-btn.copied { background: #238636; border-color: #2ea043; color: #fff; }
-        .code-select { padding: 5px 8px; background: #21262d; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; font-size: 12px; cursor: pointer; }
-        .code-select:focus { outline: none; border-color: #58a6ff; }
-        .editor-body { display: flex; height: 62vh; min-height: 380px; overflow: hidden; background: #0d1117; }
-        .gutter { flex: 0 0 56px; padding: 12px 0; background: #0d1117; color: #484f58; text-align: right; user-select: none; overflow: hidden; font-variant-numeric: tabular-nums; border-right: 1px solid #21262d; }
-        .gutter-line { height: 20px; line-height: 20px; padding-right: 14px; font-size: 13px; }
-        .gutter-line.active { color: #c9d1d9; }
-        .editor-scroll { position: relative; flex: 1; overflow: hidden; }
-        .highlight-layer, .code-input { position: absolute; top: 0; left: 0; margin: 0; padding: 12px 16px 12px 16px; border: 0; font-family: inherit; font-size: inherit; line-height: inherit; white-space: pre; tab-size: 4; box-sizing: border-box; width: 100%; height: 100%; overflow: auto; }
-        .highlight-layer { pointer-events: none; z-index: 1; color: #c9d1d9; background: transparent; overflow: hidden; word-wrap: normal; }
-        .code-input { z-index: 2; background: transparent; color: transparent; caret-color: #58a6ff; resize: none; outline: none; -webkit-text-fill-color: transparent; word-wrap: normal; }
-        .code-input::selection { background: rgba(56,139,253,0.4); -webkit-text-fill-color: transparent; }
-        .code-input::placeholder { color: #484f58; }
-        .tok-keyword { color: #ff7b72; }
-        .tok-string { color: #a5d6ff; }
-        .tok-number { color: #79c0ff; }
-        .tok-comment { color: #8b949e; font-style: italic; }
-        .tok-function { color: #d2a8ff; }
-        .tok-builtin { color: #ffa657; }
-        .tok-class { color: #ffa657; }
-        .tok-punct { color: #c9d1d9; }
-        .tok-operator { color: #ff7b72; }
-        .tok-boolean { color: #79c0ff; }
-        .tok-property { color: #79c0ff; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; }
-        header { display: flex; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid #21262d; margin-bottom: 16px; }
-        header h1 { font-size: 18px; margin: 0; color: #f0f6fc; letter-spacing: 1px; }
-        header nav ul { list-style: none; padding: 0; margin: 0; display: flex; gap: 8px; align-items: center; }
-        header nav button { padding: 6px 12px; border-radius: 6px; border: 1px solid #30363d; background: #21262d; color: #c9d1d9; cursor: pointer; font-size: 13px; }
-        header nav button:hover { background: #30363d; }
-        #run { background: #238636; border-color: #2ea043; color: #fff; }
-        #run:hover { background: #2ea043; }
-        #title { margin-left: auto; color: #8b949e; font-weight: 400; font-size: 13px; }
-        .file { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin-bottom: 16px; display: none; }
-        .file h2 { margin: 0 0 12px; font-size: 14px; color: #c9d1d9; }
-        .con { margin-top: 16px; }
-        summary { cursor: pointer; color: #8b949e; padding: 6px 0; }
-        summary:hover { color: #c9d1d9; }
+        .code-btn.copied {
+            background: var(--success-2);
+            border-color: var(--success);
+            color: #fff;
+        }
+        .code-select {
+            padding: 6px 10px;
+            background: var(--bg-3);
+            color: var(--text-0);
+            border: 1px solid var(--border-2);
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .code-select:focus { outline: none; border-color: var(--accent); }
+
+        .editor-body {
+            display: flex;
+            height: 62vh;
+            min-height: 420px;
+            overflow: hidden;
+            background: var(--bg-1);
+        }
+
+        .gutter {
+            flex: 0 0 60px;
+            padding: 16px 0;
+            background: var(--bg-1);
+            color: #3d4557;
+            text-align: right;
+            user-select: none;
+            overflow: hidden;
+            font-variant-numeric: tabular-nums;
+            border-right: 1px solid var(--border);
+        }
+        .gutter-line {
+            height: 22px;
+            line-height: 22px;
+            padding-right: 16px;
+            font-size: 13px;
+        }
+        .gutter-line.active { color: var(--accent); }
+
+        .editor-scroll {
+            position: relative;
+            flex: 1;
+            overflow: hidden;
+        }
+        .highlight-layer,
+        .code-input {
+            position: absolute;
+            top: 0; left: 0;
+            margin: 0;
+            padding: 16px 20px;
+            border: 0;
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
+            white-space: pre;
+            tab-size: 4;
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+        }
+        .highlight-layer {
+            pointer-events: none;
+            z-index: 1;
+            color: #e6edf3;
+            background: transparent;
+            overflow: hidden;
+        }
+        .code-input {
+            z-index: 2;
+            background: transparent;
+            color: transparent;
+            caret-color: var(--accent);
+            resize: none;
+            outline: none;
+            -webkit-text-fill-color: transparent;
+        }
+        .code-input::selection {
+            background: rgba(110,168,254,0.35);
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tok-keyword   { color: #ff7b72; font-weight: 500; }
+        .tok-string    { color: #a5d6ff; }
+        .tok-number    { color: #79c0ff; }
+        .tok-comment   { color: #8b949e; font-style: italic; }
+        .tok-function  { color: #d2a8ff; }
+        .tok-builtin   { color: #ffa657; }
+        .tok-class     { color: #ffa657; font-weight: 500; }
+        .tok-punct     { color: #e6edf3; }
+        .tok-operator  { color: #ff7b72; }
+        .tok-boolean   { color: #79c0ff; }
+        .tok-property  { color: #79c0ff; }
+
+        .file {
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .file h2 {
+            margin: 0 0 12px;
+            font-size: 14px;
+            color: var(--text-0);
+            font-weight: 600;
+        }
+
+        .con { margin-top: 20px; }
+        summary {
+            cursor: pointer;
+            color: var(--text-1);
+            padding: 10px 14px;
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            user-select: none;
+        }
+        summary:hover { color: var(--text-0); background: var(--bg-2); }
+        #editor-console-logs {
+            background: var(--bg-0);
+            color: #3fb950;
+            font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+            min-height: 120px;
+            max-height: 250px;
+            padding: 14px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            white-space: pre-wrap;
+            font-size: 12.5px;
+            margin-top: 8px;
+        }
+
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2d3444; border-radius: 10px; border: 2px solid var(--bg-1); }
+        ::-webkit-scrollbar-thumb:hover { background: #3d4557; }
     </style>
 </head>
 <body>
@@ -92,44 +509,49 @@
         <button id="zoomInBtn" title="Zoom in">+</button>
         <button id="fsBtn" title="Fullscreen (F)">⛶</button>
     </div>
+
     <dialog>
-        <button onclick="$('dialog').fadeToggle(500)">⛔</button>
-        <iframe id="gameFrame" srcdoc="<center><h1>Loading ...</h1><progress></progress></center>"></iframe>
+        <button onclick="$('dialog').fadeToggle(500)">✕</button>
+        <iframe id="gameFrame" srcdoc="<center style='padding-top:20vh;color:#8b949e;font-family:system-ui'><h1>Loading…</h1><progress></progress></center>"></iframe>
     </dialog>
+
     <div class="container">
         <header>
             <h1>LIMN STUDIO</h1>
             <nav>
                 <ul>
                     <li><button id="run" onclick="runn()">▶ Run</button></li>
-                    <li><button onclick="$('.file').fadeIn(500)">Open</button></li>
+                    <li><button onclick="$('.file').fadeIn(300)">Open</button></li>
                     <li class="dropdown">
                         <button class="dropbtn">Menu ▾</button>
                         <div class="dropdown-content">
                             <button onclick="save()">Save</button>
                             <button onclick="saveAs()">Save As</button>
                             <button onclick="shareProject()">🔗 Share</button>
-                            <a href="/reference.html"><button style="padding:0;">Doc</button></a>
+                            <a href="/reference.html">📖 Docs</a>
                         </div>
                     </li>
                 </ul>
             </nav>
             <h5 id="title">*Untitled*</h5>
         </header>
+
         <main>
             <div class="file" title="File bar">
                 <h2>
                     Files
-                    <button style="float: right;" onclick="$('.file').fadeOut('500')">⛔</button>
+                    <button style="float: right;" onclick="$('.file').fadeOut(300)">✕</button>
                 </h2>
                 <button onclick="con = confirm('Are you sure to create a new file? Unsaved changes will be lost.'); if(con){ $('textarea').val(''); $('#title').text('*Untitled*'); }">🆕</button>
                 <button onclick="con = confirm('Are you sure to open a file? Unsaved changes will be lost.'); if(con){ inp.click(); inp.onchange = e => { let file = e.target.files[0]; let reader = new FileReader(); reader.readAsText(file,'UTF-8'); reader.onload = readerEvent => { let content = readerEvent.target.result; $('textarea').val(content); $('#title').text(file.name); } } }">📂</button>
                 <div id="file"></div>
             </div>
+
             <div class="tabs">
                 <button class="tab active" data-tab="build">Build</button>
                 <button class="tab" data-tab="code">Code</button>
             </div>
+
             <div id="buildPanel" class="build-panel">
                 <div class="build-left">
                     <label class="build-label">Template</label>
@@ -151,20 +573,26 @@
                         <option value="asteroids">Asteroids</option>
                     </select>
                     <div id="templateFields"></div>
+
                     <div class="build-field">
                         <label>Description (optional)</label>
                         <textarea id="gameDescription" rows="3" placeholder="Tell people what your game is about..." maxlength="200"></textarea>
                     </div>
+
                     <button id="buildReset" class="build-reset">↻ Reset from template</button>
                 </div>
                 <div class="build-right">
-                    <p class="build-hint">Click <strong>Run</strong> to see your game.</p>
+                    <p class="build-hint">Pick a template, tune the settings, then click <strong>▶ Run</strong> to play your game.</p>
                 </div>
             </div>
+
             <section id="codeSection" style="display:none">
                 <div class="code-shell">
                     <div class="code-header">
                         <div class="code-header-left">
+                            <div class="window-dots">
+                                <span></span><span></span><span></span>
+                            </div>
                             <div class="code-filename">
                                 <span class="code-dot"></span>
                                 <span>main.js</span>
@@ -178,7 +606,7 @@
                                 <option value="v4" selected>Limn v4</option>
                             </select>
                             <button id="copyCodeBtn" class="code-btn" title="Copy code to clipboard">
-                                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                                     <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/>
                                     <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/>
                                 </svg>
@@ -187,6 +615,7 @@
                             <button id="formatCodeBtn" class="code-btn" title="Re-indent code">⤸ Format</button>
                         </div>
                     </div>
+
                     <div class="editor-body">
                         <div class="gutter" id="gutter"></div>
                         <div class="editor-scroll">
@@ -197,72 +626,44 @@ display.start(800, 600);
 display.backgroundColor("#0a0a0a");
 display.camera.worldWidth = 2000;
 display.camera.worldHeight = 2000;
-display.clearMargin = [2000, 2000];
-fake.mapWidth = 2000;
-fake.mapHeight = 2000;
-fake.canvas.width = 2000;
-fake.canvas.height = 2000;
-TCJSgameGameArea.width = 2000;
-TCJSgameGameArea.height = 2000;
 
-fake.tile = [
-    new Component(64, 64, "#1a3a1a", 0, 0),
-    new Component(64, 64, "#2244aa", 0, 0),
-    new Component(64, 64, "#555", 0, 0),
-];
-
-fake.map = [
-    [1,1,1,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,2,2,1,1,1,1,3,3,3,1,1,1,1,1,1,1,3,3,3,1,1,1,1,1,1,1,1],
-    [1,1,1,2,2,2,2,2,1,3,3,3,1,1,1,1,1,1,1,3,3,3,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-];
-
-fake.tileMap();
-fake.tileFace.show();
-
-const player = new Component(36, 36, "blue", 400, 200, "rect");
+const player = new Component(36, 36, "#6ea8fe", 400, 200, "rect");
 display.add(player);
 
-const hud = new Tctxt("16px", "Arial", "white", 12, 20, "left", false, "alphabetic", "rgba(0,0,0,0.6)", 8, 4);
+const hud = new Tctxt("16px", "Arial", "#e6edf3", 12, 20, "left", false, "alphabetic", "rgba(0,0,0,0.6)", 8, 4);
 hud.setText("WASD to move");
 display.add(hud);
 
-const ps = new ParticleSystem(display);
 const SPEED = 220;
 
 function update(dt) {
-    ps.update();
-
     player.speedX = 0;
     player.speedY = 0;
     if (display.keys[87]) player.speedY = -SPEED * dt;
-    if (display.keys[83]) player.speedY = SPEED * dt;
+    if (display.keys[83]) player.speedY =  SPEED * dt;
     if (display.keys[65]) player.speedX = -SPEED * dt;
-    if (display.keys[68]) player.speedX = SPEED * dt;
-
-    move.particles.sparkle(ps, player.x + 18, player.y + 18);
+    if (display.keys[68]) player.speedX =  SPEED * dt;
 
     display.camera.follow(player);
-    fake.camera.x = display.camera.x;
-    fake.camera.y = display.camera.y;
-
-    hud.setText("X:" + Math.floor(player.x) + " Y:" + Math.floor(player.y));
+    hud.setText("X: " + Math.floor(player.x) + "  Y: " + Math.floor(player.y));
     hud.fixed();
 }</textarea>
                         </div>
                     </div>
                 </div>
             </section>
+
             <div class="con">
                 <details>
-                    <summary>console</summary>
-                    <div id="editor-console-logs" style="background: #0d1117; color: #3fb950; font-family: ui-monospace, Menlo, monospace; min-height: 120px; max-height: 250px; padding: 12px; overflow-y: auto; border: 1px solid #30363d; border-radius: 6px; white-space: pre-wrap; font-size: 12.5px;"></div>
+                    <summary>Console</summary>
+                    <div id="editor-console-logs"></div>
                 </details>
             </div>
         </main>
     </div>
+
     <div class="c"></div>
+
     <script>
         let inp = document.createElement("input");
         inp.type = "file";
@@ -271,6 +672,7 @@ function update(dt) {
     <script src="templates.js"></script>
     <script src="build.js"></script>
     <script type="module" src="script.js"></script>
+
     <script>
     (function () {
         var textarea = document.getElementById('js');
@@ -281,12 +683,299 @@ function update(dt) {
         var copyLabel = document.getElementById('copyCodeLabel');
         var formatBtn = document.getElementById('formatCodeBtn');
         if (!textarea || !highlight || !gutter) return;
+
         var KEYWORDS = { 'const':1,'let':1,'var':1,'function':1,'return':1,'if':1,'else':1,'for':1,'while':1,'do':1,'break':1,'continue':1,'new':1,'this':1,'class':1,'extends':1,'super':1,'try':1,'catch':1,'finally':1,'throw':1,'switch':1,'case':1,'default':1,'typeof':1,'instanceof':1,'in':1,'of':1,'delete':1,'void':1,'yield':1,'await':1,'async':1,'static':1,'get':1,'set':1,'import':1,'export':1,'from':1,'as':1 };
         var BUILTINS = { 'Display':1,'Component':1,'Tctxt':1,'Camera':1,'Sprite':1,'AnimatedSprite':1,'Tile':1,'TileMap':1,'Particle':1,'ParticleSystem':1,'Sound':1,'SoundManager':1,'Math':1,'JSON':1,'Object':1,'Array':1,'String':1,'Number':1,'Boolean':1,'Date':1,'Set':1,'Map':1,'Promise':1,'Error':1,'console':1,'window':1,'document':1,'display':1,'fake':1,'move':1,'state':1,'mouse':1,'comm':1,'TCJSgameGameArea':1 };
         var LITERALS = { 'true':1,'false':1,'null':1,'undefined':1,'NaN':1,'Infinity':1 };
+
         function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
         function tokenize(code) {
-            var out = ''; var i = 0; var n = code.length;
+            var out = '';
+            var i = 0, n = code.length;
             while (i < n) {
                 var ch = code[i];
-                if (ch === '/' && code[i+1] === '/') { var j
+                if (ch === '/' && code[i+1] === '/') {
+                    var j = i; while (j < n && code[j] !== '\n') j++;
+                    out += '<span class="tok-comment">' + esc(code.slice(i, j)) + '</span>';
+                    i = j; continue;
+                }
+                if (ch === '/' && code[i+1] === '*') {
+                    var k = i + 2;
+                    while (k < n && !(code[k] === '*' && code[k+1] === '/')) k++;
+                    k = Math.min(k + 2, n);
+                    out += '<span class="tok-comment">' + esc(code.slice(i, k)) + '</span>';
+                    i = k; continue;
+                }
+                if (ch === '"' || ch === "'" || ch === '`') {
+                    var q = ch, m = i + 1;
+                    while (m < n) {
+                        if (code[m] === '\\') { m += 2; continue; }
+                        if (code[m] === q) { m++; break; }
+                        m++;
+                    }
+                    out += '<span class="tok-string">' + esc(code.slice(i, m)) + '</span>';
+                    i = m; continue;
+                }
+                if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(code[i+1]))) {
+                    var p = i;
+                    while (p < n && /[0-9a-fA-FxX._]/.test(code[p])) p++;
+                    out += '<span class="tok-number">' + esc(code.slice(i, p)) + '</span>';
+                    i = p; continue;
+                }
+                if (/[A-Za-z_$]/.test(ch)) {
+                    var s = i;
+                    while (s < n && /[A-Za-z0-9_$]/.test(code[s])) s++;
+                    var word = code.slice(i, s);
+                    var la = s;
+                    while (la < n && (code[la] === ' ' || code[la] === '\t')) la++;
+                    var isCall = code[la] === '(';
+                    var lb = i - 1;
+                    while (lb >= 0 && (code[lb] === ' ' || code[lb] === '\t')) lb--;
+                    var isProperty = lb >= 0 && code[lb] === '.';
+                    var cls = 'tok-punct';
+                    if (LITERALS[word]) cls = 'tok-boolean';
+                    else if (KEYWORDS[word]) cls = 'tok-keyword';
+                    else if (BUILTINS[word]) cls = 'tok-builtin';
+                    else if (isProperty) cls = 'tok-property';
+                    else if (isCall) cls = 'tok-function';
+                    else if (/^[A-Z]/.test(word)) cls = 'tok-class';
+                    out += '<span class="' + cls + '">' + esc(word) + '</span>';
+                    i = s; continue;
+                }
+                if (/[+\-*/%=<>!&|^~?:]/.test(ch)) {
+                    var o = i;
+                    while (o < n && /[+\-*/%=<>!&|^~?:]/.test(code[o])) o++;
+                    out += '<span class="tok-operator">' + esc(code.slice(i, o)) + '</span>';
+                    i = o; continue;
+                }
+                if (/[{}()[\];,.]/.test(ch)) {
+                    out += '<span class="tok-punct">' + esc(ch) + '</span>';
+                    i++; continue;
+                }
+                out += esc(ch);
+                i++;
+            }
+            return out;
+        }
+
+        function render() {
+            var code = textarea.value;
+            var html = tokenize(code);
+            if (code.endsWith('\n')) html += ' ';
+            highlight.innerHTML = html;
+
+            var lineCount = code.split('\n').length;
+            var g = '';
+            for (var i = 1; i <= lineCount; i++) g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
+            gutter.innerHTML = g;
+
+            if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
+            syncScroll();
+        }
+
+        function syncScroll() {
+            highlight.scrollTop = textarea.scrollTop;
+            highlight.scrollLeft = textarea.scrollLeft;
+            gutter.scrollTop = textarea.scrollTop;
+        }
+        textarea.addEventListener('scroll', syncScroll);
+
+        function updateActiveLine() {
+            var before = textarea.value.slice(0, textarea.selectionStart);
+            var line = before.split('\n').length;
+            var lines = gutter.children;
+            for (var i = 0; i < lines.length; i++) lines[i].classList.toggle('active', i + 1 === line);
+        }
+
+        function insertAtCursor(text) {
+            var start = textarea.selectionStart;
+            var end = textarea.selectionEnd;
+            var val = textarea.value;
+            textarea.value = val.slice(0, start) + text + val.slice(end);
+            var pos = start + text.length;
+            textarea.selectionStart = textarea.selectionEnd = pos;
+            render();
+            updateActiveLine();
+        }
+
+        function indentSelection() {
+            var start = textarea.selectionStart;
+            var end = textarea.selectionEnd;
+            var val = textarea.value;
+            var lineStart = val.lastIndexOf('\n', start - 1) + 1;
+            var lineEnd = val.indexOf('\n', end);
+            if (lineEnd === -1) lineEnd = val.length;
+            var block = val.slice(lineStart, lineEnd);
+            var indented = block.split('\n').map(function (l) { return '    ' + l; }).join('\n');
+            textarea.value = val.slice(0, lineStart) + indented + val.slice(lineEnd);
+            textarea.selectionStart = lineStart;
+            textarea.selectionEnd = lineStart + indented.length;
+            render();
+        }
+
+        var PAIRS = { '(':')', '[':']', '{':'}', '"':'"', "'":"'", '`':'`' };
+        var CLOSERS = { ')':1, ']':1, '}':1 };
+
+        textarea.addEventListener('keydown', function (e) {
+            var start = textarea.selectionStart;
+            var end = textarea.selectionEnd;
+            var val = textarea.value;
+
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                if (start === end) insertAtCursor('    ');
+                else indentSelection();
+                return;
+            }
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                var lineStart = val.lastIndexOf('\n', start - 1) + 1;
+                var currentLine = val.slice(lineStart, start);
+                var indentMatch = currentLine.match(/^[ \t]*/);
+                var indent = indentMatch ? indentMatch[0] : '';
+                if (/[{[(]\s*$/.test(currentLine)) indent += '    ';
+                insertAtCursor('\n' + indent);
+                return;
+            }
+            if (PAIRS[e.key] && start === end) {
+                e.preventDefault();
+                insertAtCursor(e.key + PAIRS[e.key]);
+                textarea.selectionStart = textarea.selectionEnd = start + 1;
+                updateActiveLine();
+                return;
+            }
+            if (CLOSERS[e.key] && start === end && val[start] === e.key) {
+                e.preventDefault();
+                textarea.selectionStart = textarea.selectionEnd = start + 1;
+                updateActiveLine();
+                return;
+            }
+            if (e.key === 'Backspace' && start === end && start > 0) {
+                var before = val[start - 1];
+                var after = val[start];
+                if (PAIRS[before] && PAIRS[before] === after) {
+                    e.preventDefault();
+                    textarea.value = val.slice(0, start - 1) + val.slice(start + 1);
+                    textarea.selectionStart = textarea.selectionEnd = start - 1;
+                    render();
+                    updateActiveLine();
+                    return;
+                }
+            }
+        });
+
+        textarea.addEventListener('input', function () { render(); updateActiveLine(); });
+        textarea.addEventListener('keyup', updateActiveLine);
+        textarea.addEventListener('click', updateActiveLine);
+
+        if (copyBtn) {
+            copyBtn.addEventListener('click', function () {
+                var text = textarea.value;
+                var done = function () {
+                    copyBtn.classList.add('copied');
+                    copyLabel.textContent = 'Copied!';
+                    setTimeout(function () {
+                        copyBtn.classList.remove('copied');
+                        copyLabel.textContent = 'Copy';
+                    }, 1400);
+                };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text, done); });
+                } else {
+                    fallbackCopy(text, done);
+                }
+            });
+        }
+
+        function fallbackCopy(text, done) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch (err) {}
+            document.body.removeChild(ta);
+            done();
+        }
+
+        if (formatBtn) {
+            formatBtn.addEventListener('click', function () {
+                var code = textarea.value;
+                var lines = code.split('\n');
+                var out = [];
+                var depth = 0;
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i].trim();
+                    if (line === '') { out.push(''); continue; }
+                    if (/^[}\])]/.test(line)) depth = Math.max(0, depth - 1);
+                    out.push('    '.repeat(depth) + line);
+                    var opens = (line.match(/[{\[(]/g) || []).length;
+                    var closes = (line.match(/[}\])]/g) || []).length;
+                    if (!/^[}\])]/.test(line)) depth += opens - closes;
+                    else depth += opens;
+                }
+                textarea.value = out.join('\n');
+                render();
+                updateActiveLine();
+            });
+        }
+
+        window.__renderCode = render;
+        render();
+        updateActiveLine();
+    })();
+
+    (function () {
+        var zoomLevel = 1;
+        function getFrame() { return document.getElementById('gameFrame'); }
+        function applyZoom() {
+            var frame = getFrame();
+            if (!frame) return;
+            try {
+                var doc = frame.contentDocument;
+                if (doc && doc.body) { doc.body.style.zoom = zoomLevel; return; }
+            } catch (e) {}
+            frame.style.zoom = zoomLevel;
+        }
+        function setZoom(newLevel) {
+            zoomLevel = Math.max(0.3, Math.min(3, +newLevel.toFixed(2)));
+            applyZoom();
+        }
+        document.getElementById('zoomInBtn').addEventListener('click', function () { setZoom(zoomLevel + 0.1); });
+        document.getElementById('zoomOutBtn').addEventListener('click', function () { setZoom(zoomLevel - 0.1); });
+        document.getElementById('fsBtn').addEventListener('click', async function () {
+            try {
+                if (document.fullscreenElement || document.webkitFullscreenElement) {
+                    if (document.exitFullscreen) await document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                    return;
+                }
+                var dialog = document.querySelector('dialog');
+                var frame = getFrame();
+                var target = dialog || frame || document.documentElement;
+                var req = target.requestFullscreen || target.webkitRequestFullscreen || target.msRequestFullscreen;
+                if (!req) { alert('Fullscreen not supported on this browser.'); return; }
+                await req.call(target);
+            } catch (err) {
+                console.error('[fullscreen] failed:', err);
+            }
+        });
+        var frame = getFrame();
+        if (frame) frame.addEventListener('load', function () { setTimeout(applyZoom, 60); });
+        var runBtn = document.getElementById('run');
+        if (runBtn) runBtn.addEventListener('click', function () { zoomLevel = 1; applyZoom(); });
+        document.addEventListener('keydown', function (e) {
+            var t = e.target;
+            var tag = t && t.tagName ? t.tagName.toLowerCase() : '';
+            if (tag === 'input' || tag === 'textarea' || (t && t.isContentEditable)) return;
+            if (e.key === 'f' || e.key === 'F') { e.preventDefault(); document.getElementById('fsBtn').click(); }
+            else if (e.key === '+' || e.key === '=') { e.preventDefault(); setZoom(zoomLevel + 0.1); }
+            else if (e.key === '-' || e.key === '_') { e.preventDefault(); setZoom(zoomLevel - 0.1); }
+            else if (e.key === '0') { e.preventDefault(); setZoom(1); }
+        });
+    })();
+    </script>
+</body>
+</html>
