@@ -1,251 +1,712 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⚙️ Account Settings — Limn Engine</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Settings — Limn</title>
+<style>
+  :root {
+    --bg: #05060c;
+    --bg-1: #0a0c16;
+    --surface: rgba(18,20,32,0.75);
+    --muted: #6e7589;
+    --text: #f0f3f8;
+    --text-1: #a3aac0;
+    --border: rgba(255,255,255,0.08);
+    --border-2: rgba(255,255,255,0.14);
+    --accent: #6ea8fe;
+    --accent2: #4ade80;
+    --accent-2: #a371f7;
+    --warning: #fbbf24;
+    --danger: #f87171;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before, body::after {
+    content: "";
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 50%;
+  }
+  body::before {
+    top: -40vh; left: -20vw;
+    width: 80vw; height: 80vh;
+    background: radial-gradient(circle, rgba(110,168,254,0.12), transparent 60%);
+    animation: float1 22s ease-in-out infinite alternate;
+  }
+  body::after {
+    bottom: -40vh; right: -20vw;
+    width: 80vw; height: 80vh;
+    background: radial-gradient(circle, rgba(163,113,247,0.1), transparent 60%);
+    animation: float2 26s ease-in-out infinite alternate;
+  }
+  @keyframes float1 {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(6vw, 6vh); }
+  }
+  @keyframes float2 {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-6vw, -6vh); }
+  }
+  @keyframes sweep {
+    0%   { background-position: -200% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+  @keyframes logoBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes spinReverse {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+  }
+  @keyframes avatarGlow {
+    0%, 100% {
+      box-shadow:
+        0 0 0 2px rgba(5,6,12,1),
+        0 0 18px rgba(110,168,254,0.5),
+        0 0 36px rgba(163,113,247,0.3);
+    }
+    50% {
+      box-shadow:
+        0 0 0 2px rgba(5,6,12,1),
+        0 0 28px rgba(110,168,254,0.85),
+        0 0 52px rgba(163,113,247,0.55);
+    }
+  }
+  @keyframes floatUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slideDown {
+    from { opacity: 0; max-height: 0; transform: translateY(-6px); }
+    to   { opacity: 1; max-height: 60px; transform: translateY(0); }
+  }
+
+  .app { position: relative; z-index: 1; }
+
+  header.top {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    padding: 14px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: rgba(5,6,12,0.72);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    border-bottom: 1px solid var(--border);
+  }
+  header.top::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(110,168,254,0.5) 20%,
+      rgba(163,113,247,0.6) 50%,
+      rgba(236,72,153,0.5) 80%,
+      transparent 100%);
+    background-size: 200% 100%;
+    animation: sweep 8s linear infinite;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  .brand-block { display: flex; align-items: center; gap: 12px; }
+  .brand-logo {
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    animation: logoBob 5s ease-in-out infinite;
+  }
+  .brand-logo img {
+    width: 36px; height: 36px;
+    object-fit: contain;
+    border-radius: 10px;
+    background: var(--bg);
+    padding: 3px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 0 18px rgba(110,168,254,0.35);
+  }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.05; }
+  .brand-name {
+    font-size: 16px; font-weight: 800; letter-spacing: 1.6px;
+    background: linear-gradient(120deg,
+      #f0f3f8 0%, #f0f3f8 40%, #6ea8fe 50%,
+      #a371f7 60%, #f0f3f8 70%, #f0f3f8 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: sweep 9s linear infinite;
+  }
+  .brand-sub {
+    font-size: 9.5px; font-weight: 600;
+    letter-spacing: 2.4px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+  .nav-links { display: flex; gap: 6px; flex-wrap: wrap; }
+  .nav-links a {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .nav-links a:hover {
+    border-color: var(--border-2);
+    transform: translateY(-1px);
+    background: rgba(255,255,255,0.07);
+  }
+
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 32px 24px 60px;
+  }
+
+  .page-head {
+    margin-bottom: 24px;
+  }
+  .page-head h1 {
+    margin: 0 0 6px;
+    font-size: 34px;
+    font-weight: 900;
+    letter-spacing: -0.8px;
+    line-height: 1.1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(120deg,
+      #f0f3f8 0%, #f0f3f8 35%, #6ea8fe 45%,
+      #a371f7 55%, #ec4899 62%, #f0f3f8 72%, #f0f3f8 100%);
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: sweep 10s linear infinite;
+  }
+  .page-head p {
+    margin: 0;
+    color: var(--text-1);
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  .card {
+    background: linear-gradient(180deg, rgba(21,21,42,0.7), rgba(16,16,30,0.7));
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    backdrop-filter: blur(10px);
+    animation: floatUp 0.5s ease;
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 800;
+    color: var(--accent2);
+    margin-bottom: 10px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+  }
+
+  .avatar-row {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+  }
+  .avatar-preview-wrap {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+  }
+  .avatar-preview-wrap::before {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg,
+      #6ea8fe, #a371f7, #ec4899, #fbbf24, #4ade80, #6ea8fe);
+    animation: spin 6s linear infinite;
+    filter: blur(6px);
+    opacity: 0.85;
+    z-index: 0;
+  }
+  .avatar-preview-wrap::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: conic-gradient(from 90deg,
+      #ec4899, #f97316, #facc15, #22d3ee, #6366f1, #a371f7, #ec4899);
+    animation: spinReverse 8s linear infinite;
+    filter: blur(2px);
+    opacity: 0.6;
+    z-index: 0;
+  }
+  .avatar-preview {
+    position: relative;
+    z-index: 1;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 3px solid var(--bg);
+    object-fit: cover;
+    background: #15152a;
+    animation: avatarGlow 3.5s ease-in-out infinite;
+    display: block;
+  }
+
+  .input {
+    width: 100%;
+    padding: 13px 16px;
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .input:focus {
+    border-color: rgba(110,168,254,0.6);
+    box-shadow: 0 0 0 4px rgba(110,168,254,0.15);
+    background: rgba(18,20,32,0.9);
+  }
+  .input::placeholder { color: var(--muted); }
+  .input:disabled,
+  .input[readonly] {
+    background: rgba(255,255,255,0.02);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+  .input[readonly]:focus {
+    border-color: var(--border);
+    box-shadow: none;
+  }
+
+  .input-wrap { position: relative; }
+  .input-wrap .prefix {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-weight: 700;
+    pointer-events: none;
+    font-size: 14px;
+  }
+  .input-wrap .input { padding-left: 34px; }
+
+  .field-hint {
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-top: 7px;
+    line-height: 1.5;
+  }
+  .field-hint.ok {
+    color: var(--accent2);
+  }
+
+  .checkbox-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    background: rgba(110,168,254,0.05);
+    border: 1px solid rgba(110,168,254,0.2);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .checkbox-row:hover {
+    background: rgba(110,168,254,0.08);
+    border-color: rgba(110,168,254,0.35);
+  }
+  .checkbox-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: #22c55e;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .checkbox-row .cb-text { flex: 1; }
+  .checkbox-row .cb-text .cb-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .checkbox-row .cb-text .cb-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.55;
+    display: block;
+  }
+
+  .submit-btn {
+    margin-top: 6px;
+    padding: 15px 20px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #22c55e, #4ade80);
+    color: #04140a;
+    font-size: 14.5px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(34,197,94,0.35);
+    transition: filter 0.15s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+  .submit-btn::before {
+    content: "";
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg,
+      transparent, rgba(255,255,255,0.35), transparent);
+    animation: sweep 3s linear infinite;
+  }
+  .submit-btn:hover { filter: brightness(1.08); }
+  .submit-btn:active { transform: scale(0.98); }
+
+  .status-message {
+    margin-top: 18px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-align: center;
+    display: none;
+    animation: slideDown 0.3s ease;
+  }
+  .status-message.ok {
+    background: rgba(74,222,128,0.1);
+    border: 1px solid rgba(74,222,128,0.3);
+    color: var(--accent2);
+  }
+  .status-message.err {
+    background: rgba(248,113,113,0.1);
+    border: 1px solid rgba(248,113,113,0.3);
+    color: #fca5a5;
+  }
+  .status-message.saving {
+    background: rgba(110,168,254,0.1);
+    border: 1px solid rgba(110,168,254,0.3);
+    color: var(--accent);
+  }
+
+  footer {
+    margin-top: 40px;
+    padding: 30px 24px 40px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+  }
+  .footer-logo-wrap {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .footer-logo-wrap::before {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 16px;
+    background: conic-gradient(from 0deg,
+      #6ea8fe, #a371f7, #ec4899, #fbbf24, #4ade80, #6ea8fe);
+    animation: spin 7s linear infinite;
+    filter: blur(8px);
+    opacity: 0.7;
+    z-index: 0;
+  }
+  .footer-logo-wrap img {
+    position: relative;
+    z-index: 1;
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: var(--bg);
+    padding: 4px;
+  }
+  .footer-text {
+    font-size: 12.5px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+  .footer-text strong {
+    color: var(--text-1);
+    font-weight: 700;
+  }
+
+  @media (max-width: 750px) {
+    header.top { padding: 12px 16px; gap: 12px; }
+    .brand-logo { width: 36px; height: 36px; }
+    .brand-logo img { width: 32px; height: 32px; }
+    .brand-name { font-size: 14px; letter-spacing: 1.4px; }
+    .brand-sub { font-size: 8.5px; letter-spacing: 2px; }
+    .nav-links a { padding: 7px 10px; font-size: 12px; }
+
+    main { padding: 22px 16px 40px; }
+    .page-head h1 { font-size: 26px; }
+    .page-head p { font-size: 13px; }
+
+    .card { padding: 22px 18px; }
+
+    .avatar-preview-wrap { width: 60px; height: 60px; }
+    .avatar-preview { width: 60px; height: 60px; }
+
+    footer { padding: 24px 16px 30px; }
+    .footer-logo-wrap { width: 44px; height: 44px; }
+    .footer-logo-wrap img { width: 38px; height: 38px; }
+  }
+</style>
 </head>
-<body style="background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; padding: 40px 20px;">
+<body>
+<div class="app">
 
-  <div style="max-width: 600px; margin: 0 auto;">
-
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; border-bottom: 1.5px solid var(--border); padding-bottom: 20px;">
-      <div>
-        <h1 style="font-size: 2.2rem; font-weight: 800; color: #ffffff; letter-spacing: -1px;">
-          ⚙️ Settings
-        </h1>
-        <p style="color: var(--muted); font-size: 0.95rem; margin-top: 4px;">Manage your profile, avatar, and preferences.</p>
-      </div>
-      <a href="index.html" class="btn-secondary" style="padding: 10px 20px; font-size: 13px; text-decoration: none; border-radius: 8px;">← Home</a>
+<header class="top">
+  <div class="brand-block">
+    <div class="brand-logo">
+      <img src="/editor/logo.png" alt="Limn" />
     </div>
-
-    <div style="background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 30px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);">
-
-      <form id="settings-form" style="display: flex; flex-direction: column; gap: 20px;">
-
-        <div>
-          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--accent2); margin-bottom: 8px; font-family: 'Space Mono', monospace; text-transform: uppercase;">Avatar Image URL</label>
-          <div style="display: flex; gap: 15px; align-items: center;">
-            <img id="avatar-preview" src="" alt="Avatar" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; background: var(--code-bg);">
-            <input type="url" id="avatar-input" placeholder="Paste image URL here" style="flex: 1; padding: 12px 16px; background: var(--code-bg); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.95rem; outline: none;">
-          </div>
-        </div>
-
-        <div>
-          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--accent2); margin-bottom: 8px; font-family: 'Space Mono', monospace; text-transform: uppercase;">Username</label>
-          <div style="position: relative;">
-            <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 600;">@</span>
-            <input type="text" id="username-input" placeholder="Pick a username" readonly style="width: 100%; padding: 12px 16px 12px 32px; background: rgba(255,255,255,0.03); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; outline: none; cursor: not-allowed;">
-          </div>
-          <p id="username-hint" style="font-size: 0.8rem; color: var(--muted); margin-top: 6px;">Your permanent @handle. Cannot be changed once set.</p>
-        </div>
-
-        <div>
-          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--accent2); margin-bottom: 8px; font-family: 'Space Mono', monospace; text-transform: uppercase;">Display Name</label>
-          <input type="text" id="display-name-input" placeholder="Enter your display name" required style="width: 100%; padding: 12px 16px; background: var(--code-bg); border: 1.5px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; outline: none;">
-        </div>
-
-        <div>
-          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-bottom: 8px; font-family: 'Space Mono', monospace; text-transform: uppercase;">Email Address (Read-only)</label>
-          <input type="email" id="email-input" disabled style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.02); border: 1.5px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 1rem; cursor: not-allowed;">
-        </div>
-
-        <div style="display: flex; align-items: flex-start; gap: 12px; background: var(--code-bg); padding: 16px; border-radius: 8px; border: 1.5px solid var(--border);">
-          <input type="checkbox" id="subscribe-input" style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent2); cursor: pointer; flex-shrink: 0;">
-          <div>
-            <label for="subscribe-input" style="display: block; font-size: 0.9rem; font-weight: 600; color: var(--text); cursor: pointer;">
-              📬 Subscribe to Weekly Updates
-            </label>
-            <p style="font-size: 0.8rem; color: var(--muted); margin-top: 4px; line-height: 1.5;">
-              Get a short email every Monday with top games, new creators, and the week's winner.
-            </p>
-          </div>
-        </div>
-
-        <button type="submit" class="btn-primary" style="margin-top: 10px; width: 100%; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer;">Save Changes</button>
-      </form>
-
-      <div id="status-message" style="margin-top: 15px; text-align: center; font-size: 0.9rem; display: none;"></div>
-
+    <div class="brand-text">
+      <div class="brand-name">LIMN SETTINGS</div>
+      <div class="brand-sub">PROFILE · AVATAR · PREFERENCES</div>
     </div>
+  </div>
+  <div class="nav-links">
+    <a href="/arcade/">🏠 Arcade</a>
+    <a href="/my-games.html">📁 My Games</a>
+    <a href="/inbox.html">💌 Inbox</a>
+    <a href="/editor/">+ New</a>
+  </div>
+</header>
 
+<main>
+  <div class="page-head">
+    <h1>⚙️ Settings</h1>
+    <p>Manage your profile, avatar, and preferences.</p>
   </div>
 
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+  <div class="card">
+    <form id="settings-form" class="form">
 
-    const SUPABASE_URL = 'https://pjtpesdhjfvcidfkxord.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38';
+      <div class="field">
+        <label>Avatar Image URL</label>
+        <div class="avatar-row">
+          <div class="avatar-preview-wrap">
+            <img id="avatar-preview" class="avatar-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'><rect width='72' height='72' fill='%2315152a'/><text x='36' y='46' text-anchor='middle' font-size='32' fill='%236e7589' font-family='system-ui'>?</text></svg>" alt="Avatar" />
+          </div>
+          <input type="url" id="avatar-input" class="input" placeholder="Paste image URL here" style="flex: 1;" />
+        </div>
+        <p class="field-hint">Paste a direct link to an image. Try imgur, GitHub raw URLs, or any public image host.</p>
+      </div>
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      <div class="field">
+        <label>Username</label>
+        <div class="input-wrap">
+          <span class="prefix">@</span>
+          <input type="text" id="username-input" class="input" placeholder="Pick a username" readonly />
+        </div>
+        <p class="field-hint" id="username-hint">Your permanent @handle. Cannot be changed once set.</p>
+      </div>
 
-    localStorage.setItem('limn_settings_visited', 'true');
+      <div class="field">
+        <label>Display Name</label>
+        <input type="text" id="display-name-input" class="input" placeholder="Enter your display name" required />
+        <p class="field-hint">This is how your name appears across the arcade. You can change it anytime.</p>
+      </div>
 
-    const nameInput = document.getElementById('display-name-input');
-    const usernameInput = document.getElementById('username-input');
-    const usernameHint = document.getElementById('username-hint');
-    const emailInput = document.getElementById('email-input');
-    const avatarInput = document.getElementById('avatar-input');
-    const avatarPreview = document.getElementById('avatar-preview');
-    const subscribeInput = document.getElementById('subscribe-input');
-    const form = document.getElementById('settings-form');
-    const statusMsg = document.getElementById('status-message');
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" id="email-input" class="input" disabled />
+        <p class="field-hint">Read-only. Contact support if you need to change your email.</p>
+      </div>
 
-    let currentUserId = null;
-    let usernameIsLocked = false;
+      <label class="checkbox-row" for="subscribe-input">
+        <input type="checkbox" id="subscribe-input" />
+        <div class="cb-text">
+          <span class="cb-title">📬 Subscribe to Weekly Updates</span>
+          <span class="cb-desc">Get a short email every Monday with top games, new creators, and the week's winner.</span>
+        </div>
+      </label>
 
-    avatarInput.addEventListener('input', () => {
-      avatarPreview.src = avatarInput.value || 'https://via.placeholder.com/50';
-    });
+      <button type="submit" class="submit-btn">Save Changes</button>
+    </form>
 
-    async function fetchUserData() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = 'index.html';
-        return;
-      }
-      currentUserId = user.id;
+    <div id="status-message" class="status-message"></div>
+  </div>
+</main>
 
-      emailInput.value = user.email || '';
+<footer>
+  <div class="footer-logo-wrap">
+    <img src="/editor/logo.png" alt="Limn" />
+  </div>
+  <div class="footer-text">Powered by <strong>LIMN</strong></div>
+</footer>
 
-      nameInput.value = '';
-      avatarInput.value = '';
-      avatarPreview.src = 'https://via.placeholder.com/50';
-      usernameInput.value = '';
-      subscribeInput.checked = false;
+</div>
 
-      const { data } = await supabase
-        .from('profiles')
-        .select('display_name, username, avatar_url')
-        .eq('user_id', user.id)
-        .maybeSingle();
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-      if (data) {
-        if (data.display_name) {
-          nameInput.value = data.display_name;
-          localStorage.setItem('limn_username', data.display_name);
-        }
-        if (data.avatar_url) {
-          avatarInput.value = data.avatar_url;
-          avatarPreview.src = data.avatar_url;
-          localStorage.setItem('limn_avatar', data.avatar_url);
-        }
-        if (data.username) {
-          usernameInput.value = data.username;
-          usernameIsLocked = true;
-          usernameInput.readOnly = true;
-          usernameInput.style.cursor = 'not-allowed';
-          usernameHint.textContent = 'Your permanent @handle. Cannot be changed.';
-        } else {
-          usernameIsLocked = false;
-          usernameInput.readOnly = false;
-          usernameInput.style.cursor = 'text';
-          usernameHint.textContent = 'Pick a username. Once saved, it cannot be changed.';
-        }
-      } else {
-        usernameIsLocked = false;
-        usernameInput.readOnly = false;
-        usernameInput.style.cursor = 'text';
-        usernameHint.textContent = 'Pick a username. Once saved, it cannot be changed.';
-      }
+const SUPABASE_URL = 'https://pjtpesdhjfvcidfkxord.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38';
 
-      const { data: userRow } = await supabase
-        .from('users')
-        .select('subscribed')
-        .eq('id', user.id)
-        .maybeSingle();
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      if (userRow && userRow.subscribed) {
-        subscribeInput.checked = true;
-      }
+localStorage.setItem('limn_settings_visited', 'true');
+
+const nameInput = document.getElementById('display-name-input');
+const usernameInput = document.getElementById('username-input');
+const usernameHint = document.getElementById('username-hint');
+const emailInput = document.getElementById('email-input');
+const avatarInput = document.getElementById('avatar-input');
+const avatarPreview = document.getElementById('avatar-preview');
+const subscribeInput = document.getElementById('subscribe-input');
+const form = document.getElementById('settings-form');
+const statusMsg = document.getElementById('status-message');
+
+const FALLBACK_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'><rect width='72' height='72' fill='%2315152a'/><text x='36' y='46' text-anchor='middle' font-size='32' fill='%236e7589' font-family='system-ui'>?</text></svg>";
+
+let currentUserId = null;
+let usernameIsLocked = false;
+
+function setStatus(kind, text) {
+  statusMsg.className = 'status-message ' + kind;
+  statusMsg.textContent = text;
+  statusMsg.style.display = 'block';
+}
+
+function clearStatus() {
+  statusMsg.style.display = 'none';
+  statusMsg.className = 'status-message';
+}
+
+avatarInput.addEventListener('input', () => {
+  const v = avatarInput.value.trim();
+  avatarPreview.src = v || FALLBACK_AVATAR;
+});
+avatarInput.addEventListener('error', () => {
+  avatarPreview.src = FALLBACK_AVATAR;
+}, true);
+
+async function fetchUserData() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    window.location.href = 'index.html';
+    return;
+  }
+  currentUserId = user.id;
+
+  emailInput.value = user.email || '';
+
+  nameInput.value = '';
+  avatarInput.value = '';
+  avatarPreview.src = FALLBACK_AVATAR;
+  usernameInput.value = '';
+  subscribeInput.checked = false;
+
+  const { data } = await supabase
+    .from('profiles')
+    .select('display_name, username, avatar_url')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (data) {
+    if (data.display_name) {
+      nameInput.value = data.display_name;
+      localStorage.setItem('limn_username', data.display_name);
     }
-
-    function validateUsername(u) {
-      if (!u) return 'Username cannot be empty.';
-      if (u.length < 3) return 'Username must be at least 3 characters.';
-      if (u.length > 20) return 'Username must be 20 characters or less.';
-      if (!/^[a-z0-9_]+$/.test(u)) return 'Only lowercase letters, numbers, and underscores.';
-      return null;
+    if (data.avatar_url) {
+      avatarInput.value = data.avatar_url;
+      avatarPreview.src = data.avatar_url;
+      localStorage.setItem('limn_avatar', data.avatar_url);
     }
+    if (data.username) {
+      usernameInput.value = data.username;
+      usernameIsLocked = true;
+      usernameInput.readOnly = true;
+      usernameHint.textContent = 'Your permanent @handle. Cannot be changed.';
+      usernameHint.classList.add('ok');
+    } else {
+      usernameIsLocked = false;
+      usernameInput.readOnly = false;
+      usernameHint.textContent = 'Pick a username. Once saved, it cannot be changed.';
+      usernameHint.classList.remove('ok');
+    }
+  } else {
+    usernameIsLocked = false;
+    usernameInput.readOnly = false;
+    usernameHint.textContent = 'Pick a username. Once saved, it cannot be changed.';
+    usernameHint.classList.remove('ok');
+  }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      statusMsg.style.display = 'block';
-      statusMsg.style.color = 'var(--accent2)';
-      statusMsg.textContent = 'Saving changes...';
+  try {
+    const { data: userRow } = await supabase
+      .from('users')
+      .select('subscribed')
+      .eq('id', user.id)
+      .maybeSingle();
 
-      const newName = nameInput.value.trim();
-      const newAvatarUrl = avatarInput.value.trim();
-      const rawUsername = usernameInput.value.trim().toLowerCase().replace(/^@/, '');
-      const subscribed = subscribeInput.checked;
+    if (userRow && userRow.subscribed) {
+      subscribeInput.checked = true;
+    }
+  } catch (e) {}
+}
 
-      const upsertData = {
-        user_id: currentUserId,
-        display_name: newName,
-        avatar_url: newAvatarUrl
-      };
-
-      if (!usernameIsLocked) {
-        const err = validateUsername(rawUsername);
-        if (err) {
-          statusMsg.style.color = '#f87171';
-          statusMsg.textContent = '⚠️ ' + err;
-          return;
-        }
-
-        const { data: existing } = await supabase
-          .from('profiles')
-          .select('user_id')
-          .eq('username', rawUsername)
-          .neq('user_id', currentUserId)
-          .maybeSingle();
-
-        if (existing) {
-          statusMsg.style.color = '#f87171';
-          statusMsg.textContent = '⚠️ That username is already taken.';
-          return;
-        }
-
-        upsertData.username = rawUsername;
-      }
-
-      const { error } = await supabase
-        .from('profiles')
-        .upsert(upsertData, { onConflict: 'user_id' });
-
-      if (error) {
-        statusMsg.style.color = '#f87171';
-        statusMsg.textContent = '⚠️ ' + error.message;
-        return;
-      }
-
-      await supabase
-        .from('users')
-        .upsert({
-          id: currentUserId,
-          subscribed: subscribed
-        }, { onConflict: 'id' });
-
-      localStorage.setItem('limn_username', newName);
-      if (newAvatarUrl) {
-        localStorage.setItem('limn_avatar', newAvatarUrl);
-      }
-
-      if (!usernameIsLocked && upsertData.username) {
-        usernameInput.value = upsertData.username;
-        usernameIsLocked = true;
-        usernameInput.readOnly = true;
-        usernameInput.style.cursor = 'not-allowed';
-        usernameHint.textContent = 'Your permanent @handle. Cannot be changed.';
-      }
-
-      statusMsg.style.color = 'var(--accent2)';
-      statusMsg.textContent = '✨ Settings updated successfully!';
-      setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
-    });
-
-    fetchUserData();
-  </script>
-</body>
-</html>
+function validateUsername(u) {
+  if (!u) return 'Username cannot be empty.';
+  if (u.length < 3) return 'Username must be at least 3 characters.';
+  if (u.length > 20) return 'Username must be 20 characters or less.';
+  if (!/^[a-z0-9_]+$/.test(u)) return 'Only lowercase letters, numb
