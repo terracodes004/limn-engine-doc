@@ -92,10 +92,6 @@
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  @keyframes slideDown {
-    from { opacity: 0; max-height: 0; transform: translateY(-6px); }
-    to   { opacity: 1; max-height: 60px; transform: translateY(0); }
-  }
 
   .app { position: relative; z-index: 1; }
 
@@ -190,18 +186,13 @@
     padding: 32px 24px 60px;
   }
 
-  .page-head {
-    margin-bottom: 24px;
-  }
+  .page-head { margin-bottom: 24px; }
   .page-head h1 {
     margin: 0 0 6px;
     font-size: 34px;
     font-weight: 900;
     letter-spacing: -0.8px;
     line-height: 1.1;
-    display: flex;
-    align-items: center;
-    gap: 12px;
     background: linear-gradient(120deg,
       #f0f3f8 0%, #f0f3f8 35%, #6ea8fe 45%,
       #a371f7 55%, #ec4899 62%, #f0f3f8 72%, #f0f3f8 100%);
@@ -228,11 +219,7 @@
     animation: floatUp 0.5s ease;
   }
 
-  .form {
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-  }
+  .form { display: flex; flex-direction: column; gap: 22px; }
 
   .field label {
     display: block;
@@ -244,11 +231,7 @@
     text-transform: uppercase;
   }
 
-  .avatar-row {
-    display: flex;
-    gap: 18px;
-    align-items: center;
-  }
+  .avatar-row { display: flex; gap: 18px; align-items: center; }
   .avatar-preview-wrap {
     position: relative;
     width: 72px;
@@ -313,7 +296,7 @@
   .input:disabled,
   .input[readonly] {
     background: rgba(255,255,255,0.02);
-    color: var(--muted);
+    color: var(--text-1);
     cursor: not-allowed;
   }
   .input[readonly]:focus {
@@ -340,9 +323,7 @@
     margin-top: 7px;
     line-height: 1.5;
   }
-  .field-hint.ok {
-    color: var(--accent2);
-  }
+  .field-hint.ok { color: var(--accent2); }
 
   .checkbox-row {
     display: flex;
@@ -420,22 +401,24 @@
     font-weight: 600;
     text-align: center;
     display: none;
-    animation: slideDown 0.3s ease;
   }
   .status-message.ok {
     background: rgba(74,222,128,0.1);
     border: 1px solid rgba(74,222,128,0.3);
     color: var(--accent2);
+    display: block;
   }
   .status-message.err {
     background: rgba(248,113,113,0.1);
     border: 1px solid rgba(248,113,113,0.3);
     color: #fca5a5;
+    display: block;
   }
   .status-message.saving {
     background: rgba(110,168,254,0.1);
     border: 1px solid rgba(110,168,254,0.3);
     color: var(--accent);
+    display: block;
   }
 
   footer {
@@ -545,7 +528,7 @@
         <label>Avatar Image URL</label>
         <div class="avatar-row">
           <div class="avatar-preview-wrap">
-            <img id="avatar-preview" class="avatar-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'><rect width='72' height='72' fill='%2315152a'/><text x='36' y='46' text-anchor='middle' font-size='32' fill='%236e7589' font-family='system-ui'>?</text></svg>" alt="Avatar" />
+            <img id="avatar-preview" class="avatar-preview" src="https://via.placeholder.com/72" alt="Avatar" />
           </div>
           <input type="url" id="avatar-input" class="input" placeholder="Paste image URL here" style="flex: 1;" />
         </div>
@@ -569,7 +552,7 @@
 
       <div class="field">
         <label>Email Address</label>
-        <input type="email" id="email-input" class="input" disabled />
+        <input type="email" id="email-input" class="input" readonly />
         <p class="field-hint">Read-only. Contact support if you need to change your email.</p>
       </div>
 
@@ -617,29 +600,23 @@ const subscribeInput = document.getElementById('subscribe-input');
 const form = document.getElementById('settings-form');
 const statusMsg = document.getElementById('status-message');
 
-const FALLBACK_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'><rect width='72' height='72' fill='%2315152a'/><text x='36' y='46' text-anchor='middle' font-size='32' fill='%236e7589' font-family='system-ui'>?</text></svg>";
-
 let currentUserId = null;
 let usernameIsLocked = false;
 
 function setStatus(kind, text) {
   statusMsg.className = 'status-message ' + kind;
   statusMsg.textContent = text;
-  statusMsg.style.display = 'block';
 }
 
 function clearStatus() {
-  statusMsg.style.display = 'none';
   statusMsg.className = 'status-message';
+  statusMsg.textContent = '';
 }
 
 avatarInput.addEventListener('input', () => {
   const v = avatarInput.value.trim();
-  avatarPreview.src = v || FALLBACK_AVATAR;
+  avatarPreview.src = v || 'https://via.placeholder.com/72';
 });
-avatarInput.addEventListener('error', () => {
-  avatarPreview.src = FALLBACK_AVATAR;
-}, true);
 
 async function fetchUserData() {
   const { data: { user } } = await supabase.auth.getUser();
@@ -653,7 +630,7 @@ async function fetchUserData() {
 
   nameInput.value = '';
   avatarInput.value = '';
-  avatarPreview.src = FALLBACK_AVATAR;
+  avatarPreview.src = 'https://via.placeholder.com/72';
   usernameInput.value = '';
   subscribeInput.checked = false;
 
@@ -677,36 +654,117 @@ async function fetchUserData() {
       usernameInput.value = data.username;
       usernameIsLocked = true;
       usernameInput.readOnly = true;
+      usernameInput.style.cursor = 'not-allowed';
       usernameHint.textContent = 'Your permanent @handle. Cannot be changed.';
       usernameHint.classList.add('ok');
     } else {
       usernameIsLocked = false;
       usernameInput.readOnly = false;
+      usernameInput.style.cursor = 'text';
       usernameHint.textContent = 'Pick a username. Once saved, it cannot be changed.';
       usernameHint.classList.remove('ok');
     }
   } else {
     usernameIsLocked = false;
     usernameInput.readOnly = false;
+    usernameInput.style.cursor = 'text';
     usernameHint.textContent = 'Pick a username. Once saved, it cannot be changed.';
     usernameHint.classList.remove('ok');
   }
 
-  try {
-    const { data: userRow } = await supabase
-      .from('users')
-      .select('subscribed')
-      .eq('id', user.id)
-      .maybeSingle();
+  const { data: userRow } = await supabase
+    .from('users')
+    .select('subscribed')
+    .eq('id', user.id)
+    .maybeSingle();
 
-    if (userRow && userRow.subscribed) {
-      subscribeInput.checked = true;
-    }
-  } catch (e) {}
+  if (userRow && userRow.subscribed) {
+    subscribeInput.checked = true;
+  }
 }
 
 function validateUsername(u) {
   if (!u) return 'Username cannot be empty.';
   if (u.length < 3) return 'Username must be at least 3 characters.';
   if (u.length > 20) return 'Username must be 20 characters or less.';
-  if (!/^[a-z0-9_]+$/.test(u)) return 'Only lowercase letters, numb
+  if (!/^[a-z0-9_]+$/.test(u)) return 'Only lowercase letters, numbers, and underscores.';
+  return null;
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  setStatus('saving', 'Saving changes…');
+
+  const newName = nameInput.value.trim();
+  const newAvatarUrl = avatarInput.value.trim();
+  const rawUsername = usernameInput.value.trim().toLowerCase().replace(/^@/, '');
+  const subscribed = subscribeInput.checked;
+
+  const upsertData = {
+    user_id: currentUserId,
+    display_name: newName,
+    avatar_url: newAvatarUrl
+  };
+
+  if (!usernameIsLocked) {
+    const err = validateUsername(rawUsername);
+    if (err) {
+      setStatus('err', '⚠️ ' + err);
+      return;
+    }
+
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('user_id')
+      .eq('username', rawUsername)
+      .neq('user_id', currentUserId)
+      .maybeSingle();
+
+    if (existing) {
+      setStatus('err', '⚠️ That username is already taken.');
+      return;
+    }
+
+    upsertData.username = rawUsername;
+  }
+
+  const { error } = await supabase
+    .from('profiles')
+    .upsert(upsertData, { onConflict: 'user_id' });
+
+  if (error) {
+    setStatus('err', '⚠️ ' + error.message);
+    return;
+  }
+
+  await supabase
+    .from('users')
+    .upsert({
+      id: currentUserId,
+      subscribed: subscribed
+    }, { onConflict: 'id' });
+
+  localStorage.setItem('limn_username', newName);
+  if (newAvatarUrl) {
+    localStorage.setItem('limn_avatar', newAvatarUrl);
+  }
+
+  if (!usernameIsLocked && upsertData.username) {
+    usernameInput.value = upsertData.username;
+    usernameIsLocked = true;
+    usernameInput.readOnly = true;
+    usernameInput.style.cursor = 'not-allowed';
+    usernameHint.textContent = 'Your permanent @handle. Cannot be changed.';
+    usernameHint.classList.add('ok');
+  }
+
+  setStatus('ok', '✨ Settings updated successfully!');
+  setTimeout(clearStatus, 3000);
+});
+
+fetchUserData();
+</script>
+
+</body>
+</html>
