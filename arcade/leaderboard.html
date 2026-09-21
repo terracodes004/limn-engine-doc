@@ -79,10 +79,6 @@
     from { opacity: 0; transform: translateY(16px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  @keyframes glowPulse {
-    0%, 100% { opacity: 0.55; transform: scale(1); }
-    50% { opacity: 0.95; transform: scale(1.06); }
-  }
   @keyframes borderShift {
     0%, 100% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -176,11 +172,10 @@
   }
 
   .page-head {
-    max-width: 860px;
+    max-width: 760px;
     margin: 0 auto;
     padding: 32px 24px 8px;
     text-align: center;
-    position: relative;
   }
   .page-head h1 {
     margin: 0 0 8px;
@@ -223,7 +218,7 @@
 
   main {
     padding: 8px 24px 60px;
-    max-width: 860px;
+    max-width: 760px;
     margin: 0 auto;
   }
 
@@ -404,142 +399,120 @@
     gap: 10px;
   }
 
-  .banner {
-    display: block;
-    padding: 18px 22px;
+  .rank-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
     border-radius: 16px;
     text-decoration: none;
     color: inherit;
-    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.22s;
+    transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
     animation: floatUp 0.5s ease backwards;
     isolation: isolate;
+    background: linear-gradient(135deg, #131a2a 0%, #1a2235 50%, #232d45 100%);
+    border: 1px solid rgba(110,168,254,0.15);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
   }
-  .banner:hover { transform: translateX(4px); }
+  .rank-card:hover {
+    transform: translateX(4px);
+    border-color: rgba(110,168,254,0.4);
+    box-shadow: 0 6px 24px rgba(110,168,254,0.15);
+  }
 
-  .banner::before {
+  .rank-card::before {
     content: "";
     position: absolute;
     top: -50%; left: -50%;
     width: 200%; height: 200%;
     background: linear-gradient(90deg,
-      transparent, rgba(255,255,255,0.1), transparent);
+      transparent, rgba(255,255,255,0.06), transparent);
     transform: rotate(15deg);
     animation: shine 8s linear infinite;
     pointer-events: none;
   }
 
-  .banner > * { position: relative; z-index: 1; }
+  .rank-card > * { position: relative; z-index: 1; }
 
-  .banner-4 {
-    background: linear-gradient(135deg, #131a2a 0%, #1e2740 50%, #2e3a55 100%);
-    box-shadow: 0 6px 20px rgba(46,58,85,0.3);
-    border: 1px solid rgba(110,168,254,0.15);
-  }
-  .banner-5 {
-    background: linear-gradient(135deg, #101625 0%, #1a2235 50%, #28324a 100%);
-    box-shadow: 0 5px 18px rgba(40,50,74,0.25);
-    border: 1px solid rgba(110,168,254,0.1);
-  }
-  .banner-6 {
-    background: linear-gradient(135deg, #0d1220 0%, #151c2e 50%, #1f283e 100%);
-    box-shadow: 0 4px 16px rgba(31,40,62,0.22);
-    border: 1px solid rgba(110,168,254,0.08);
-  }
-
-  .banner-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 14px;
-  }
-  .banner-left {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    min-width: 0;
-    flex: 1;
-  }
-
-  .banner-rank {
-    width: 42px;
-    height: 42px;
+  .rank-badge {
+    width: 48px;
+    height: 48px;
     border-radius: 12px;
-    background: linear-gradient(135deg, rgba(110,168,254,0.2), rgba(163,113,247,0.2));
-    border: 1px solid rgba(110,168,254,0.35);
+    background: linear-gradient(135deg, rgba(110,168,254,0.25), rgba(163,113,247,0.25));
+    border: 1px solid rgba(110,168,254,0.4);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 900;
     color: #fff;
     flex-shrink: 0;
-    box-shadow: 0 0 16px rgba(110,168,254,0.2);
+    box-shadow: 0 0 16px rgba(110,168,254,0.25);
   }
 
-  .banner-content { min-width: 0; flex: 1; }
-
-  .banner-tag {
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-2);
-    margin-bottom: 3px;
+  .rank-content {
+    flex: 1;
+    min-width: 0;
   }
-  .banner-title {
-    font-size: 16px;
+
+  .rank-name {
+    font-size: 15px;
     font-weight: 800;
-    letter-spacing: -0.3px;
+    letter-spacing: -0.2px;
     color: var(--text);
-    margin: 0;
+    margin: 0 0 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .banner-creator {
-    font-size: 12px;
-    color: var(--text-2);
-    margin-top: 3px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .banner-creator a {
-    color: var(--warning);
+  .rank-name a {
+    color: inherit;
     text-decoration: none;
-    font-weight: 600;
   }
-  .banner-creator a:hover { text-decoration: underline; }
+  .rank-name a:hover { color: var(--accent); }
 
-  .banner-stats {
+  .rank-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12.5px;
+    color: var(--text-2);
+    flex-wrap: wrap;
+  }
+  .rank-meta .creator {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    font-size: 13px;
+    gap: 4px;
+  }
+  .rank-meta .creator a {
+    color: var(--warning);
+    text-decoration: none;
+    font-weight: 700;
+  }
+  .rank-meta .creator a:hover { text-decoration: underline; }
+  .rank-meta .likes {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    background: rgba(255,84,112,0.12);
+    border: 1px solid rgba(255,84,112,0.25);
+    border-radius: 12px;
+    color: #ff8fa3;
     font-weight: 800;
-    color: #fff;
-    flex-shrink: 0;
+    font-size: 12px;
   }
-  .banner-stats .heart {
+  .rank-meta .likes .heart {
     color: #ff5470;
-    filter: drop-shadow(0 0 4px rgba(255,84,112,0.5));
+    filter: drop-shadow(0 0 3px rgba(255,84,112,0.6));
+    font-size: 11px;
   }
 
-  .creator-banner {
-    border-left: 3px solid rgba(110,168,254,0.5);
-    cursor: default;
-  }
-  .creator-banner:hover { transform: translateX(4px); }
-
-  .creator-avatar-mini {
-    width: 42px;
-    height: 42px;
+  .rank-avatar {
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: linear-gradient(135deg, #6ea8fe, #a371f7);
     display: flex;
@@ -547,9 +520,11 @@
     justify-content: center;
     font-weight: 900;
     color: #fff;
-    font-size: 17px;
+    font-size: 19px;
     flex-shrink: 0;
-    box-shadow: 0 0 0 2px rgba(110,168,254,0.3), 0 0 16px rgba(110,168,254,0.25);
+    box-shadow:
+      0 0 0 2px rgba(110,168,254,0.35),
+      0 0 16px rgba(110,168,254,0.25);
   }
 
   .empty {
@@ -658,12 +633,11 @@
     .podium-creator { font-size: 11px; }
     .podium-stats { font-size: 12px; padding: 5px 11px; }
 
-    .banner { padding: 14px 16px; }
-    .banner-rank { width: 36px; height: 36px; font-size: 14px; border-radius: 10px; }
-    .banner-title { font-size: 14px; }
-    .banner-creator { font-size: 11px; }
-    .banner-stats { padding: 6px 11px; font-size: 12px; }
-    .creator-avatar-mini { width: 36px; height: 36px; font-size: 15px; }
+    .rank-card { padding: 12px 14px; gap: 12px; }
+    .rank-badge { width: 42px; height: 42px; font-size: 15px; border-radius: 10px; }
+    .rank-avatar { width: 42px; height: 42px; font-size: 17px; }
+    .rank-name { font-size: 14px; }
+    .rank-meta { font-size: 12px; gap: 8px; }
 
     footer { padding: 24px 16px 30px; }
     .footer-logo-wrap { width: 44px; height: 44px; }
@@ -779,6 +753,11 @@ function creatorLink(game) {
   return esc(creatorLabel(game));
 }
 
+function creatorUsername(game) {
+  const profile = profileMap[game.author_id];
+  return profile && profile.username ? profile.username : null;
+}
+
 const gameCounts = {};
 if (likes) for (const l of likes) {
   gameCounts[l.game_id] = (gameCounts[l.game_id] || 0) + 1;
@@ -838,25 +817,21 @@ if (rankedGames.length === 0) {
   gamesEl.innerHTML = podiumHtml;
 
   if (rest.length > 0) {
-    const bannersHtml = '<div class="banners">' + rest.map((x, i) => {
+    const cardsHtml = '<div class="banners">' + rest.map((x, i) => {
       const rank = i + 4;
-      const cls = 'banner-' + Math.min(6, rank);
-      return '<a class="banner ' + cls + '" href="/arcade/game.html?slug=' +
+      return '<a class="rank-card" href="/arcade/game.html?slug=' +
         encodeURIComponent(x.game.slug) + '" style="animation-delay:' + ((i + 3) * 0.05) + 's">' +
-        '<div class="banner-head">' +
-          '<div class="banner-left">' +
-            '<div class="banner-rank">' + rank + '</div>' +
-            '<div class="banner-content">' +
-              '<div class="banner-tag">Rank #' + rank + '</div>' +
-              '<h3 class="banner-title">' + esc(x.game.title) + '</h3>' +
-              '<div class="banner-creator">by ' + creatorLink(x.game) + '</div>' +
-            '</div>' +
+        '<div class="rank-badge">' + rank + '</div>' +
+        '<div class="rank-content">' +
+          '<h3 class="rank-name">' + esc(x.game.title) + '</h3>' +
+          '<div class="rank-meta">' +
+            '<span class="creator">by ' + creatorLink(x.game) + '</span>' +
+            '<span class="likes"><span class="heart">♥</span> ' + x.count + '</span>' +
           '</div>' +
-          '<div class="banner-stats"><span class="heart">♥</span> ' + x.count + '</div>' +
         '</div>' +
       '</a>';
     }).join('') + '</div>';
-    gamesEl.insertAdjacentHTML('beforeend', bannersHtml);
+    gamesEl.insertAdjacentHTML('beforeend', cardsHtml);
   }
 }
 
@@ -900,26 +875,23 @@ if (rankedCreators.length === 0) {
   creatorsEl.innerHTML = podiumHtml;
 
   if (rest.length > 0) {
-    const bannersHtml = '<div class="banners">' + rest.map((x, i) => {
+    const cardsHtml = '<div class="banners">' + rest.map((x, i) => {
       const rank = i + 4;
-      const cls = 'banner-' + Math.min(6, rank);
       const nameHtml = x.username
         ? '<a href="/u/?u=' + encodeURIComponent(x.username) + '">' + esc(x.name) + '</a>'
         : esc(x.name);
-      return '<div class="banner creator-banner ' + cls + '" style="animation-delay:' + ((i + 3) * 0.05) + 's">' +
-        '<div class="banner-head">' +
-          '<div class="banner-left">' +
-            '<div class="creator-avatar-mini">' + esc(creatorInitial(x.name)) + '</div>' +
-            '<div class="banner-content">' +
-              '<div class="banner-tag">Rank #' + rank + '</div>' +
-              '<h3 class="banner-title">' + nameHtml + '</h3>' +
-            '</div>' +
+      return '<div class="rank-card" style="animation-delay:' + ((i + 3) * 0.05) + 's;cursor:default">' +
+        '<div class="rank-avatar">' + esc(creatorInitial(x.name)) + '</div>' +
+        '<div class="rank-content">' +
+          '<h3 class="rank-name">' + nameHtml + '</h3>' +
+          '<div class="rank-meta">' +
+            '<span class="creator">Rank #' + rank + '</span>' +
+            '<span class="likes"><span class="heart">♥</span> ' + x.count + '</span>' +
           '</div>' +
-          '<div class="banner-stats"><span class="heart">♥</span> ' + x.count + '</div>' +
         '</div>' +
       '</div>';
     }).join('') + '</div>';
-    creatorsEl.insertAdjacentHTML('beforeend', bannersHtml);
+    creatorsEl.insertAdjacentHTML('beforeend', cardsHtml);
   }
 }
 
