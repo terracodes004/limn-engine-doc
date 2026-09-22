@@ -1153,7 +1153,92 @@
             .editor-body { height: 55vh; min-height: 240px; }
             .fab { bottom: 12px; }
         }
+        /* ═══════════════════════════════════════════════════════════
+   PERFORMANCE: reduce background work when preview is open
+   ═══════════════════════════════════════════════════════════ */
+
+/* Kill all animations on the parent page while a game is running.
+   The dialog is a sibling of .app, so its own transitions are preserved. */
+body.game-open .app,
+body.game-open .app *,
+body.game-open .app *::before,
+body.game-open .app *::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+body.game-open .topbar {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--bg-0) !important;
+}
+
+body.game-open .brand-mark::before,
+body.game-open .brand-mark::after,
+body.game-open .brand-mark img {
+    animation: none !important;
+    filter: none !important;
+}
+
+/* Also drop backdrop-filter on any floating chrome while game runs */
+body.game-open .fab-menu,
+body.game-open .dropdown-content,
+body.game-open .palette,
+body.game-open .palette-backdrop,
+body.game-open .sidebar-backdrop {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Permanently simplify the brand mark on mobile — even when game is off */
+@media (max-width: 900px) {
+    .brand-mark::before { display: none; }
+    .brand-mark::after {
+        background: linear-gradient(135deg, #6ea8fe, #a371f7);
+        animation: none;
+        filter: none;
+        box-shadow: 0 0 12px rgba(110, 168, 254, 0.6);
+    }
+    .brand-mark img {
+        animation: none;
+        filter: none;
+    }
+    .game-title {
+        animation: none;
+        -webkit-text-fill-color: var(--text-0);
+        background: none;
+    }
+    .side::before { animation: none; opacity: 0.3; }
+        }
     </style>
+    <script>
+    // Toggle a class on <body> whenever the preview dialog opens or closes.
+    // This lets the CSS above pause all parent-page animations while a game runs.
+    (function () {
+        var dialog = document.getElementById('runDialog');
+        if (!dialog) return;
+
+        function sync() {
+            var isOpen = dialog.hasAttribute('open');
+            document.body.classList.toggle('game-open', isOpen);
+        }
+
+        sync();
+
+        if (typeof MutationObserver !== 'undefined') {
+            new MutationObserver(sync).observe(dialog, {
+                attributes: true,
+                attributeFilter: ['open']
+            });
+        } else {
+            // Fallback for very old browsers: check every frame
+            (function tick() {
+                sync();
+                requestAnimationFrame(tick);
+            })();
+        }
+    })();
+    </script>
 </head>
 <body>
     <dialog id="runDialog">
