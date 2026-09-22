@@ -101,7 +101,6 @@
         dialog > button.dialog-close:hover { background: rgba(255,255,255,0.16); }
         iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
 
-        /* Dialog controls — now INSIDE the dialog, only visible when dialog is open */
         .dialog-controls {
             position: absolute;
             bottom: 24px; right: 24px;
@@ -1084,6 +1083,60 @@
         ::-webkit-scrollbar-thumb:hover { background: var(--border-3); background-clip: content-box; }
 
         /* ═══════════════════════════════════════════════════════════
+           PERFORMANCE — freeze parent-page animations while a game runs
+           ═══════════════════════════════════════════════════════════ */
+
+        body.game-open .app,
+        body.game-open .app *,
+        body.game-open .app *::before,
+        body.game-open .app *::after {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        body.game-open .topbar {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            background: var(--bg-0) !important;
+        }
+
+        body.game-open .brand-mark::before,
+        body.game-open .brand-mark::after,
+        body.game-open .brand-mark img {
+            animation: none !important;
+            filter: none !important;
+        }
+
+        body.game-open .fab-menu,
+        body.game-open .dropdown-content,
+        body.game-open .palette,
+        body.game-open .palette-backdrop,
+        body.game-open .sidebar-backdrop {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+
+        @media (max-width: 900px) {
+            .brand-mark::before { display: none; }
+            .brand-mark::after {
+                background: linear-gradient(135deg, #6ea8fe, #a371f7);
+                animation: none;
+                filter: none;
+                box-shadow: 0 0 12px rgba(110, 168, 254, 0.6);
+            }
+            .brand-mark img {
+                animation: none;
+                filter: none;
+            }
+            .game-title {
+                animation: none;
+                -webkit-text-fill-color: var(--text-0);
+                background: none;
+            }
+            .side::before { animation: none; opacity: 0.3; }
+        }
+
+        /* ═══════════════════════════════════════════════════════════
            RESPONSIVE
            ═══════════════════════════════════════════════════════════ */
 
@@ -1153,92 +1206,7 @@
             .editor-body { height: 55vh; min-height: 240px; }
             .fab { bottom: 12px; }
         }
-        /* ═══════════════════════════════════════════════════════════
-   PERFORMANCE: reduce background work when preview is open
-   ═══════════════════════════════════════════════════════════ */
-
-/* Kill all animations on the parent page while a game is running.
-   The dialog is a sibling of .app, so its own transitions are preserved. */
-body.game-open .app,
-body.game-open .app *,
-body.game-open .app *::before,
-body.game-open .app *::after {
-    animation: none !important;
-    transition: none !important;
-}
-
-body.game-open .topbar {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: var(--bg-0) !important;
-}
-
-body.game-open .brand-mark::before,
-body.game-open .brand-mark::after,
-body.game-open .brand-mark img {
-    animation: none !important;
-    filter: none !important;
-}
-
-/* Also drop backdrop-filter on any floating chrome while game runs */
-body.game-open .fab-menu,
-body.game-open .dropdown-content,
-body.game-open .palette,
-body.game-open .palette-backdrop,
-body.game-open .sidebar-backdrop {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-}
-
-/* Permanently simplify the brand mark on mobile — even when game is off */
-@media (max-width: 900px) {
-    .brand-mark::before { display: none; }
-    .brand-mark::after {
-        background: linear-gradient(135deg, #6ea8fe, #a371f7);
-        animation: none;
-        filter: none;
-        box-shadow: 0 0 12px rgba(110, 168, 254, 0.6);
-    }
-    .brand-mark img {
-        animation: none;
-        filter: none;
-    }
-    .game-title {
-        animation: none;
-        -webkit-text-fill-color: var(--text-0);
-        background: none;
-    }
-    .side::before { animation: none; opacity: 0.3; }
-        }
     </style>
-    <script>
-    // Toggle a class on <body> whenever the preview dialog opens or closes.
-    // This lets the CSS above pause all parent-page animations while a game runs.
-    (function () {
-        var dialog = document.getElementById('runDialog');
-        if (!dialog) return;
-
-        function sync() {
-            var isOpen = dialog.hasAttribute('open');
-            document.body.classList.toggle('game-open', isOpen);
-        }
-
-        sync();
-
-        if (typeof MutationObserver !== 'undefined') {
-            new MutationObserver(sync).observe(dialog, {
-                attributes: true,
-                attributeFilter: ['open']
-            });
-        } else {
-            // Fallback for very old browsers: check every frame
-            (function tick() {
-                sync();
-                requestAnimationFrame(tick);
-            })();
-        }
-    })();
-    </script>
 </head>
 <body>
     <dialog id="runDialog">
@@ -1510,7 +1478,6 @@ function update(dt) {
         inp.type = "file";
         inp.accept = ".js";
 
-        // Properly close the run dialog (jQuery fadeToggle does not work on <dialog>)
         window.closeRunDialog = function () {
             var d = document.getElementById('runDialog');
             if (!d) return;
@@ -2004,7 +1971,6 @@ function update(dt) {
             var val = textarea.value;
             var mod = e.ctrlKey || e.metaKey;
 
-            // Ctrl+S / Ctrl+Shift+S (independent of script.js)
             if (mod && (e.key === 's' || e.key === 'S')) {
                 e.preventDefault();
                 if (e.shiftKey) { if (typeof saveAs === 'function') saveAs(); }
@@ -2214,7 +2180,6 @@ function update(dt) {
             var lh = fontSize + 9;
             fontRoot.style.setProperty('--code-font-size', fontSize + 'px');
             fontRoot.style.setProperty('--code-line-height', lh + 'px');
-            // Explicitly set inline as well in case CSS var doesn't cascade
             textarea.style.fontSize = fontSize + 'px';
             highlight.style.fontSize = fontSize + 'px';
             textarea.style.lineHeight = lh + 'px';
@@ -2511,93 +2476,114 @@ function update(dt) {
     })();
     </script>
 
-   <script>
-(function () {
-    var zoomLevel = 1;
+    <script>
+    (function () {
+        var zoomLevel = 1;
 
-    function getFrame() {
-        return document.getElementById('gameFrame');
-    }
-
-    function applyZoom() {
-        var frame = getFrame();
-        if (!frame) return;
-
-        // Prefer zooming the iframe's BODY — resizes the game canvas correctly
-        try {
-            var doc = frame.contentDocument;
-            if (doc && doc.body) {
-                doc.body.style.zoom = zoomLevel;
-                return;
-            }
-        } catch (e) {
-            // cross-origin fallback below
+        function getFrame() {
+            return document.getElementById('gameFrame');
         }
 
-        // Fallback: zoom the iframe element itself
-        frame.style.zoom = zoomLevel;
-    }
+        function applyZoom() {
+            var frame = getFrame();
+            if (!frame) return;
 
-    function setZoom(newLevel) {
-        zoomLevel = Math.max(0.3, Math.min(3, +newLevel.toFixed(2)));
-        applyZoom();
-    }
+            try {
+                var doc = frame.contentDocument;
+                if (doc && doc.body) {
+                    doc.body.style.zoom = zoomLevel;
+                    return;
+                }
+            } catch (e) {}
 
-    var zi = document.getElementById('zoomInBtn');
-    var zo = document.getElementById('zoomOutBtn');
-    var fs = document.getElementById('fsBtn');
+            frame.style.zoom = zoomLevel;
+        }
 
-    if (zi) zi.addEventListener('click', function () { setZoom(zoomLevel + 0.1); });
-    if (zo) zo.addEventListener('click', function () { setZoom(zoomLevel - 0.1); });
-
-    if (fs) fs.addEventListener('click', async function () {
-        try {
-            if (document.fullscreenElement || document.webkitFullscreenElement) {
-                if (document.exitFullscreen) await document.exitFullscreen();
-                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-                return;
-            }
-            var dialog = document.getElementById('runDialog');
-            var target = dialog || document.documentElement;
-            var req = target.requestFullscreen || target.webkitRequestFullscreen || target.msRequestFullscreen;
-            if (!req) { alert('Fullscreen not supported on this browser.'); return; }
-            await req.call(target);
-        } catch (err) { console.error('[fullscreen] failed:', err); }
-    });
-
-    // Re-apply zoom whenever the iframe finishes loading
-    var frame = getFrame();
-    if (frame) {
-        frame.addEventListener('load', function () {
-            setTimeout(applyZoom, 60);
-        });
-    }
-
-    // Reset zoom when Run is clicked
-    var runBtn = document.getElementById('run');
-    if (runBtn) {
-        runBtn.addEventListener('click', function () {
-            zoomLevel = 1;
+        function setZoom(newLevel) {
+            zoomLevel = Math.max(0.3, Math.min(3, +newLevel.toFixed(2)));
             applyZoom();
+        }
+
+        var zi = document.getElementById('zoomInBtn');
+        var zo = document.getElementById('zoomOutBtn');
+        var fs = document.getElementById('fsBtn');
+
+        if (zi) zi.addEventListener('click', function () { setZoom(zoomLevel + 0.1); });
+        if (zo) zo.addEventListener('click', function () { setZoom(zoomLevel - 0.1); });
+
+        if (fs) fs.addEventListener('click', async function () {
+            try {
+                if (document.fullscreenElement || document.webkitFullscreenElement) {
+                    if (document.exitFullscreen) await document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                    return;
+                }
+                var dialog = document.getElementById('runDialog');
+                var target = dialog || document.documentElement;
+                var req = target.requestFullscreen || target.webkitRequestFullscreen || target.msRequestFullscreen;
+                if (!req) { alert('Fullscreen not supported on this browser.'); return; }
+                await req.call(target);
+            } catch (err) { console.error('[fullscreen] failed:', err); }
         });
-    }
 
-    document.addEventListener('keydown', function (e) {
-        var t = e.target;
-        var tag = t && t.tagName ? t.tagName.toLowerCase() : '';
-        if (tag === 'input' || tag === 'textarea' || (t && t.isContentEditable)) return;
+        var frame = getFrame();
+        if (frame) {
+            frame.addEventListener('load', function () {
+                setTimeout(applyZoom, 60);
+            });
+        }
 
-        // Only respond when the preview dialog is open
-        var d = document.getElementById('runDialog');
-        var dialogOpen = d && (d.hasAttribute('open') || d.style.display === 'block');
-        if (!dialogOpen) return;
+        var runBtn = document.getElementById('run');
+        if (runBtn) {
+            runBtn.addEventListener('click', function () {
+                zoomLevel = 1;
+                applyZoom();
+            });
+        }
 
-        if (e.key === 'f' || e.key === 'F') { e.preventDefault(); if (fs) fs.click(); }
-        else if (e.key === '+' || e.key === '=') { e.preventDefault(); setZoom(zoomLevel + 0.1); }
-        else if (e.key === '-' || e.key === '_') { e.preventDefault(); setZoom(zoomLevel - 0.1); }
-        else if (e.key === '0') { e.preventDefault(); setZoom(1); }
-    });
-})();
-</script>
+        document.addEventListener('keydown', function (e) {
+            var t = e.target;
+            var tag = t && t.tagName ? t.tagName.toLowerCase() : '';
+            if (tag === 'input' || tag === 'textarea' || (t && t.isContentEditable)) return;
+
+            var d = document.getElementById('runDialog');
+            var dialogOpen = d && (d.hasAttribute('open') || d.style.display === 'block');
+            if (!dialogOpen) return;
+
+            if (e.key === 'f' || e.key === 'F') { e.preventDefault(); if (fs) fs.click(); }
+            else if (e.key === '+' || e.key === '=') { e.preventDefault(); setZoom(zoomLevel + 0.1); }
+            else if (e.key === '-' || e.key === '_') { e.preventDefault(); setZoom(zoomLevel - 0.1); }
+            else if (e.key === '0') { e.preventDefault(); setZoom(1); }
+        });
+    })();
+    </script>
+
+    <script>
+    // Pause parent-page animations while the preview dialog is open so
+    // the game inside the iframe gets the full CPU/GPU budget.
+    (function () {
+        var dialog = document.getElementById('runDialog');
+        if (!dialog) return;
+
+        function sync() {
+            var isOpen = dialog.hasAttribute('open');
+            document.body.classList.toggle('game-open', isOpen);
+        }
+
+        sync();
+
+        if (typeof MutationObserver !== 'undefined') {
+            new MutationObserver(sync).observe(dialog, {
+                attributes: true,
+                attributeFilter: ['open']
+            });
+        } else {
+            (function tick() {
+                sync();
+                requestAnimationFrame(tick);
+            })();
+        }
+    })();
+    </script>
 </body>
 </html>
