@@ -1082,10 +1082,6 @@
         }
         ::-webkit-scrollbar-thumb:hover { background: var(--border-3); background-clip: content-box; }
 
-        /* ═══════════════════════════════════════════════════════════
-           PERFORMANCE — freeze parent-page animations while a game runs
-           ═══════════════════════════════════════════════════════════ */
-
         body.game-open .app,
         body.game-open .app *,
         body.game-open .app *::before,
@@ -1136,10 +1132,6 @@
             .side::before { animation: none; opacity: 0.3; }
         }
 
-        /* ═══════════════════════════════════════════════════════════
-           RESPONSIVE
-           ═══════════════════════════════════════════════════════════ */
-
         @media (max-width: 900px) {
             .main { padding: 16px 16px 100px; }
             .build-panel { grid-template-columns: 1fr; min-height: 0; }
@@ -1174,6 +1166,14 @@
 
         @media (max-width: 640px) {
             .topbar { padding: 12px 14px; gap: 10px; }
+            #runBrowserBtn {
+                font-size: 0;
+                padding: 8px 10px;
+            }
+            #runBrowserBtn::before {
+                content: "🌐";
+                font-size: 14px;
+            }
             .brand-mark { width: 36px; height: 36px; }
             .brand-mark::before { inset: -4px; border-radius: 13px; }
             .brand-mark::after { inset: -1px; border-radius: 11px; }
@@ -1260,6 +1260,7 @@
 
             <div class="topbar-actions">
                 <button id="run" class="btn btn-primary" type="button">▶ Run</button>
+                <button id="runBrowserBtn" class="btn" type="button">🌐 Open in tab</button>
                 <button id="openBtn" class="btn" type="button">📁 Open</button>
                 <div class="dropdown">
                     <button class="btn" type="button">Menu ▾</button>
@@ -1557,6 +1558,62 @@ function update(dt) {
         if (runBtn) runBtn.addEventListener('click', function () {
             if (typeof runn === 'function') runn();
         });
+
+        var runBrowserBtn = document.getElementById('runBrowserBtn');
+        if (runBrowserBtn) {
+            runBrowserBtn.addEventListener('click', function () {
+                var textarea = document.getElementById('js');
+                if (!textarea) return;
+
+                var userCode = textarea.value;
+                if (!userCode || !userCode.trim()) {
+                    alert('Nothing to run. Write or generate some code first.');
+                    return;
+                }
+
+                var versionSelect = document.getElementById('version');
+                var version = versionSelect ? versionSelect.value.toLowerCase() : 'v4';
+
+                var engineFile = version.includes('v2') ? 'tcjsgame-v2.js'
+                               : version.includes('v3') ? 'tcjsgame-v3.js'
+                               : 'epic.js';
+
+                var engineUrl = location.origin + '/editor/' + engineFile;
+
+                var safeUserCode = userCode.replace(/<\/script>/gi, '<\\/script>');
+
+                var html = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+                    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+                    '<title>Limn — Preview</title>' +
+                    '<style>' +
+                        'html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%;}' +
+                        'canvas{display:block;margin:0 auto;}' +
+                    '</style>' +
+                    '</head><body>' +
+                    '<script src="' + engineUrl + '"><\/script>' +
+                    '<script>' +
+                        'window.onerror = function(msg, src, line, col, err) {' +
+                            'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace;white-space:pre-wrap;\\">ERROR: " + msg + "\\n\\n" + (err && err.stack ? err.stack : "") + "</pre>";' +
+                            'return true;' +
+                        '};' +
+                        safeUserCode +
+                    '<\/script>' +
+                    '</body></html>';
+
+                var blob = new Blob([html], { type: 'text/html' });
+                var url = URL.createObjectURL(blob);
+
+                var win = window.open(url, '_blank');
+
+                if (!win) {
+                    alert('Pop-up blocked. Allow pop-ups for this site and try again.');
+                }
+
+                setTimeout(function () {
+                    URL.revokeObjectURL(url);
+                }, 60000);
+            });
+        }
 
         var sidebar = document.getElementById('fileSidebar');
         var backdrop = document.getElementById('sidebarBackdrop');
@@ -2559,8 +2616,6 @@ function update(dt) {
     </script>
 
     <script>
-    // Pause parent-page animations while the preview dialog is open so
-    // the game inside the iframe gets the full CPU/GPU budget.
     (function () {
         var dialog = document.getElementById('runDialog');
         if (!dialog) return;
