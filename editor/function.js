@@ -21,6 +21,60 @@ loadScript("tcjsgame-v2.js", (t) => v2t = t);
 loadScript("tcjsgame-v3.js", (t) => v3t = t);
 loadScript("epic.js", (t) => v4t = t);
 
+function buildConsoleForwarder() {
+    return '<script>\n' +
+    '(function(){\n' +
+    '  function send(kind, args, stack) {\n' +
+    '    try {\n' +
+    '      var serialized = [];\n' +
+    '      for (var i = 0; i < args.length; i++) {\n' +
+    '        var a = args[i];\n' +
+    '        if (a === undefined) serialized.push("undefined");\n' +
+    '        else if (a === null) serialized.push("null");\n' +
+    '        else if (typeof a === "function") serialized.push("[Function " + (a.name || "anonymous") + "]");\n' +
+    '        else if (a instanceof Error) serialized.push(a.name + ": " + a.message);\n' +
+    '        else if (typeof a === "object") {\n' +
+    '          try { serialized.push(JSON.stringify(a)); } catch (e) { serialized.push(String(a)); }\n' +
+    '        }\n' +
+    '        else serialized.push(String(a));\n' +
+    '      }\n' +
+    '      window.parent.postMessage({ type: "console", kind: kind, args: serialized, stack: stack || null }, "*");\n' +
+    '    } catch (e) {}\n' +
+    '  }\n' +
+    '  var origLog = console.log;\n' +
+    '  var origWarn = console.warn;\n' +
+    '  var origError = console.error;\n' +
+    '  var origInfo = console.info;\n' +
+    '  console.log = function() { origLog.apply(console, arguments); send("log", arguments, null); };\n' +
+    '  console.warn = function() { origWarn.apply(console, arguments); send("warn", arguments, null); };\n' +
+    '  console.error = function() { origError.apply(console, arguments); send("error", arguments, null); };\n' +
+    '  console.info = function() { origInfo.apply(console, arguments); send("info", arguments, null); };\n' +
+    '  window.addEventListener("error", function(e) {\n' +
+    '    var msg = e.message || "Unknown error";\n' +
+    '    var stack = e.error && e.error.stack ? e.error.stack : null;\n' +
+    '    send("error", [msg], stack);\n' +
+    '  });\n' +
+    '  window.addEventListener("unhandledrejection", function(e) {\n' +
+    '    var r = e.reason;\n' +
+    '    var msg = r && r.message ? r.message : String(r);\n' +
+    '    var stack = r && r.stack ? r.stack : null;\n' +
+    '    send("error", ["Unhandled promise rejection: " + msg], stack);\n' +
+    '  });\n' +
+    '})();\n' +
+    '<\/script>\n';
+}
+
+function buildErrorOverlay() {
+    return '<script>\n' +
+    'window.onerror = function(msg, src, line, col, err) {\n' +
+    '  var stack = err && err.stack ? err.stack : "";\n' +
+    '  var location = src ? (src + ":" + line + ":" + col) : "";\n' +
+    '  document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace;white-space:pre-wrap;background:#0a0a0a;margin:0;min-height:100vh;box-sizing:border-box\\">RUNTIME ERROR\\n\\n" + msg + "\\n\\n" + location + "\\n\\n" + stack + "</pre>";\n' +
+    '  return true;\n' +
+    '};\n' +
+    '<\/script>\n';
+}
+
 function runn() {
     if (!window.__enginesReady) {
         alert("Engine still loading. Wait 2 seconds and tap Run again.");
@@ -61,37 +115,19 @@ function runn() {
         return;
     }
 
+    let safeUserCode = userEditorCode.replace(/<\/script>/gi, '<\\/script>');
+
     let code = '<!DOCTYPE html>\n' +
 '<html lang="en">\n' +
 '<head>\n' +
 '<meta charset="UTF-8">\n' +
 '<script>' + engineScriptFile + '<\/script>\n' +
+buildConsoleForwarder() +
+buildErrorOverlay() +
 '</head>\n' +
 '<body>\n' +
 '<script>\n' +
-'const _customLog = console.log;\n' +
-'console.log = function() {\n' +
-'  _customLog.apply(console, arguments);\n' +
-'  var parts = [];\n' +
-'  for (var i = 0; i < arguments.length; i++) {\n' +
-'    var a = arguments[i];\n' +
-'    parts.push(typeof a === "object" ? JSON.stringify(a) : a);\n' +
-'  }\n' +
-'  try {\n' +
-'    var box = window.parent.document.getElementById("editor-console-logs");\n' +
-'    if (box) {\n' +
-'      var line = window.parent.document.createElement("div");\n' +
-'      line.textContent = parts.join(" ");\n' +
-'      box.appendChild(line);\n' +
-'      box.scrollTop = box.scrollHeight;\n' +
-'    }\n' +
-'  } catch (e) {}\n' +
-'};\n' +
-'window.onerror = function(msg, src, line, col, err) {\n' +
-'  document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace\\">ERROR: " + msg + "\\n\\n" + (err && err.stack ? err.stack : "") + "</pre>";\n' +
-'  return true;\n' +
-'};\n' +
-userEditorCode + '\n' +
+safeUserCode + '\n' +
 '<\/script>\n' +
 '</body>\n' +
 '</html>';
