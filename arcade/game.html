@@ -110,8 +110,15 @@
   }
   .side-scroll::-webkit-scrollbar-thumb:hover { background: var(--border-2); background-clip: content-box; }
 
+  .title-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
   .game-title {
-    margin: 0 0 6px;
+    margin: 0;
+    flex: 1;
     font-size: 22px;
     font-weight: 800;
     letter-spacing: -0.4px;
@@ -126,6 +133,24 @@
     -webkit-text-fill-color: transparent;
     animation: sweep 10s linear infinite;
   }
+  .offline-badge {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(74,222,128,0.12);
+    border: 1px solid rgba(74,222,128,0.35);
+    color: #4ade80;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+  .offline-badge.on { display: inline-flex; }
 
   .game-author {
     font-size: 13px;
@@ -181,13 +206,23 @@
     transform: translateY(-1px);
   }
   .btn:active { transform: translateY(0); }
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn:disabled:hover {
+    background: rgba(255,255,255,0.035);
+    border-color: var(--border);
+    transform: none;
+  }
 
   .btn-like {
     background: rgba(255,84,112,0.1);
     border-color: rgba(255,84,112,0.3);
     color: #ff5470;
   }
-  .btn-like:hover { background: rgba(255,84,112,0.18); border-color: rgba(255,84,112,0.5); }
+  .btn-like:hover:not(:disabled) { background: rgba(255,84,112,0.18); border-color: rgba(255,84,112,0.5); }
   .btn-like.liked {
     background: linear-gradient(135deg, #ff5470, #ec4899);
     border-color: #ff5470;
@@ -197,14 +232,22 @@
   .btn-like.liked .heart { animation: pop 0.4s ease; }
   .btn-like .heart { font-size: 14px; }
 
-  .btn-play {
-    background: linear-gradient(135deg, #22c55e, #4ade80);
-    border-color: #22c55e;
-    color: #04140a;
-    font-weight: 700;
-    box-shadow: 0 4px 16px rgba(34,197,94,0.3);
+  .btn-offline {
+    background: rgba(110,168,254,0.08);
+    border-color: rgba(110,168,254,0.3);
+    color: var(--accent);
   }
-  .btn-play:hover { filter: brightness(1.1); }
+  .btn-offline:hover:not(:disabled) { background: rgba(110,168,254,0.16); border-color: rgba(110,168,254,0.5); }
+  .btn-offline.saved {
+    background: rgba(74,222,128,0.12);
+    border-color: rgba(74,222,128,0.4);
+    color: #4ade80;
+  }
+  .btn-offline.saved:hover:not(:disabled) {
+    background: rgba(248,113,113,0.12);
+    border-color: rgba(248,113,113,0.4);
+    color: #f87171;
+  }
 
   .zoom-group {
     display: inline-flex;
@@ -414,6 +457,7 @@
     box-shadow: 0 0 0 3px rgba(110,168,254,0.15);
   }
   .comment-form input::placeholder { color: var(--text-2); }
+  .comment-form input:disabled { opacity: 0.5; cursor: not-allowed; }
   .comment-form button {
     padding: 11px 18px;
     border: none;
@@ -426,8 +470,9 @@
     font-family: inherit;
     transition: filter 0.15s, transform 0.1s;
   }
-  .comment-form button:hover { filter: brightness(1.15); }
-  .comment-form button:active { transform: scale(0.97); }
+  .comment-form button:hover:not(:disabled) { filter: brightness(1.15); }
+  .comment-form button:active:not(:disabled) { transform: scale(0.97); }
+  .comment-form button:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .loading {
     color: var(--text-2);
@@ -590,7 +635,10 @@
   </div>
   <aside class="side" id="side" style="display:none">
     <div class="side-scroll">
-      <h1 class="game-title" id="title">...</h1>
+      <div class="title-row">
+        <h1 class="game-title" id="title">...</h1>
+        <span class="offline-badge" id="offlineBadge">📴 Offline</span>
+      </div>
       <div class="game-author" id="author">...</div>
       <div id="gameDescription" class="game-desc" style="display:none;"></div>
 
@@ -601,6 +649,7 @@
         </button>
         <button class="btn" id="shareBtn">🔗 Share</button>
         <button class="btn" id="forkBtn">✎ Fork</button>
+        <button class="btn btn-offline" id="offlineBtn">📥 Make Offline</button>
         <button class="btn" id="fsBtn">⛶ Fullscreen</button>
         <div class="zoom-group">
           <button id="zoomOut" title="Zoom out">−</button>
@@ -663,6 +712,24 @@ window.addEventListener('unhandledrejection', (e) => {
 
 log('Script started');
 
+// ─── OFFLINE STORAGE ───
+const OFFLINE_GAMES_KEY = 'limn_arcade_offline_games_v1';
+
+function getOfflineGames() {
+  try { return JSON.parse(localStorage.getItem(OFFLINE_GAMES_KEY) || '{}'); }
+  catch { return {}; }
+}
+function saveOfflineGames(obj) {
+  try { localStorage.setItem(OFFLINE_GAMES_KEY, JSON.stringify(obj)); }
+  catch (e) { log('Offline save failed: ' + e.message, true); }
+}
+function hasOfflineCopy(slug) {
+  if (!slug) return false;
+  const games = getOfflineGames();
+  return !!games[slug];
+}
+
+// ─── SUPABASE ───
 const supabase = createClient(
   'https://pjtpesdhjfvcidfkxord.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38'
@@ -674,6 +741,8 @@ const slug = new URLSearchParams(location.search).get('slug');
 const stage = document.getElementById('stage');
 let currentGameId = null;
 let currentUserId = null;
+let currentGameData = null;
+let isLoadingFromCache = false;
 let zoomLevel = 1;
 
 function withTimeout(promise, ms, label) {
@@ -685,6 +754,28 @@ function withTimeout(promise, ms, label) {
   ]);
 }
 
+function toast(msg, isError) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText =
+    'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
+    'background:rgba(20,22,36,0.96);' +
+    'border:1px solid ' + (isError ? 'rgba(248,113,113,0.4)' : 'rgba(110,168,254,0.4)') + ';' +
+    'color:#f0f3f8;padding:12px 22px;border-radius:12px;' +
+    'font-weight:600;font-size:13.5px;z-index:99999;' +
+    'box-shadow:0 8px 32px rgba(0,0,0,0.6);' +
+    'backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);' +
+    'animation:floatUp 0.3s ease;max-width:90vw;text-align:center;';
+  document.body.appendChild(t);
+  setTimeout(() => {
+    t.style.transition = 'opacity 0.3s, transform 0.3s';
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(10px)';
+    setTimeout(() => t.remove(), 320);
+  }, 2600);
+}
+
+// ─── BOOT ───
 async function boot() {
   log('boot() called with slug=' + slug);
 
@@ -694,28 +785,60 @@ async function boot() {
     return;
   }
 
-  let data = null, error = null;
+  const cached = getOfflineGames()[slug];
+  const browserOffline = !navigator.onLine;
 
-  try {
-    log('Fetching game from Supabase...');
-    const result = await withTimeout(
-      supabase
-        .from('games')
-        .select('id, slug, title, author_id, author_name, code, engine_code, engine_version, plays, description')
-        .eq('slug', slug)
-        .single(),
-      8000,
-      'Game fetch'
-    );
-    data = result.data;
-    error = result.error;
-    log('Supabase responded. error=' + (error ? error.message : 'null') + ' data=' + (data ? 'yes' : 'no'));
-  } catch (e) {
-    log('Fetch threw: ' + e.message, true);
-    stage.innerHTML = '<div class="err">Could not load game: ' + e.message +
-      '\n\nCheck your internet connection and refresh.' +
-      '\n\nIf this persists, the game may not exist, or Supabase may be blocking the request.</div>';
+  let data = null;
+  let error = null;
+  let fromCache = false;
+
+  if (browserOffline && cached) {
+    log('Browser offline — using cached copy');
+    data = cached;
+    fromCache = true;
+  } else if (browserOffline && !cached) {
+    log('Browser offline and no cache available', true);
+    stage.innerHTML =
+      '<div class="err">You are offline and this game is not saved for offline play.' +
+      '\n\nGo back online, open this game, and tap "Make Offline" to save it.</div>';
     return;
+  } else {
+    // Online — try network
+    try {
+      log('Fetching game from Supabase...');
+      const result = await withTimeout(
+        supabase
+          .from('games')
+          .select('id, slug, title, author_id, author_name, code, engine_code, engine_version, plays, description')
+          .eq('slug', slug)
+          .single(),
+        8000,
+        'Game fetch'
+      );
+      data = result.data;
+      error = result.error;
+      log('Supabase responded. error=' + (error ? error.message : 'null') + ' data=' + (data ? 'yes' : 'no'));
+    } catch (e) {
+      log('Fetch threw: ' + e.message, true);
+      if (cached) {
+        log('Network failed — falling back to cache');
+        data = cached;
+        fromCache = true;
+        error = null;
+      } else {
+        stage.innerHTML = '<div class="err">Could not load game: ' + e.message +
+          '\n\nCheck your internet connection and refresh.' +
+          '\n\nIf this persists, the game may not exist, or Supabase may be blocking the request.</div>';
+        return;
+      }
+    }
+
+    if ((error || !data) && cached) {
+      log('Fetch error — using cache');
+      data = cached;
+      fromCache = true;
+      error = null;
+    }
   }
 
   if (error || !data) {
@@ -725,14 +848,54 @@ async function boot() {
     return;
   }
 
-  log('Game loaded: ' + data.title);
+  // Update cached copy when we successfully fetched and it was already cached
+  if (!fromCache && cached) {
+    try {
+      const games = getOfflineGames();
+      games[slug] = buildCacheEntry(data);
+      saveOfflineGames(games);
+      log('Refreshed cached copy');
+    } catch (e) {}
+  }
+
+  log('Game loaded: ' + data.title + (fromCache ? ' (offline)' : ''));
   log('Code length: ' + (data.code || '').length + ', engine length: ' + (data.engine_code || '').length);
 
-  currentGameId = data.id;
+  currentGameData = data;
+  isLoadingFromCache = fromCache;
+  applyGameData(data, fromCache);
+}
+
+function buildCacheEntry(data) {
+  return {
+    id: data.id || null,
+    slug: data.slug || slug,
+    title: data.title || 'Untitled',
+    author_id: data.author_id || null,
+    author_name: data.author_name || null,
+    code: data.code || '',
+    engine_code: data.engine_code || '',
+    engine_version: data.engine_version || 'v4',
+    plays: data.plays || 0,
+    description: data.description || '',
+    cached_at: Date.now(),
+  };
+}
+
+function applyGameData(data, fromCache) {
+  currentGameId = data.id || null;
 
   document.title = data.title + ' — Arcade';
   document.getElementById('title').textContent = data.title;
   document.getElementById('side').style.display = 'flex';
+
+  // Offline badge
+  const badge = document.getElementById('offlineBadge');
+  if (fromCache) {
+    badge.classList.add('on');
+  } else {
+    badge.classList.remove('on');
+  }
 
   if (data.description) {
     const descEl = document.getElementById('gameDescription');
@@ -745,27 +908,47 @@ async function boot() {
   log('Rendering author...');
   renderAuthor(data);
 
-  supabase.from('games').update({ plays: (data.plays || 0) + 1 })
-    .eq('id', data.id).then(() => {}).catch(() => {});
+  // Update plays + load social only when online
+  if (!fromCache && !navigator.onLine === false) {
+    supabase.from('games').update({ plays: (data.plays || 0) + 1 })
+      .eq('id', data.id).then(() => {}).catch(() => {});
+
+    log('Loading likes and comments...');
+    loadLikes(data.id);
+    loadComments(data.id);
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      currentUserId = session ? session.user.id : null;
+      log('Session loaded. User: ' + (currentUserId ? 'yes' : 'no'));
+      if (currentUserId) loadLikes(data.id, currentUserId);
+    }).catch((e) => {
+      log('Session load failed: ' + e.message, true);
+    });
+  } else if (fromCache) {
+    // Offline — show a message in comments area
+    log('Offline mode: skipping likes/comments');
+    const box = document.getElementById('comments');
+    if (box) box.innerHTML = '<div class="empty-comments">Comments are unavailable offline</div>';
+    const input = document.getElementById('commentInput');
+    if (input) { input.disabled = true; input.placeholder = 'Offline — comments unavailable'; }
+    const sendBtn = document.getElementById('commentSubmit');
+    if (sendBtn) sendBtn.disabled = true;
+    const likeBtn = document.getElementById('likeBtn');
+    if (likeBtn) likeBtn.disabled = true;
+  } else {
+    // Online but social failed silently — still try
+    loadLikes(data.id);
+    loadComments(data.id);
+  }
 
   log('Wiring buttons...');
   wireButtons(data);
 
-  log('Loading likes and comments...');
-  loadLikes(data.id);
-  loadComments(data.id);
-
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    currentUserId = session ? session.user.id : null;
-    log('Session loaded. User: ' + (currentUserId ? 'yes' : 'no'));
-    if (currentUserId) loadLikes(data.id, currentUserId);
-  }).catch((e) => {
-    log('Session load failed: ' + e.message, true);
-  });
-
+  updateOfflineBtnState();
   log('boot() finished');
 }
 
+// ─── RENDER GAME ───
 function renderGame(data) {
   const userCode = data.code || '';
   const safeUserCode = userCode.replace(/<\/script>/gi, '<\\/script>');
@@ -796,6 +979,7 @@ function renderGame(data) {
   stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" allowfullscreen id="gameFrame"></iframe>';
   const frame = document.getElementById('gameFrame');
 
+  // Re-apply zoom whenever the iframe finishes loading
   frame.addEventListener('load', () => {
     setTimeout(applyZoom, 60);
   });
@@ -817,10 +1001,12 @@ window.addEventListener('message', (e) => {
   }
 });
 
+// ─── ZOOM (uses body.style.zoom inside iframe) ───
 function applyZoom() {
   const frame = document.getElementById('gameFrame');
   if (!frame) return;
 
+  // Prefer zooming the iframe's BODY — resizes the game canvas correctly
   try {
     const doc = frame.contentDocument;
     if (doc && doc.body) {
@@ -828,8 +1014,11 @@ function applyZoom() {
       updateZoomLabel();
       return;
     }
-  } catch (e) {}
+  } catch (e) {
+    // cross-origin fallback below
+  }
 
+  // Fallback: zoom the iframe element itself
   frame.style.zoom = zoomLevel;
   updateZoomLabel();
 }
@@ -839,6 +1028,7 @@ function updateZoomLabel() {
   if (el) el.textContent = Math.round(zoomLevel * 100) + '%';
 }
 
+// ─── AUTHOR ───
 async function renderAuthor(data) {
   let creatorUsername = null;
   let creatorLabel = 'anonymous';
@@ -875,6 +1065,7 @@ async function renderAuthor(data) {
   }
 }
 
+// ─── SIGN-IN PROMPT ───
 function showSignInPrompt() {
   const existing = document.getElementById('signin-modal');
   if (existing) existing.remove();
@@ -908,10 +1099,59 @@ function showSignInPrompt() {
   });
 }
 
+// ─── OFFLINE TOGGLE ───
+function updateOfflineBtnState() {
+  const btn = document.getElementById('offlineBtn');
+  if (!btn) return;
+  const saved = hasOfflineCopy(slug);
+  if (saved) {
+    btn.textContent = '✓ Saved Offline';
+    btn.classList.add('saved');
+    btn.title = 'Saved for offline play — tap to remove';
+  } else {
+    btn.textContent = '📥 Make Offline';
+    btn.classList.remove('saved');
+    btn.title = 'Save this game to play without internet';
+  }
+}
+
+function toggleOffline() {
+  if (!slug || !currentGameData) return;
+
+  const games = getOfflineGames();
+
+  if (games[slug]) {
+    // Remove
+    delete games[slug];
+    saveOfflineGames(games);
+    updateOfflineBtnState();
+    toast('Removed from offline storage');
+    log('Removed ' + slug + ' from offline cache');
+  } else {
+    // Add
+    games[slug] = buildCacheEntry(currentGameData);
+    saveOfflineGames(games);
+    updateOfflineBtnState();
+    toast('Saved! You can now play this offline.');
+    log('Saved ' + slug + ' to offline cache');
+
+    // Bonus: if online, also warm the HTTP cache for the engine file so
+    // the iframe can load it while offline.
+    try {
+      const version = (currentGameData.engine_version || 'v4').toLowerCase();
+      const engineFile = version.includes('v2') ? 'tcjsgame-v2.js'
+                       : version.includes('v3') ? 'tcjsgame-v3.js'
+                       : 'epic.js';
+      fetch('/editor/' + engineFile, { cache: 'force-cache' }).catch(() => {});
+    } catch (e) {}
+  }
+}
+
+// ─── WIRE BUTTONS ───
 function wireButtons(data) {
   document.getElementById('shareBtn').onclick = async () => {
     const url = location.origin + '/arcade/game.html?slug=' + slug;
-    try { await navigator.clipboard.writeText(url); alert('Link copied'); }
+    try { await navigator.clipboard.writeText(url); toast('Link copied'); }
     catch(e) { prompt('Copy this link:', url); }
   };
 
@@ -920,6 +1160,17 @@ function wireButtons(data) {
     localStorage.setItem('limn_fork_title', data.title || 'forked');
     location.href = '/editor/?fork=1';
   };
+
+  const offlineBtn = document.getElementById('offlineBtn');
+  if (offlineBtn) {
+    offlineBtn.onclick = () => {
+      if (!navigator.onLine && !hasOfflineCopy(slug)) {
+        toast('You need to be online to save a game offline', true);
+        return;
+      }
+      toggleOffline();
+    };
+  }
 
   document.getElementById('fsBtn').onclick = () => {
     const frame = document.getElementById('gameFrame');
@@ -979,7 +1230,9 @@ function wireButtons(data) {
   document.getElementById('likeBtn').onclick = () => toggleLike();
 }
 
+// ─── LIKE / COMMENT ───
 async function toggleLike() {
+  if (!navigator.onLine) { toast('You are offline', true); return; }
   const { data: { session } } = await supabase.auth.getSession();
   const user = session ? session.user : null;
   if (!user) { showSignInPrompt(); return; }
@@ -997,6 +1250,8 @@ async function toggleLike() {
 }
 
 async function submitComment(parentId) {
+  if (!navigator.onLine) { toast('You are offline', true); return; }
+
   let body = '';
   if (parentId) {
     const input = document.querySelector('[data-reply-input="' + parentId + '"]');
@@ -1034,6 +1289,7 @@ async function submitComment(parentId) {
 }
 
 async function loadLikes(gameId, userId) {
+  if (!navigator.onLine || !gameId) return;
   try {
     const { count } = await supabase
       .from('likes').select('*', { count: 'exact', head: true })
@@ -1053,6 +1309,11 @@ async function loadLikes(gameId, userId) {
 async function loadComments(gameId) {
   const box = document.getElementById('comments');
   const countEl = document.getElementById('commentCount');
+
+  if (!navigator.onLine || !gameId) {
+    if (box) box.innerHTML = '<div class="empty-comments">Comments are unavailable offline</div>';
+    return;
+  }
 
   let data;
   try {
@@ -1160,6 +1421,27 @@ function timeAgo(iso) {
   if (s < 3600) return Math.floor(s/60) + 'm ago';
   if (s < 86400) return Math.floor(s/3600) + 'h ago';
   return Math.floor(s/86400) + 'd ago';
+}
+
+// ─── ONLINE/OFFLINE EVENTS ───
+window.addEventListener('online', () => {
+  log('Browser is online');
+  toast('Back online');
+});
+window.addEventListener('offline', () => {
+  log('Browser is offline');
+  if (hasOfflineCopy(slug)) {
+    toast('Offline — using saved copy');
+  } else {
+    toast('You are offline', true);
+  }
+});
+
+// ─── SERVICE WORKER (optional — silent fail if missing) ───
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/arcade/sw.js').catch(() => {
+    // No service worker — that's fine, offline mode still works via localStorage
+  });
 }
 
 boot();
