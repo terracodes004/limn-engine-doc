@@ -2162,6 +2162,8 @@ function update(dt) {
             vp.style.height = vpH + 'px';
         }
 
+        var pendingErrorAnalysis = null;
+
         function render() {
             var code = textarea.value;
             var html = tokenize(code);
@@ -2169,12 +2171,9 @@ function update(dt) {
             highlight.innerHTML = html;
             var lineCount = code.split('\n').length;
 
-            var errors = analyzeBrackets(code);
-
             var g = '';
             for (var i = 1; i <= lineCount; i++) {
-                var cls = 'gutter-line' + (errors[i] ? ' has-error' : '');
-                g += '<div class="' + cls + '" data-line="' + i + '">' + i + '</div>';
+                g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
             }
             gutter.innerHTML = g;
 
@@ -2183,6 +2182,21 @@ function update(dt) {
             renderMinimap();
             syncScroll();
             updateActiveLine();
+            scheduleErrorAnalysis();
+        }
+
+        function scheduleErrorAnalysis() {
+            if (pendingErrorAnalysis) clearTimeout(pendingErrorAnalysis);
+            pendingErrorAnalysis = setTimeout(runErrorAnalysis, 350);
+        }
+
+        function runErrorAnalysis() {
+            pendingErrorAnalysis = null;
+            var errors = analyzeBrackets(textarea.value);
+            var lines = gutter.children;
+            for (var i = 0; i < lines.length; i++) {
+                lines[i].classList.toggle('has-error', !!errors[i + 1]);
+            }
         }
 
         function syncScroll() {
@@ -2763,6 +2777,7 @@ function update(dt) {
 
         var messageCount = 0;
         var autoscroll = true;
+        var MAX_LINES = 500;
 
         function now() {
             var d = new Date();
@@ -2783,6 +2798,12 @@ function update(dt) {
                 return JSON.stringify(v, null, 2);
             } catch (e) {
                 return String(v);
+            }
+        }
+
+        function trimOldLines() {
+            while (logsEl.children.length > MAX_LINES) {
+                logsEl.removeChild(logsEl.firstChild);
             }
         }
 
@@ -2821,6 +2842,7 @@ function update(dt) {
             }
 
             logsEl.appendChild(line);
+            trimOldLines();
             messageCount++;
             if (countEl) countEl.textContent = messageCount + (messageCount === 1 ? ' message' : ' messages');
             if (autoscroll) logsEl.scrollTop = logsEl.scrollHeight;
@@ -2889,13 +2911,30 @@ function update(dt) {
             });
         }
 
+        var pendingMessages = [];
+        var flushScheduled = false;
+
+        function flushMessages() {
+            flushScheduled = false;
+            var batch = pendingMessages;
+            pendingMessages = [];
+            for (var i = 0; i < batch.length; i++) {
+                var m = batch[i];
+                if (m.type === 'console') {
+                    window.__logToConsole(m.kind || 'log', m.args || [], m.stack);
+                } else if (m.type === 'error') {
+                    window.__logToConsole('error', [m.message], m.stack);
+                }
+            }
+        }
+
         window.addEventListener('message', function (e) {
             if (!e.data || typeof e.data !== 'object') return;
-            if (e.data.type === 'console') {
-                var kind = e.data.kind || 'log';
-                window.__logToConsole(kind, e.data.args || [], e.data.stack);
-            } else if (e.data.type === 'error') {
-                window.__logToConsole('error', [e.data.message], e.data.stack);
+            if (e.data.type !== 'console' && e.data.type !== 'error') return;
+            pendingMessages.push(e.data);
+            if (!flushScheduled) {
+                flushScheduled = true;
+                requestAnimationFrame(flushMessages);
             }
         });
 
