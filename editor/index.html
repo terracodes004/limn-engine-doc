@@ -626,14 +626,30 @@
             overflow: hidden;
             font-variant-numeric: tabular-nums;
             border-right: 1px solid var(--border);
+            position: relative;
         }
         .gutter-line {
             height: var(--code-line-height);
             line-height: var(--code-line-height);
             padding-right: 18px;
             font-size: var(--code-font-size);
+            position: relative;
+            padding-left: 16px;
         }
         .gutter-line.active { color: var(--accent); }
+        .gutter-line.has-error { color: #ffb4b4; }
+        .gutter-line.has-error::before {
+            content: "";
+            position: absolute;
+            left: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #f87171;
+            box-shadow: 0 0 8px rgba(248,113,113,0.8);
+        }
 
         .editor-scroll { position: relative; flex: 1; overflow: hidden; }
         .highlight-layer,
@@ -866,17 +882,124 @@
         summary::before { content: "▸"; transition: transform 0.2s; display: inline-block; }
         details[open] summary::before { transform: rotate(90deg); }
         summary:hover { color: var(--text-0); background: var(--bg-2); }
+
+        .console-window {
+            background: #000;
+            border: 1px solid var(--border);
+            border-top: 0;
+            border-radius: 0 0 var(--radius) var(--radius);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .console-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 12px;
+            background: #0a0a0a;
+            border-bottom: 1px solid #1a1a1a;
+            font-size: 11px;
+            font-family: "JetBrains Mono", monospace;
+            color: #6e7589;
+        }
+        .console-toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .console-toolbar-btn {
+            background: transparent;
+            border: 1px solid #232936;
+            color: #6e7589;
+            padding: 3px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            font-family: "JetBrains Mono", monospace;
+        }
+        .console-toolbar-btn:hover { color: #f0f3f8; border-color: #3d4459; background: #141821; }
+        .console-toolbar-btn.active { color: #6ea8fe; border-color: rgba(110,168,254,0.5); background: rgba(110,168,254,0.08); }
+
         #editor-console-logs {
             background: #000;
-            color: #4ade80;
             font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
-            min-height: 140px; max-height: 300px;
-            padding: 16px; overflow-y: auto;
-            border: 1px solid var(--border); border-top: 0;
-            border-radius: 0 0 var(--radius) var(--radius);
+            min-height: 140px;
+            max-height: 340px;
+            padding: 12px 16px;
+            overflow-y: auto;
             white-space: pre-wrap;
-            font-size: 12.5px; line-height: 1.6;
+            font-size: 12.5px;
+            line-height: 1.55;
+            color: #cbd5e1;
+            flex: 1;
         }
+        .log-line {
+            padding: 2px 0;
+            word-break: break-word;
+            border-left: 2px solid transparent;
+            padding-left: 8px;
+            margin-left: -8px;
+        }
+        .log-line.log-info    { color: #94a3b8; border-left-color: #334155; }
+        .log-line.log-log     { color: #cbd5e1; border-left-color: #475569; }
+        .log-line.log-warn    { color: #fcd34d; border-left-color: #f59e0b; background: rgba(251,191,36,0.05); }
+        .log-line.log-error   { color: #fca5a5; border-left-color: #dc2626; background: rgba(248,113,113,0.06); }
+        .log-line.log-result  { color: #7dd3fc; border-left-color: #0ea5e9; }
+        .log-line.log-input   { color: #a78bfa; border-left-color: #8b5cf6; }
+        .log-line.log-success { color: #86efac; border-left-color: #16a34a; }
+
+        .log-prefix {
+            color: #64748b;
+            margin-right: 6px;
+            font-weight: 500;
+            user-select: none;
+        }
+        .log-time {
+            color: #475569;
+            margin-right: 8px;
+            font-size: 11px;
+            user-select: none;
+        }
+        .log-stack {
+            display: block;
+            color: #9ca3af;
+            font-size: 11.5px;
+            margin-top: 4px;
+            margin-left: 8px;
+            padding-left: 10px;
+            border-left: 1px solid #334155;
+            white-space: pre-wrap;
+        }
+        .log-stack .stack-loc { color: #64748b; }
+        .log-stack .stack-fn  { color: #fbbf24; }
+
+        .console-input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #0a0a0a;
+            border-top: 1px solid #1a1a1a;
+        }
+        .console-chevron {
+            color: #22c55e;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 13px;
+            font-weight: 700;
+            user-select: none;
+        }
+        #consoleReplInput {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #cbd5e1;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 12.5px;
+            padding: 4px 0;
+        }
+        #consoleReplInput::placeholder { color: #475569; }
 
         .fab {
             position: fixed;
@@ -1190,7 +1313,7 @@
             .code-filename { font-size: 11.5px; padding: 4px 10px; }
             #codeStats { display: none; }
             .gutter { flex: 0 0 52px; }
-            .gutter-line { padding-right: 12px; }
+            .gutter-line { padding-right: 12px; padding-left: 12px; }
             .toast { font-size: 12px; padding: 10px 14px; }
             .fab-toggle { width: 48px; height: 48px; font-size: 22px; }
             .fab-menu button { width: 40px; height: 40px; font-size: 16px; }
@@ -1448,9 +1571,24 @@ function update(dt) {
             </section>
 
             <div class="console-section">
-                <details>
+                <details id="consoleDetails">
                     <summary>Console</summary>
-                    <div id="editor-console-logs"></div>
+                    <div class="console-window">
+                        <div class="console-toolbar">
+                            <div class="console-toolbar-left">
+                                <span id="consoleCount">0 messages</span>
+                            </div>
+                            <div class="console-toolbar-left">
+                                <button class="console-toolbar-btn" id="consoleClearBtn" type="button">Clear</button>
+                                <button class="console-toolbar-btn active" id="consoleAutoscroll" type="button">Auto-scroll</button>
+                            </div>
+                        </div>
+                        <div id="editor-console-logs"></div>
+                        <div class="console-input-row">
+                            <span class="console-chevron">&gt;</span>
+                            <input type="text" id="consoleReplInput" placeholder="Type an expression and press Enter (e.g. player.x, display.camera.x)" autocomplete="off" spellcheck="false" />
+                        </div>
+                    </div>
                 </details>
             </div>
         </main>
@@ -1903,6 +2041,69 @@ function update(dt) {
             return out;
         }
 
+        function analyzeBrackets(code) {
+            var linesWithError = {};
+            var stack = [];
+            var pairs = { ')': '(', ']': '[', '}': '{' };
+            var inLineComment = false;
+            var inBlockComment = false;
+            var inString = null;
+            var lineNumber = 1;
+
+            for (var i = 0; i < code.length; i++) {
+                var ch = code[i];
+                var next = code[i+1];
+
+                if (ch === '\n') {
+                    lineNumber++;
+                    inLineComment = false;
+                    continue;
+                }
+                if (inLineComment) continue;
+                if (inBlockComment) {
+                    if (ch === '*' && next === '/') { inBlockComment = false; i++; }
+                    continue;
+                }
+                if (inString) {
+                    if (ch === '\\') { i++; continue; }
+                    if (ch === inString) inString = null;
+                    continue;
+                }
+                if (ch === '/' && next === '/') { inLineComment = true; i++; continue; }
+                if (ch === '/' && next === '*') { inBlockComment = true; i++; continue; }
+                if (ch === '"' || ch === "'" || ch === '`') { inString = ch; continue; }
+
+                if (ch === '(' || ch === '[' || ch === '{') {
+                    stack.push({ ch: ch, line: lineNumber });
+                } else if (ch === ')' || ch === ']' || ch === '}') {
+                    var expected = pairs[ch];
+                    if (stack.length === 0 || stack[stack.length - 1].ch !== expected) {
+                        linesWithError[lineNumber] = true;
+                    } else {
+                        stack.pop();
+                    }
+                }
+            }
+
+            for (var k = 0; k < stack.length; k++) {
+                linesWithError[stack[k].line] = true;
+            }
+
+            try {
+                new Function(code);
+            } catch (e) {
+                var m = /line (\d+)/i.exec(e.message || '');
+                if (m) {
+                    linesWithError[parseInt(m[1], 10)] = true;
+                } else {
+                    var em = /(\d+):(\d+)/.exec(e.stack || '');
+                    if (em) linesWithError[parseInt(em[1], 10)] = true;
+                }
+            }
+
+            return linesWithError;
+        }
+
         function renderMinimap() {
             if (!minimap) return;
             var code = textarea.value;
@@ -1951,13 +2152,21 @@ function update(dt) {
             if (code.endsWith('\n')) html += ' ';
             highlight.innerHTML = html;
             var lineCount = code.split('\n').length;
+
+            var errors = analyzeBrackets(code);
+
             var g = '';
-            for (var i = 1; i <= lineCount; i++) g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
+            for (var i = 1; i <= lineCount; i++) {
+                var cls = 'gutter-line' + (errors[i] ? ' has-error' : '');
+                g += '<div class="' + cls + '" data-line="' + i + '">' + i + '</div>';
+            }
             gutter.innerHTML = g;
+
             if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
             if (statusSize) statusSize.textContent = code.length + ' chars';
             renderMinimap();
             syncScroll();
+            updateActiveLine();
         }
 
         function syncScroll() {
@@ -2001,7 +2210,6 @@ function update(dt) {
             var pos = start + text.length;
             textarea.selectionStart = textarea.selectionEnd = pos;
             render();
-            updateActiveLine();
         }
 
         function indentSelection() {
@@ -2089,13 +2297,11 @@ function update(dt) {
                 e.preventDefault();
                 insertAtCursor(e.key + PAIRS[e.key]);
                 textarea.selectionStart = textarea.selectionEnd = start + 1;
-                updateActiveLine();
                 return;
             }
             if (CLOSERS[e.key] && start === end && val[start] === e.key) {
                 e.preventDefault();
                 textarea.selectionStart = textarea.selectionEnd = start + 1;
-                updateActiveLine();
                 return;
             }
             if (e.key === 'Backspace' && start === end && start > 0) {
@@ -2106,7 +2312,6 @@ function update(dt) {
                     textarea.value = val.slice(0, start - 1) + val.slice(start + 1);
                     textarea.selectionStart = textarea.selectionEnd = start - 1;
                     render();
-                    updateActiveLine();
                     return;
                 }
             }
@@ -2168,7 +2373,7 @@ function update(dt) {
             render();
         };
 
-        textarea.addEventListener('input', function () { render(); updateActiveLine(); });
+        textarea.addEventListener('input', function () { render(); markDirty(); });
         textarea.addEventListener('keyup', updateActiveLine);
         textarea.addEventListener('click', updateActiveLine);
         textarea.addEventListener('select', updateActiveLine);
@@ -2223,7 +2428,6 @@ function update(dt) {
                 }
                 textarea.value = out.join('\n');
                 render();
-                updateActiveLine();
                 if (window.toast) window.toast('Code formatted', 'success');
             });
         }
@@ -2271,7 +2475,6 @@ function update(dt) {
 
         window.__renderCode = render;
         render();
-        updateActiveLine();
 
         var lastSavedCode = textarea.value;
         function markDirty() {
@@ -2284,7 +2487,6 @@ function update(dt) {
                 if (b) b.textContent = state === 'saved' ? 'Saved' : 'Unsaved';
             }
         }
-        textarea.addEventListener('input', markDirty);
         window.__markSaved = function () {
             lastSavedCode = textarea.value;
             markDirty();
@@ -2530,6 +2732,165 @@ function update(dt) {
             var lineH = 22;
             textarea.scrollTop = Math.max(0, (line - 6) * lineH);
         };
+    })();
+    </script>
+
+    <script>
+    (function () {
+        var logsEl = document.getElementById('editor-console-logs');
+        var replInput = document.getElementById('consoleReplInput');
+        var countEl = document.getElementById('consoleCount');
+        var clearBtn = document.getElementById('consoleClearBtn');
+        var autoscrollBtn = document.getElementById('consoleAutoscroll');
+
+        if (!logsEl) return;
+
+        var messageCount = 0;
+        var autoscroll = true;
+
+        function now() {
+            var d = new Date();
+            var hh = String(d.getHours()).padStart(2, '0');
+            var mm = String(d.getMinutes()).padStart(2, '0');
+            var ss = String(d.getSeconds()).padStart(2, '0');
+            return hh + ':' + mm + ':' + ss;
+        }
+
+        function formatValue(v) {
+            if (v === undefined) return 'undefined';
+            if (v === null) return 'null';
+            if (typeof v === 'string') return v;
+            if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+            if (typeof v === 'function') return '[Function ' + (v.name || 'anonymous') + ']';
+            if (v instanceof Error) return v.name + ': ' + v.message;
+            try {
+                return JSON.stringify(v, null, 2);
+            } catch (e) {
+                return String(v);
+            }
+        }
+
+        function classify(msg) {
+            var lower = String(msg).toLowerCase();
+            if (lower.indexOf('error') !== -1 || lower.indexOf('failed') !== -1) return 'error';
+            if (lower.indexOf('warn') !== -1) return 'warn';
+            return 'log';
+        }
+
+        window.__logToConsole = function (kind, args, stack) {
+            var line = document.createElement('div');
+            line.className = 'log-line log-' + kind;
+
+            var time = document.createElement('span');
+            time.className = 'log-time';
+            time.textContent = now();
+            line.appendChild(time);
+
+            var prefix = document.createElement('span');
+            prefix.className = 'log-prefix';
+            prefix.textContent = kind === 'error' ? '✖' : kind === 'warn' ? '⚠' : kind === 'result' ? '←' : kind === 'input' ? '›' : '·';
+            line.appendChild(prefix);
+
+            var text = document.createElement('span');
+            var formatted = Array.prototype.map.call(args, formatValue).join(' ');
+            text.textContent = formatted;
+            line.appendChild(text);
+
+            if (stack) {
+                var stackEl = document.createElement('span');
+                stackEl.className = 'log-stack';
+                var lines = String(stack).split('\n').slice(1, 4);
+                for (var i = 0; i < lines.length; i++) {
+                    var s = lines[i].trim();
+                    if (!s) continue;
+                    var span = document.createElement('span');
+                    span.className = 'stack-loc';
+                    span.textContent = s + '\n';
+                    stackEl.appendChild(span);
+                }
+                line.appendChild(stackEl);
+            }
+
+            logsEl.appendChild(line);
+            messageCount++;
+            if (countEl) countEl.textContent = messageCount + (messageCount === 1 ? ' message' : ' messages');
+            if (autoscroll) logsEl.scrollTop = logsEl.scrollHeight;
+        };
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                logsEl.innerHTML = '';
+                messageCount = 0;
+                if (countEl) countEl.textContent = '0 messages';
+            });
+        }
+
+        if (autoscrollBtn) {
+            autoscrollBtn.addEventListener('click', function () {
+                autoscroll = !autoscroll;
+                autoscrollBtn.classList.toggle('active', autoscroll);
+            });
+        }
+
+        function getGameWindow() {
+            var frame = document.getElementById('gameFrame');
+            if (!frame) return null;
+            try { return frame.contentWindow; } catch (e) { return null; }
+        }
+
+        function tryEval(code) {
+            var win = getGameWindow();
+            if (!win) {
+                window.__logToConsole('error', ['No game running. Press ▶ Run first to start a game, then type expressions here.']);
+                return;
+            }
+            try {
+                var result = win.eval(code);
+                window.__logToConsole('result', [formatValue(result)]);
+            } catch (e) {
+                window.__logToConsole('error', [e.name + ': ' + e.message], e.stack);
+            }
+        }
+
+        if (replInput) {
+            var history = [];
+            var historyIdx = -1;
+
+            replInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    var code = replInput.value.trim();
+                    if (!code) return;
+                    history.unshift(code);
+                    historyIdx = -1;
+                    replInput.value = '';
+                    window.__logToConsole('input', [code]);
+                    tryEval(code);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (history.length === 0) return;
+                    historyIdx = Math.min(history.length - 1, historyIdx + 1);
+                    replInput.value = history[historyIdx] || '';
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (history.length === 0) return;
+                    historyIdx = Math.max(-1, historyIdx - 1);
+                    replInput.value = historyIdx === -1 ? '' : history[historyIdx];
+                }
+            });
+        }
+
+        window.addEventListener('message', function (e) {
+            if (!e.data || typeof e.data !== 'object') return;
+            if (e.data.type === 'console') {
+                var kind = e.data.kind || 'log';
+                window.__logToConsole(kind, e.data.args || [], e.data.stack);
+            } else if (e.data.type === 'error') {
+                window.__logToConsole('error', [e.data.message], e.data.stack);
+            }
+        });
+
+        window.__logToConsole('info', ['Console ready. Press ▶ Run, then type expressions below.']);
     })();
     </script>
 
