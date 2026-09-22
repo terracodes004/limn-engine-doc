@@ -3049,5 +3049,46 @@ function update(dt) {
         }
     })();
     </script>
+    <div id="__perf" style="position:fixed;top:8px;right:8px;background:rgba(0,0,0,0.85);color:#0f0;font:11px monospace;padding:8px 10px;border-radius:8px;z-index:99999;max-width:260px;line-height:1.5;pointer-events:none;white-space:pre-wrap;"></div>
+<script>
+(function () {
+    var box = document.getElementById('__perf');
+    var lastFrame = performance.now();
+    var frameCount = 0;
+    var worstFrame = 0;
+    var totalFrames = 0;
+
+    function tick() {
+        var now = performance.now();
+        var delta = now - lastFrame;
+        lastFrame = now;
+        frameCount++;
+        totalFrames++;
+        if (delta > worstFrame) worstFrame = delta;
+
+        if (frameCount >= 30) {
+            frameCount = 0;
+            var fps = Math.round(1000 / (worstFrame || 16));
+            var errLines = 0;
+            var ec = document.getElementById('editor-console-logs');
+            if (ec) errLines = ec.children.length;
+            var gutterLines = 0;
+            var g = document.getElementById('gutter');
+            if (g) gutterLines = g.children.length;
+
+            box.textContent =
+                'FPS: ' + fps + '\n' +
+                'Worst frame: ' + Math.round(worstFrame) + 'ms\n' +
+                'Console lines: ' + errLines + '\n' +
+                'Gutter lines: ' + gutterLines + '\n' +
+                'Code length: ' + (document.getElementById('js') ? document.getElementById('js').value.length : 0);
+
+            worstFrame = 0;
+        }
+        requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+})();
+</script>
 </body>
 </html>
