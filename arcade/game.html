@@ -1437,11 +1437,6 @@ window.addEventListener('offline', () => {
   }
 });
 
-// ─── SERVICE WORKER (optional — silent fail if missing) ───
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/arcade/sw.js').catch(() => {
-    // No service worker — that's fine, offline mode still works via localStorage
-  });
 }
 
 boot();
