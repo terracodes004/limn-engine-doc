@@ -1,19 +1,23 @@
 (function(){
   if (typeof emailjs !== 'undefined') {
-    emailjs.init({
-      publicKey: "Kr4_luQm2zOBqZVQS",
-    });
+    const pub = window.ENV_EMAILJS_PUBLIC_KEY || '';
+    if (pub) {
+      emailjs.init({ publicKey: pub });
+    } else {
+      console.warn("EmailJS public key is missing (ENV_EMAILJS_PUBLIC_KEY).");
+    }
   } else {
     console.error("EmailJS script is not loaded!");
   }
 })();
 
 const BUG_CONFIG = {
-  discordWebhookUrl: 'https://discord.com/api/webhooks/1542171975500435548/Ul4GkAgi3e7JIlD7dSwzlP1Z0v18PeSpbFogwZNs43jXPRlokIuG6ck3JCsUS6_ZIQCr',
+  reportEndpoint: '/api/report',
   emailConfig: {
-    serviceId: 'service_z5636re',
-    templateId: 'template_xe3ae3e'
-  }
+    serviceId: window.ENV_EMAILJS_SERVICE_ID || '',
+    templateId: window.ENV_EMAILJS_TEMPLATE_ID || ''
+  },
+  toEmail: window.ENV_BUG_REPORT_EMAIL || ''
 };
 
 function logBugReport(description, errorDetails = {}) {
@@ -29,15 +33,13 @@ function logBugReport(description, errorDetails = {}) {
   let reports = JSON.parse(localStorage.getItem('limn_offline_bugs') || '[]');
   reports.push(bugReport);
   localStorage.setItem('limn_offline_bugs', JSON.stringify(reports));
-  
+
   console.log('Bug logged locally. Total queued:', reports.length);
 
   if (navigator.onLine) {
     syncBugReports();
   }
 }
-
-// Automatic error listener removed so it only logs when the button is clicked
 
 async function syncBugReports() {
   const reports = JSON.parse(localStorage.getItem('limn_offline_bugs') || '[]');
@@ -61,33 +63,36 @@ async function syncBugReports() {
 }
 
 async function sendToDiscord(reports) {
-  const descriptionText = reports.map(r => 
-    `• **Time:** ${r.timestamp}\n  **Error:** ${r.error}\n  **File:** ${r.file}:${r.line}\n  **Desc:** ${r.description}`
-  ).join('\n\n');
-
-  const response = await fetch(BUG_CONFIG.discordWebhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      content: `🚨 **Limn Engine - Offline Bug Report(s):**\n${descriptionText}`
-    })
-  });
-  return response.ok;
+  try {
+    const response = await fetch(BUG_CONFIG.reportEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reports: reports })
+    });
+    return response.ok;
+  } catch (error) {
+    console.error('Discord forward failed:', error);
+    return false;
+  }
 }
 
 async function sendToEmail(reports) {
   if (typeof emailjs === 'undefined') return false;
-  
-  const bugSummary = reports.map(r => 
+  if (!BUG_CONFIG.emailConfig.serviceId || !BUG_CONFIG.emailConfig.templateId) {
+    console.warn('EmailJS service/template IDs are not configured.');
+    return false;
+  }
+
+  const bugSummary = reports.map(r =>
     `Error: ${r.error} | File: ${r.file}:${r.line}`
   ).join('\n');
 
   try {
     const response = await emailjs.send(
-      BUG_CONFIG.emailConfig.serviceId, 
-      BUG_CONFIG.emailConfig.templateId, 
+      BUG_CONFIG.emailConfig.serviceId,
+      BUG_CONFIG.emailConfig.templateId,
       {
-        to_email: 'evolvedtech004@gmail.com', 
+        to_email: BUG_CONFIG.toEmail,
         description: reports[0].description,
         errorDetails: bugSummary,
         timestamp: reports[0].timestamp,
@@ -108,13 +113,13 @@ window.addEventListener('online', () => {
 });
 
 function createBugButton() {
-  if (document.getElementById('limn-bug-btn')) return; 
+  if (document.getElementById('limn-bug-btn')) return;
 
   const bugButton = document.createElement('button');
   bugButton.id = 'limn-bug-btn';
   bugButton.innerText = 'Report a Bug 🐛';
   bugButton.style.cssText = 'position: fixed; bottom: 10px; right: 10px; z-index: 9999; padding: 8px 12px; background: #ff4757; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.3);';
-  
+
   bugButton.addEventListener('click', () => {
     const userDescription = prompt("Briefly describe what went wrong:");
     if (userDescription) {
