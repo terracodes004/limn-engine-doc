@@ -1357,6 +1357,70 @@
             .editor-body { height: 55vh; min-height: 240px; }
             .fab { bottom: 12px; }
         }
+        /* ============================================================
+   LIMN STUDIO — PREVIEW PERFORMANCE FIX
+   Neutralizes compositor-heavy effects while the game dialog
+   is open. Without this, backdrop-filter + fixed gradients +
+   an alpha dialog::backdrop force the GPU to re-blur the live
+   iframe every frame, tanking FPS in the preview only.
+   ============================================================ */
+
+/* 1. Fully opaque backdrop — lets the compositor skip rendering
+      and blending the parent page behind the dialog. */
+dialog::backdrop {
+    background: #000;
+}
+
+/* 2. Remove the 12px backdrop blur from every control that floats
+      over the live canvas. The blur re-samples the iframe every
+      frame; a solid panel looks nearly identical and costs nothing. */
+.dialog-controls button,
+dialog > button.dialog-close {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(24, 27, 38, 0.95);
+}
+
+/* 3. Kill the two full-page fixed radial gradients while the game
+      is open. They sit on <body>, outside .app, so the existing
+      `body.game-open .app *` rule never touched them. */
+body.game-open::before,
+body.game-open::after {
+    display: none !important;
+}
+
+/* 4. Belt-and-suspenders: also strip backdrop-filter from the
+      dialog controls when game-open is active, in case any future
+      rule re-introduces it. */
+body.game-open .dialog-controls button,
+body.game-open dialog > button.dialog-close {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(24, 27, 38, 0.95) !important;
+}
+
+/* 5. Prevent the iframe from being promoted to its own compositor
+      layer on top of the dialog (which would double-buffer the
+      canvas output for no benefit). */
+body.game-open dialog iframe,
+body.game-open #gameFrame {
+    will-change: auto;
+    transform: none;
+    contain: strict;
+}
+
+/* 6. Stop the FAB menu, palette, and sidebar from animating their
+      opacity / transform while the game is open — a CSS transition
+      on a fixed-position element forces a repaint that cascades to
+      everything behind it, including the dialog backdrop. */
+body.game-open .fab-menu,
+body.game-open .palette,
+body.game-open .palette-backdrop,
+body.game-open .sidebar-backdrop,
+body.game-open .toast {
+    transition: none !important;
+    animation: none !important;
+}
     </style>
 </head>
 <body>
