@@ -1399,15 +1399,6 @@ body.game-open dialog > button.dialog-close {
     background: rgba(24, 27, 38, 0.95) !important;
 }
 
-/* 5. Prevent the iframe from being promoted to its own compositor
-      layer on top of the dialog (which would double-buffer the
-      canvas output for no benefit). */
-body.game-open dialog iframe,
-body.game-open #gameFrame {
-    will-change: auto;
-    transform: none;
-    contain: strict;
-}
 
 /* 6. Stop the FAB menu, palette, and sidebar from animating their
       opacity / transform while the game is open — a CSS transition
@@ -2350,26 +2341,47 @@ function update(dt) {
 
         var pendingErrorAnalysis = null;
 
-        function render() {
-            var code = textarea.value;
-            var html = tokenize(code);
-            if (code.endsWith('\n')) html += ' ';
-            highlight.innerHTML = html;
-            var lineCount = code.split('\n').length;
+        /* ---------- Editor render — throttled & incremental ---------- */
 
-            var g = '';
-            for (var i = 1; i <= lineCount; i++) {
-                g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
-            }
-            gutter.innerHTML = g;
+var _lastLineCount = 0;
+var _renderQueued = false;
 
-            if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
-            if (statusSize) statusSize.textContent = code.length + ' chars';
-            renderMinimap();
-            syncScroll();
-            updateActiveLine();
-            scheduleErrorAnalysis();
+function renderNow() {
+    _renderQueued = false;
+
+    var code = textarea.value;
+    var html = tokenize(code);
+    if (code.endsWith('\n')) html += ' ';
+    highlight.innerHTML = html;
+
+    var lineCount = code.split('\n').length;
+
+    // Only rebuild the gutter when the number of lines changed.
+    // This is the common case during typing — you're usually on
+    // one line, so lineCount stays the same and we skip the rebuild.
+    if (lineCount !== _lastLineCount) {
+        var g = '';
+        for (var i = 1; i <= lineCount; i++) {
+            g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
         }
+        gutter.innerHTML = g;
+        _lastLineCount = lineCount;
+        renderMinimap();          // minimap only depends on line count
+    }
+
+    if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
+    if (statusSize) statusSize.textContent = code.length + ' chars';
+
+    syncScroll();
+    updateActiveLine();
+    scheduleErrorAnalysis();
+}
+
+function render() {
+    if (_renderQueued) return;
+    _renderQueued = true;
+    requestAnimationFrame(renderNow);
+}
 
         function scheduleErrorAnalysis() {
             if (pendingErrorAnalysis) clearTimeout(pendingErrorAnalysis);
@@ -2589,7 +2601,11 @@ function update(dt) {
             render();
         };
 
-        textarea.addEventListener('input', function () { render(); markDirty(); });
+        textarea.addEventListener('input', function () {
+    updateActiveLine();
+    render();
+    markDirty();
+});
         textarea.addEventListener('keyup', updateActiveLine);
         textarea.addEventListener('click', updateActiveLine);
         textarea.addEventListener('select', updateActiveLine);
@@ -3136,20 +3152,29 @@ function update(dt) {
             return document.getElementById('gameFrame');
         }
 
+
         function applyZoom() {
-            var frame = getFrame();
-            if (!frame) return;
+    var frame = getFrame();
+    if (!frame) return;
 
-            try {
-                var doc = frame.contentDocument;
-                if (doc && doc.body) {
-                    doc.body.style.zoom = zoomLevel;
-                    return;
-                }
-            } catch (e) {}
-
-            frame.style.zoom = zoomLevel;
+    try {
+        var doc = frame.contentDocument;
+        if (doc && doc.body) {
+            if (zoomLevel === 1) {
+                doc.body.style.removeProperty('zoom');
+            } else {
+                doc.body.style.zoom = zoomLevel;
+            }
+            return;
         }
+    } catch (e) {}
+
+    if (zoomLevel === 1) {
+        frame.style.removeProperty('zoom');
+    } else {
+        frame.style.zoom = zoomLevel;
+    }
+}
 
         function setZoom(newLevel) {
             zoomLevel = Math.max(0.3, Math.min(3, +newLevel.toFixed(2)));
