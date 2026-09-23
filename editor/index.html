@@ -1654,6 +1654,104 @@ function update(dt) {
             d.removeAttribute('open');
             d.style.display = '';
         };
+
+        /* ============================================================
+           LIMN CLICK PATCH — corrected for CSS zoom (Chromium bug)
+           Fixes the case where the preview is zoomed via body { zoom }
+           and getBoundingClientRect() returns unzoomed values.
+           ============================================================ */
+        window.__LIMN_CLICK_PATCH__ = function () {
+            if (typeof Display === 'undefined') {
+                console.warn('[limn-click-patch] Display not found. Load patch after epic.js.');
+                return;
+            }
+
+            Display.prototype.addEventListeners = function () {
+                var self = this;
+
+                window.addEventListener('keydown', function (e) {
+                    self.keys[e.keyCode] = true;
+                });
+                window.addEventListener('keyup', function (e) {
+                    self.keys[e.keyCode] = false;
+                });
+
+                var toCanvasCoords = function (clientX, clientY) {
+                    var rect = self.canvas.getBoundingClientRect();
+                    var layoutW = self.canvas.offsetWidth  || self.canvas.width;
+                    var layoutH = self.canvas.offsetHeight || self.canvas.height;
+
+                    var bodyZoom = 1;
+                    try {
+                        var z = getComputedStyle(document.body).zoom;
+                        if (z && !isNaN(parseFloat(z))) bodyZoom = parseFloat(z);
+                    } catch (e) {}
+
+                    // Chromium returns UNzoomed rect when an ancestor has `zoom`.
+                    // Detect which case we're in.
+                    var rectIsZoomed = Math.abs(rect.width - layoutW * bodyZoom) <
+                                       Math.abs(rect.width - layoutW);
+
+                    var visualW, visualH, visualLeft, visualTop;
+                    if (rectIsZoomed) {
+                        visualW = rect.width;
+                        visualH = rect.height;
+                        visualLeft = rect.left;
+                        visualTop  = rect.top;
+                    } else {
+                        visualW = layoutW * bodyZoom;
+                        visualH = layoutH * bodyZoom;
+                        visualLeft = rect.left * bodyZoom;
+                        visualTop  = rect.top  * bodyZoom;
+                    }
+
+                    var scaleX = self.canvas.width  / visualW;
+                    var scaleY = self.canvas.height / visualH;
+
+                    return {
+                        x: (clientX - visualLeft) * scaleX,
+                        y: (clientY - visualTop)  * scaleY
+                    };
+                };
+
+                window.addEventListener('mousedown', function (e) {
+                    var p = toCanvasCoords(e.clientX, e.clientY);
+                    self.x = p.x + self.camera.x;
+                    self.y = p.y + self.camera.y;
+                });
+                window.addEventListener('mouseup', function () {
+                    self.x = false;
+                    self.y = false;
+                });
+                window.addEventListener('touchstart', function (e) {
+                    var t = e.touches[0];
+                    var p = toCanvasCoords(t.clientX, t.clientY);
+                    self.x = p.x + self.camera.x;
+                    self.y = p.y + self.camera.y;
+                });
+                window.addEventListener('touchend', function () {
+                    self.x = false;
+                    self.y = false;
+                });
+                window.addEventListener('mousemove', function (e) {
+                    var p = toCanvasCoords(e.clientX, e.clientY);
+                    if (typeof mouse !== 'undefined') {
+                        mouse.x = p.x;
+                        mouse.y = p.y;
+                    }
+                });
+                window.addEventListener('touchmove', function (e) {
+                    var t = e.touches[0];
+                    var p = toCanvasCoords(t.clientX, t.clientY);
+                    if (typeof mouse !== 'undefined') {
+                        mouse.x = p.x;
+                        mouse.y = p.y;
+                    }
+                });
+            };
+
+            console.log('[limn-click-patch] Installed.');
+        };
     </script>
     <script src="jquery-3.7.1.min.js"></script>
     <script src="function.js"></script>
@@ -1748,6 +1846,10 @@ function update(dt) {
 
                 var safeUserCode = userCode.replace(/<\/script>/gi, '<\\/script>');
 
+                // Build the click-patch source that will be injected into the
+                // generated page AFTER the engine loads but BEFORE the user code runs.
+                var patchSource = '(' + window.__LIMN_CLICK_PATCH__.toString() + ')();';
+
                 var html = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
                     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
                     '<title>Limn — Preview</title>' +
@@ -1757,6 +1859,7 @@ function update(dt) {
                     '</style>' +
                     '</head><body>' +
                     '<script src="' + engineUrl + '"><\/script>' +
+                    '<script>' + patchSource + '<\/script>' +
                     '<script>' +
                         'window.onerror = function(msg, src, line, col, err) {' +
                             'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace;white-space:pre-wrap;\\">ERROR: " + msg + "\\n\\n" + (err && err.stack ? err.stack : "") + "</pre>";' +
@@ -1778,6 +1881,25 @@ function update(dt) {
                 setTimeout(function () {
                     URL.revokeObjectURL(url);
                 }, 60000);
+            });
+        }
+
+        /* ============================================================
+           Inject the click patch into the PREVIEW iframe too.
+           This runs after the engine script has loaded, so it
+           overrides whatever addEventListeners the engine defined.
+           ============================================================ */
+        var gameFrame = document.getElementById('gameFrame');
+        if (gameFrame) {
+            gameFrame.addEventListener('load', function () {
+                try {
+                    var win = gameFrame.contentWindow;
+                    if (win && typeof win.Display !== 'undefined' && typeof win.eval === 'function') {
+                        win.eval('(' + window.__LIMN_CLICK_PATCH__.toString() + ')();');
+                    }
+                } catch (e) {
+                    console.warn('[limn-click-patch] Failed to inject into preview iframe:', e);
+                }
             });
         }
 
