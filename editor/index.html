@@ -3605,65 +3605,27 @@ function update(dt) {
 
     <script>
     (function () {
-        var fab = document.getElementById('fab');
-        var fabMenu = document.getElementById('fabMenu');
-        var consoleDetails = document.getElementById('consoleDetails');
-        if (!fab) return;
-
-        var style = document.createElement('style');
-        style.textContent =
-            '.fab.console-hidden{opacity:0!important;pointer-events:none!important;visibility:hidden!important;}' +
-            '.fab-menu{pointer-events:none!important;}' +
-            '.fab.open .fab-menu{pointer-events:auto!important;}';
-        document.head.appendChild(style);
-
-        if (fabMenu) {
-            fabMenu.style.pointerEvents = 'none';
-            new MutationObserver(function () {
-                fabMenu.style.pointerEvents =
-                    fab.classList.contains('open') ? 'auto' : 'none';
-            }).observe(fab, { attributes: true, attributeFilter: ['class'] });
-        }
-
-        function sync() {
-            var consoleOpen = consoleDetails && consoleDetails.open;
-            if (consoleOpen) {
-                fab.classList.add('console-hidden');
-                fab.classList.remove('open');
-            } else {
-                fab.classList.remove('console-hidden');
-            }
-        }
-
-        if (consoleDetails) {
-            consoleDetails.addEventListener('toggle', sync);
-        }
-
-        if (consoleDetails) {
-            consoleDetails.addEventListener('mousedown', function (e) {
-                if (e.target.closest('#consoleReplInput, .console-toolbar, #editor-console-logs')) {
-                    fab.classList.remove('open');
-                }
-            }, true);
-        }
-
-        document.addEventListener('click', function (e) {
-            var t = e.target;
-            if (!t) return;
-            if (t.closest && t.closest('.console-section')) {
-                fab.classList.remove('open');
-            }
-        }, true);
-
-        var replInput = document.getElementById('consoleReplInput');
-        if (replInput) {
-            replInput.addEventListener('focus', function () {
-                fab.classList.remove('open');
-                sync();
-            });
-        }
-
-        setTimeout(sync, 200);
+        var css = document.createElement('style');
+        css.textContent =
+            '.fab{top:80px!important;bottom:auto!important;left:auto!important;right:20px!important;transform:none!important;align-items:flex-end!important;}' +
+            '.fab-menu{order:2;}' +
+            '.fab-toggle{order:1;}' +
+            '.fab:not(.open) .fab-menu{pointer-events:none!important;}' +
+            '.fab.open .fab-menu{pointer-events:auto!important;}' +
+            '.fab-toggle{width:48px!important;height:48px!important;font-size:22px!important;}' +
+            '.fab-menu{padding:6px!important;gap:4px!important;max-width:min(320px,80vw)!important;}' +
+            '.fab-menu button{width:38px!important;height:38px!important;font-size:16px!important;}' +
+            '.main{max-width:none!important;padding:24px!important;}' +
+            '.build-panel{min-height:calc(100vh - 220px)!important;}' +
+            '.code-fill .main{padding:0!important;max-width:none!important;margin:0!important;}' +
+            '.code-fill .code-shell{height:calc(100vh - 56px)!important;}' +
+            '.code-fill .editor-body{height:auto!important;flex:1 1 auto!important;min-height:0!important;}' +
+            '.code-fill #codeSection{display:flex!important;flex-direction:column!important;height:calc(100vh - 112px)!important;}' +
+            '.code-fill .code-shell{display:flex!important;flex-direction:column!important;height:100%!important;}' +
+            '@media (max-width:640px){' +
+                '.fab{top:70px!important;right:12px!important;}' +
+            '}';
+        document.head.appendChild(css);
     })();
     </script>
 </body>
