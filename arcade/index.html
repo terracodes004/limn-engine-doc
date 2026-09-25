@@ -310,6 +310,24 @@
     border-radius: 2px;
   }
 
+  /* Offline tab count badge */
+  .view-toggle button .badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 7px;
+    background: rgba(110,168,254,0.25);
+    border: 1px solid rgba(110,168,254,0.45);
+    border-radius: 10px;
+    font-size: 10.5px;
+    font-weight: 800;
+    color: var(--accent);
+    vertical-align: middle;
+  }
+  .view-toggle button.active .badge {
+    background: rgba(110,168,254,0.35);
+    color: #fff;
+  }
+
   .featured-wrap { padding: 16px 20px 0; max-width: 900px; margin: 0 auto; }
 
   main { padding: 18px 20px 40px; max-width: 900px; margin: 0 auto; }
@@ -481,6 +499,51 @@
     max-height: 2.7em;
   }
 
+  /* Offline badge on card thumbnails */
+  .offline-chip {
+    position: absolute;
+    top: 8px; left: 8px;
+    padding: 3px 8px;
+    background: rgba(74,222,128,0.18);
+    border: 1px solid rgba(74,222,128,0.5);
+    color: #4ade80;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    backdrop-filter: blur(6px);
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* Remove offline button */
+  .offline-remove {
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.65);
+    border: 1px solid rgba(248,113,113,0.5);
+    color: #f87171;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.18s;
+    font-family: inherit;
+    padding: 0;
+  }
+  .offline-remove:hover {
+    background: rgba(248,113,113,0.25);
+    border-color: #f87171;
+    transform: scale(1.1);
+  }
+
   .load-more-wrap { display: flex; justify-content: center; padding: 24px 0 12px; }
   .load-more-btn {
     padding: 13px 28px;
@@ -510,6 +573,7 @@
     content: "🎮"; font-size: 56px; opacity: 0.6;
     animation: logoBob 3s ease-in-out infinite;
   }
+  .empty.offline-empty::before { content: "📴"; }
   .empty a {
     color: var(--accent); text-decoration: none; font-weight: 600;
     padding: 10px 20px;
@@ -741,6 +805,20 @@
     transition: all 0.2s;
   }
   .sheet-close:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+  .sheet-remove {
+    padding: 16px 18px;
+    background: rgba(248,113,113,0.1);
+    color: #f87171;
+    border: 1px solid rgba(248,113,113,0.4);
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .sheet-remove:hover { background: rgba(248,113,113,0.2); }
 
   @media (max-width: 750px) {
     header { padding: 12px 16px; gap: 12px; }
@@ -760,7 +838,8 @@
     .search-bar::before { left: 28px; }
     .search-bar input { padding: 12px 14px 12px 42px; font-size: 13px; }
     .view-toggle { padding: 10px 16px 0; }
-    .view-toggle button { padding: 10px 10px; font-size: 12px; }
+    .view-toggle button { padding: 10px 8px; font-size: 11.5px; }
+    .view-toggle button .badge { font-size: 10px; padding: 1px 5px; margin-left: 4px; }
     .featured-wrap { padding: 12px 16px 0; }
     main { padding: 14px 16px 32px; }
     .creator-head { padding: 12px 14px; gap: 10px; }
@@ -778,6 +857,7 @@
     .featured-play { padding: 11px 18px; font-size: 13px; }
     .sheet-title { font-size: 19px; }
     .sheet-body { padding: 16px 18px 22px; }
+    .offline-remove { width: 24px; height: 24px; font-size: 12px; }
   }
 </style>
 </head>
@@ -821,6 +901,7 @@
 <div class="view-toggle">
   <button id="viewCreators" data-view="creators">👥 Creators</button>
   <button id="viewProjects" data-view="projects">🎮 Projects</button>
+  <button id="viewOffline" data-view="offline">📴 Offline<span class="badge" id="offlineCount" style="display:none">0</span></button>
 </div>
 
 <div class="featured-wrap" id="featuredWrap" style="display:none"></div>
@@ -838,8 +919,9 @@
     <div class="sheet-meta" id="sheetMeta"></div>
     <p class="sheet-desc" id="sheetDesc"></p>
     <div class="sheet-stats" id="sheetStats"></div>
-    <div class="sheet-actions">
+    <div class="sheet-actions" id="sheetActions">
       <a class="sheet-play" id="sheetPlay" href="#">▶ Play</a>
+      <button class="sheet-remove" id="sheetRemove" style="display:none">🗑 Remove</button>
       <button class="sheet-close" id="sheetClose">Close</button>
     </div>
   </div>
@@ -854,6 +936,42 @@ const supabase = createClient(
 );
 
 const CREATORS_PER_PAGE = 24;
+
+// ─── OFFLINE STORAGE (matches game.html key) ───
+const OFFLINE_GAMES_KEY = 'limn_arcade_offline_games_v1';
+
+function getOfflineGames() {
+  try { return JSON.parse(localStorage.getItem(OFFLINE_GAMES_KEY) || '{}'); }
+  catch { return {}; }
+}
+
+function saveOfflineGames(obj) {
+  try { localStorage.setItem(OFFLINE_GAMES_KEY, JSON.stringify(obj)); }
+  catch (e) { console.error('Offline save failed', e); }
+}
+
+function removeOfflineGame(slug) {
+  const games = getOfflineGames();
+  if (games[slug]) {
+    delete games[slug];
+    saveOfflineGames(games);
+    return true;
+  }
+  return false;
+}
+
+function refreshOfflineBadge() {
+  const games = getOfflineGames();
+  const n = Object.keys(games).length;
+  const badge = document.getElementById('offlineCount');
+  if (!badge) return;
+  if (n > 0) {
+    badge.textContent = n;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
 
 let creators = [];
 let allGames = [];
@@ -932,6 +1050,7 @@ async function boot() {
     .filter(c => c.games.length > 0)
     .sort((a, b) => b.games.length - a.games.length);
 
+  refreshOfflineBadge();
   updateViewButtons();
   updateSearchPlaceholder();
   render();
@@ -949,9 +1068,12 @@ function render() {
   const grid = document.getElementById('grid');
   grid.innerHTML = '';
   if (viewMode === 'projects') renderProjects(grid);
+  else if (viewMode === 'offline') renderOffline(grid);
   else renderCreators(grid);
+  refreshOfflineBadge();
 }
 
+/* ─── PROJECTS ─── */
 function renderProjects(grid) {
   const q = currentFilter.toLowerCase();
 
@@ -1005,6 +1127,91 @@ function renderProjects(grid) {
   grid.appendChild(wrap);
 }
 
+/* ─── OFFLINE ─── */
+function renderOffline(grid) {
+  const offlineMap = getOfflineGames();
+  const list = Object.values(offlineMap).sort(
+    (a, b) => (b.cached_at || 0) - (a.cached_at || 0)
+  );
+
+  const q = currentFilter.toLowerCase();
+  const filtered = list.filter(g => {
+    if (!q) return true;
+    return (g.title || '').toLowerCase().includes(q) ||
+           (g.author_name || '').toLowerCase().includes(q) ||
+           (g.description || '').toLowerCase().includes(q);
+  });
+
+  if (filtered.length === 0) {
+    const msg = currentFilter
+      ? 'No saved games match your search.'
+      : 'No offline games saved yet.';
+    grid.innerHTML =
+      '<div class="empty offline-empty"><h2>' + msg + '</h2>' +
+      (currentFilter ? '' :
+        '<p style="opacity:0.7;font-size:13px;margin:0 0 8px;max-width:340px;line-height:1.5">' +
+        'Open any game and tap <strong>📥 Make Offline</strong> to save it here for play without internet.' +
+        '</p>') +
+      '</div>';
+    return;
+  }
+
+  const wrap = document.createElement('div');
+  wrap.className = 'projects-grid';
+
+  filtered.forEach((g, i) => {
+    // Try to enrich creator name via profileMapGlobal if author_id known
+    const profile = g.author_id ? profileMapGlobal[g.author_id] : null;
+    let creatorHtml;
+    if (profile && profile.username) {
+      creatorHtml = '@' + escapeHtml(profile.username);
+    } else {
+      creatorHtml = escapeHtml((g.author_name || 'anonymous').split('@')[0]);
+    }
+
+    const desc = (g.description || '').trim();
+
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    card.style.animationDelay = (i * 0.03) + 's';
+    card.innerHTML =
+      '<div class="thumb-wrap">' +
+        thumbSVG(g, false) +
+        '<div class="offline-chip">📴 Saved</div>' +
+        '<button class="offline-remove" data-slug="' + escapeHtml(g.slug) + '" title="Remove from offline">✕</button>' +
+      '</div>' +
+      '<div class="p-info">' +
+        '<h3>' + escapeHtml(g.title || 'Untitled') + '</h3>' +
+        '<p>' + creatorHtml + '</p>' +
+        (desc ? '<div class="p-desc">' + escapeHtml(desc) + '</div>' : '') +
+      '</div>';
+
+    // Click on card opens sheet, but ignore clicks on the remove button
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.offline-remove')) return;
+      openSheet(g, true);
+    });
+
+    wrap.appendChild(card);
+  });
+
+  grid.appendChild(wrap);
+
+  // Wire remove buttons
+  grid.querySelectorAll('.offline-remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const slug = btn.dataset.slug;
+      if (!slug) return;
+      if (confirm('Remove this game from offline storage?')) {
+        removeOfflineGame(slug);
+        render();
+      }
+    });
+  });
+}
+
+/* ─── CREATORS ─── */
 function renderCreators(grid) {
   const filtered = creators.filter(matchesFilter);
 
@@ -1119,8 +1326,10 @@ function updateViewButtons() {
 }
 
 function updateSearchPlaceholder() {
-  document.getElementById('search').placeholder =
-    viewMode === 'creators' ? 'Search creators...' : 'Search games or creators...';
+  const ph = viewMode === 'creators' ? 'Search creators...'
+           : viewMode === 'offline' ? 'Search saved games...'
+           : 'Search games or creators...';
+  document.getElementById('search').placeholder = ph;
 }
 
 document.querySelectorAll('.view-toggle button').forEach(btn => {
@@ -1314,7 +1523,6 @@ function renderScene(type, w, h, p, hash, slots, world) {
     path.forEach((seg, i) => {
       art += '<rect x="' + (seg[0] * cell + 1) + '" y="' + (seg[1] * cell + 1) + '" width="' + (cell - 2) + '" height="' + (cell - 2) + '" fill="' + (i === 0 ? c2 : c1) + '" rx="3"/>';
     });
-    art += '<rect x="' + (10 * cell + 1) + '" y="' + (6 * cell + 1) + '" width="' + (cell - 2) + '" height="' + (cell - 2) + '" fill="' + c3 + '" rx="" ></rect>';
     art += '<circle cx="' + (10 * cell + cell / 2) + '" cy="' + (6 * cell + cell / 2) + '" r="6" fill="' + c3 + '"/>';
   } else if (type === 'breakout') {
     const bw = 30, bh = 10, rows = 4, cols = Math.floor(w / bw) - 1;
@@ -1359,7 +1567,7 @@ function renderScene(type, w, h, p, hash, slots, world) {
     }
     art += '<rect x="' + (w * 0.15) + '" y="' + (h * 0.3) + '" width="30" height="30" fill="' + c1 + '" rx="4"/>';
     art += '<rect x="' + (w * 0.5) + '" y="' + (h * 0.4) + '" width="26" height="26" fill="' + c3 + '" rx="3"/>';
-    art += '<circle cx="' + (w * 0.75) + '" cy="' + (h * 0.35) + '" r="8" fill="' + c4 + '"/>';
+    art += '<circle cx="' + (w * 0.75) + '" cy="' + (h * 0.35) + '" r="8" fill="' + c3 + '"/>';
   } else if (type === 'soccer') {
     art += '<rect x="0" y="0" width="' + w + '" height="' + h + '" fill="#0a3d0a"/>';
     art += '<rect x="' + (w / 2 - 1) + '" y="0" width="2" height="' + h + '" fill="#fff" opacity="0.6"/>';
@@ -1429,8 +1637,13 @@ const sheetDesc = document.getElementById('sheetDesc');
 const sheetStats = document.getElementById('sheetStats');
 const sheetPlay = document.getElementById('sheetPlay');
 const sheetClose = document.getElementById('sheetClose');
+const sheetRemove = document.getElementById('sheetRemove');
 
-function openSheet(game) {
+let currentSheetSlug = null;
+
+function openSheet(game, isOfflineView) {
+  currentSheetSlug = game.slug || null;
+
   sheetHero.innerHTML = thumbSVG(game, false);
 
   sheetTitle.textContent = game.title || 'Untitled';
@@ -1442,10 +1655,17 @@ function openSheet(game) {
 
   const likeCount = likeCountMapGlobal[game.id] || 0;
 
-  sheetMeta.innerHTML =
-    '<span class="creator">' + escapeHtml(creatorName) + '</span>' +
-    '<span class="dot"></span>' +
-    '<span>♥ ' + likeCount + '</span>';
+  if (isOfflineView) {
+    sheetMeta.innerHTML =
+      '<span class="creator">' + escapeHtml(creatorName) + '</span>' +
+      '<span class="dot"></span>' +
+      '<span>📴 Saved offline</span>';
+  } else {
+    sheetMeta.innerHTML =
+      '<span class="creator">' + escapeHtml(creatorName) + '</span>' +
+      '<span class="dot"></span>' +
+      '<span>♥ ' + likeCount + '</span>';
+  }
 
   const desc = (game.description || '').trim();
   if (desc) {
@@ -1456,11 +1676,24 @@ function openSheet(game) {
     sheetDesc.classList.add('empty');
   }
 
-  sheetStats.innerHTML =
-    '<div class="stat-pill">🎮 <strong>' + detectTemplate(game) + '</strong></div>' +
-    '<div class="stat-pill">📅 <strong>' + formatDate(game.created_at) + '</strong></div>';
+  if (isOfflineView) {
+    sheetStats.innerHTML =
+      '<div class="stat-pill">📴 <strong>Offline ready</strong></div>' +
+      '<div class="stat-pill">🎮 <strong>' + detectTemplate(game) + '</strong></div>';
+  } else {
+    sheetStats.innerHTML =
+      '<div class="stat-pill">🎮 <strong>' + detectTemplate(game) + '</strong></div>' +
+      '<div class="stat-pill">📅 <strong>' + formatDate(game.created_at) + '</strong></div>';
+  }
 
   sheetPlay.href = '/arcade/game.html?slug=' + encodeURIComponent(game.slug);
+
+  // Show the Remove button only in offline view
+  if (isOfflineView) {
+    sheetRemove.style.display = 'inline-block';
+  } else {
+    sheetRemove.style.display = 'none';
+  }
 
   sheet.classList.add('open');
   sheetBackdrop.classList.add('open');
@@ -1469,7 +1702,17 @@ function openSheet(game) {
 function closeSheet() {
   sheet.classList.remove('open');
   sheetBackdrop.classList.remove('open');
+  currentSheetSlug = null;
 }
+
+sheetRemove.addEventListener('click', () => {
+  if (!currentSheetSlug) return;
+  if (confirm('Remove this game from offline storage?')) {
+    removeOfflineGame(currentSheetSlug);
+    closeSheet();
+    render();
+  }
+});
 
 sheetBackdrop.addEventListener('click', closeSheet);
 sheetClose.addEventListener('click', closeSheet);
@@ -1491,6 +1734,14 @@ function escapeHtml(s) {
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   })[c]);
 }
+
+// Keep the offline badge in sync if the user opens another tab and saves/removes games
+window.addEventListener('storage', (e) => {
+  if (e.key === OFFLINE_GAMES_KEY) {
+    refreshOfflineBadge();
+    if (viewMode === 'offline') render();
+  }
+});
 
 boot();
 </script>
