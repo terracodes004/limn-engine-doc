@@ -1357,23 +1357,11 @@
             .editor-body { height: 55vh; min-height: 240px; }
             .fab { bottom: 12px; }
         }
-        /* ============================================================
-   LIMN STUDIO — PREVIEW PERFORMANCE FIX
-   Neutralizes compositor-heavy effects while the game dialog
-   is open. Without this, backdrop-filter + fixed gradients +
-   an alpha dialog::backdrop force the GPU to re-blur the live
-   iframe every frame, tanking FPS in the preview only.
-   ============================================================ */
 
-/* 1. Fully opaque backdrop — lets the compositor skip rendering
-      and blending the parent page behind the dialog. */
 dialog::backdrop {
     background: #000;
 }
 
-/* 2. Remove the 12px backdrop blur from every control that floats
-      over the live canvas. The blur re-samples the iframe every
-      frame; a solid panel looks nearly identical and costs nothing. */
 .dialog-controls button,
 dialog > button.dialog-close {
     backdrop-filter: none;
@@ -1381,17 +1369,11 @@ dialog > button.dialog-close {
     background: rgba(24, 27, 38, 0.95);
 }
 
-/* 3. Kill the two full-page fixed radial gradients while the game
-      is open. They sit on <body>, outside .app, so the existing
-      `body.game-open .app *` rule never touched them. */
 body.game-open::before,
 body.game-open::after {
     display: none !important;
 }
 
-/* 4. Belt-and-suspenders: also strip backdrop-filter from the
-      dialog controls when game-open is active, in case any future
-      rule re-introduces it. */
 body.game-open .dialog-controls button,
 body.game-open dialog > button.dialog-close {
     backdrop-filter: none !important;
@@ -1399,11 +1381,6 @@ body.game-open dialog > button.dialog-close {
     background: rgba(24, 27, 38, 0.95) !important;
 }
 
-
-/* 6. Stop the FAB menu, palette, and sidebar from animating their
-      opacity / transform while the game is open — a CSS transition
-      on a fixed-position element forces a repaint that cascades to
-      everything behind it, including the dialog backdrop. */
 body.game-open .fab-menu,
 body.game-open .palette,
 body.game-open .palette-backdrop,
@@ -1710,11 +1687,6 @@ function update(dt) {
             d.style.display = '';
         };
 
-        /* ============================================================
-           LIMN CLICK PATCH — corrected for CSS zoom (Chromium bug)
-           Fixes the case where the preview is zoomed via body { zoom }
-           and getBoundingClientRect() returns unzoomed values.
-           ============================================================ */
         window.__LIMN_CLICK_PATCH__ = function () {
             if (typeof Display === 'undefined') {
                 console.warn('[limn-click-patch] Display not found. Load patch after epic.js.');
@@ -1742,8 +1714,6 @@ function update(dt) {
                         if (z && !isNaN(parseFloat(z))) bodyZoom = parseFloat(z);
                     } catch (e) {}
 
-                    // Chromium returns UNzoomed rect when an ancestor has `zoom`.
-                    // Detect which case we're in.
                     var rectIsZoomed = Math.abs(rect.width - layoutW * bodyZoom) <
                                        Math.abs(rect.width - layoutW);
 
@@ -1901,8 +1871,6 @@ function update(dt) {
 
                 var safeUserCode = userCode.replace(/<\/script>/gi, '<\\/script>');
 
-                // Build the click-patch source that will be injected into the
-                // generated page AFTER the engine loads but BEFORE the user code runs.
                 var patchSource = '(' + window.__LIMN_CLICK_PATCH__.toString() + ')();';
 
                 var html = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
@@ -1939,11 +1907,6 @@ function update(dt) {
             });
         }
 
-        /* ============================================================
-           Inject the click patch into the PREVIEW iframe too.
-           This runs after the engine script has loaded, so it
-           overrides whatever addEventListeners the engine defined.
-           ============================================================ */
         var gameFrame = document.getElementById('gameFrame');
         if (gameFrame) {
             gameFrame.addEventListener('load', function () {
@@ -2341,47 +2304,42 @@ function update(dt) {
 
         var pendingErrorAnalysis = null;
 
-        /* ---------- Editor render — throttled & incremental ---------- */
+        var _lastLineCount = 0;
+        var _renderQueued = false;
 
-var _lastLineCount = 0;
-var _renderQueued = false;
+        function renderNow() {
+            _renderQueued = false;
 
-function renderNow() {
-    _renderQueued = false;
+            var code = textarea.value;
+            var html = tokenize(code);
+            if (code.endsWith('\n')) html += ' ';
+            highlight.innerHTML = html;
 
-    var code = textarea.value;
-    var html = tokenize(code);
-    if (code.endsWith('\n')) html += ' ';
-    highlight.innerHTML = html;
+            var lineCount = code.split('\n').length;
 
-    var lineCount = code.split('\n').length;
+            if (lineCount !== _lastLineCount) {
+                var g = '';
+                for (var i = 1; i <= lineCount; i++) {
+                    g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
+                }
+                gutter.innerHTML = g;
+                _lastLineCount = lineCount;
+                renderMinimap();
+            }
 
-    // Only rebuild the gutter when the number of lines changed.
-    // This is the common case during typing — you're usually on
-    // one line, so lineCount stays the same and we skip the rebuild.
-    if (lineCount !== _lastLineCount) {
-        var g = '';
-        for (var i = 1; i <= lineCount; i++) {
-            g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
+            if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
+            if (statusSize) statusSize.textContent = code.length + ' chars';
+
+            syncScroll();
+            updateActiveLine();
+            scheduleErrorAnalysis();
         }
-        gutter.innerHTML = g;
-        _lastLineCount = lineCount;
-        renderMinimap();          // minimap only depends on line count
-    }
 
-    if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
-    if (statusSize) statusSize.textContent = code.length + ' chars';
-
-    syncScroll();
-    updateActiveLine();
-    scheduleErrorAnalysis();
-}
-
-function render() {
-    if (_renderQueued) return;
-    _renderQueued = true;
-    requestAnimationFrame(renderNow);
-}
+        function render() {
+            if (_renderQueued) return;
+            _renderQueued = true;
+            requestAnimationFrame(renderNow);
+        }
 
         function scheduleErrorAnalysis() {
             if (pendingErrorAnalysis) clearTimeout(pendingErrorAnalysis);
@@ -2602,10 +2560,10 @@ function render() {
         };
 
         textarea.addEventListener('input', function () {
-    updateActiveLine();
-    render();
-    markDirty();
-});
+            updateActiveLine();
+            render();
+            markDirty();
+        });
         textarea.addEventListener('keyup', updateActiveLine);
         textarea.addEventListener('click', updateActiveLine);
         textarea.addEventListener('select', updateActiveLine);
@@ -3152,29 +3110,28 @@ function render() {
             return document.getElementById('gameFrame');
         }
 
-
         function applyZoom() {
-    var frame = getFrame();
-    if (!frame) return;
+            var frame = getFrame();
+            if (!frame) return;
 
-    try {
-        var doc = frame.contentDocument;
-        if (doc && doc.body) {
+            try {
+                var doc = frame.contentDocument;
+                if (doc && doc.body) {
+                    if (zoomLevel === 1) {
+                        doc.body.style.removeProperty('zoom');
+                    } else {
+                        doc.body.style.zoom = zoomLevel;
+                    }
+                    return;
+                }
+            } catch (e) {}
+
             if (zoomLevel === 1) {
-                doc.body.style.removeProperty('zoom');
+                frame.style.removeProperty('zoom');
             } else {
-                doc.body.style.zoom = zoomLevel;
+                frame.style.zoom = zoomLevel;
             }
-            return;
         }
-    } catch (e) {}
-
-    if (zoomLevel === 1) {
-        frame.style.removeProperty('zoom');
-    } else {
-        frame.style.zoom = zoomLevel;
-    }
-}
 
         function setZoom(newLevel) {
             zoomLevel = Math.max(0.3, Math.min(3, +newLevel.toFixed(2)));
@@ -3258,6 +3215,354 @@ function render() {
                 requestAnimationFrame(tick);
             })();
         }
+    })();
+    </script>
+
+    <script>
+    (function () {
+        "use strict";
+
+        var textarea = document.getElementById('js');
+        if (!textarea) return;
+        var editorScroll = textarea.parentElement;
+        if (!editorScroll) return;
+
+        var indentLayer = document.createElement('div');
+        indentLayer.setAttribute('aria-hidden', 'true');
+        indentLayer.style.cssText =
+            'position:absolute;top:0;left:0;right:0;bottom:0;' +
+            'pointer-events:none;overflow:hidden;z-index:0;';
+        editorScroll.insertBefore(indentLayer, editorScroll.firstChild);
+
+        var snippetLayer = document.createElement('div');
+        snippetLayer.id = 'snippetPopup';
+        snippetLayer.style.cssText =
+            'position:fixed;z-index:8500;display:none;' +
+            'min-width:180px;max-width:260px;max-height:220px;overflow-y:auto;' +
+            'background:#12141d;border:1px solid #2f3547;border-radius:10px;' +
+            'box-shadow:0 12px 40px rgba(0,0,0,0.6);padding:6px;' +
+            'font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12.5px;';
+        document.body.appendChild(snippetLayer);
+
+        var charWidth = 0;
+        function measureChar() {
+            var probe = document.createElement('span');
+            var cs = getComputedStyle(textarea);
+            probe.style.cssText =
+                'position:absolute;visibility:hidden;white-space:pre;' +
+                'font-family:' + cs.fontFamily + ';' +
+                'font-size:' + cs.fontSize + ';' +
+                'font-weight:' + cs.fontWeight + ';' +
+                'letter-spacing:' + cs.letterSpacing + ';';
+            probe.textContent = 'X'.repeat(100);
+            document.body.appendChild(probe);
+            charWidth = probe.getBoundingClientRect().width / 100;
+            document.body.removeChild(probe);
+        }
+
+        function renderIndentGuides() {
+            var cs = getComputedStyle(textarea);
+            var lineHeight = parseFloat(cs.lineHeight) || 22;
+            var padTop = parseFloat(cs.paddingTop) || 18;
+            var padLeft = parseFloat(cs.paddingLeft) || 24;
+            if (!charWidth) measureChar();
+            var indentUnit = charWidth * 4;
+
+            var code = textarea.value;
+            var lines = code.split('\n');
+            var frag = document.createDocumentFragment();
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                if (!line.trim()) continue;
+                var m = line.match(/^[ \t]*/);
+                if (!m) continue;
+                var indentStr = m[0];
+                var spaces = 0;
+                for (var k = 0; k < indentStr.length; k++) {
+                    spaces += indentStr[k] === '\t' ? 4 : 1;
+                }
+                var levels = Math.floor(spaces / 4);
+                for (var lvl = 1; lvl <= levels; lvl++) {
+                    var bar = document.createElement('div');
+                    bar.style.cssText = 'position:absolute;width:1px;background:rgba(110,168,254,0.12);';
+                    bar.style.left = (padLeft + lvl * indentUnit - 1) + 'px';
+                    bar.style.top = (padTop + i * lineHeight) + 'px';
+                    bar.style.height = lineHeight + 'px';
+                    frag.appendChild(bar);
+                }
+            }
+            indentLayer.innerHTML = '';
+            indentLayer.appendChild(frag);
+            syncIndentScroll();
+        }
+
+        function syncIndentScroll() {
+            indentLayer.style.transform =
+                'translate(' + (-textarea.scrollLeft) + 'px,' +
+                (-textarea.scrollTop) + 'px)';
+        }
+
+        var SNIPPETS = {
+            '(': [
+                { label: '()',              insert: '(§)' },
+                { label: '(a, b)',          insert: '(a, b§)' },
+                { label: 'if () {}',        insert: 'if (§) {\n    \n}' },
+                { label: 'function () {}',  insert: 'function (§) {\n    \n}' },
+                { label: 'for (;;)',        insert: 'for (let i = 0; i < §; i++) {\n    \n}' },
+                { label: 'while () {}',     insert: 'while (§) {\n    \n}' },
+                { label: 'switch () {}',    insert: 'switch (§) {\n    \n}' }
+            ],
+            '[': [
+                { label: '[]',     insert: '[§]' },
+                { label: '[i]',    insert: '[i§]' },
+                { label: '[0]',    insert: '[0§]' },
+                { label: '[key]',  insert: '[key§]' },
+                { label: '[...]',  insert: '[§...arr]' }
+            ],
+            '{': [
+                { label: '{}',         insert: '{§}' },
+                { label: '{ }',        insert: '{ § }' },
+                { label: '{ newline }', insert: '{\n    §\n}' },
+                { label: '{ key: }',   insert: '{ key: § }' }
+            ],
+            '"': [
+                { label: '""',        insert: '"§"' },
+                { label: '"string"',  insert: '"string"§' },
+                { label: '"text"',    insert: '"text"§' }
+            ],
+            "'": [
+                { label: "''",        insert: "'§'" },
+                { label: "'string'",  insert: "'string'§" },
+                { label: "'text'",    insert: "'text'§" }
+            ],
+            '`': [
+                { label: '``',      insert: '`§`' },
+                { label: '`${}`',   insert: '`${§}`' }
+            ],
+            ':': [
+                { label: ':',     insert: ':§' },
+                { label: ': ',    insert: ': §' },
+                { label: '?:',    insert: '? § : ' },
+                { label: '::',    insert: '::§' }
+            ],
+            ';': [
+                { label: ';',     insert: ';§' },
+                { label: '; ',    insert: '; §' }
+            ],
+            '!': [
+                { label: '!',     insert: '!§' },
+                { label: '!=',    insert: '!=§' },
+                { label: '!==',   insert: '!==§' }
+            ],
+            '=': [
+                { label: '=',      insert: '=§' },
+                { label: '==',     insert: '==§' },
+                { label: '===',    insert: '===§' },
+                { label: '=>',     insert: '=> §' },
+                { label: '=> {}',  insert: '=> {\n    §\n}' },
+                { label: '+=',     insert: '+=§' },
+                { label: '-=',     insert: '-=§' },
+                { label: '*=',     insert: '*=§' },
+                { label: '/=',     insert: '/=§' }
+            ]
+        };
+
+        var triggerChars = '([{"\'`' + ':' + ';!=' ;
+        var activeItems = [];
+        var activeIndex = 0;
+        var activeTriggerPos = -1;
+        var activeTriggerEnd = -1;
+        var popupOpen = false;
+        var suppressInput = false;
+
+        function closeSnippet() {
+            popupOpen = false;
+            activeItems = [];
+            activeIndex = 0;
+            snippetLayer.style.display = 'none';
+            snippetLayer.innerHTML = '';
+        }
+
+        function caretXY() {
+            var cs = getComputedStyle(textarea);
+            var lineHeight = parseFloat(cs.lineHeight) || 22;
+            var padTop = parseFloat(cs.paddingTop) || 18;
+            var padLeft = parseFloat(cs.paddingLeft) || 24;
+            if (!charWidth) measureChar();
+
+            var pos = textarea.selectionStart;
+            var before = textarea.value.slice(0, pos);
+            var nl = before.lastIndexOf('\n');
+            var line = before.split('\n').length - 1;
+            var col = pos - (nl + 1);
+
+            var rect = textarea.getBoundingClientRect();
+            var x = rect.left + padLeft + col * charWidth - textarea.scrollLeft;
+            var y = rect.top + padTop + (line + 1) * lineHeight - textarea.scrollTop;
+            return { x: x, y: y, lineHeight: lineHeight };
+        }
+
+        function positionPopup() {
+            var c = caretXY();
+            var popupW = 240;
+            var vw = window.innerWidth;
+            var vh = window.innerHeight;
+            var left = Math.min(c.x, vw - popupW - 12);
+            if (left < 8) left = 8;
+            var top = c.y + 4;
+            if (top + 220 > vh) {
+                top = c.y - c.lineHeight - 220;
+                if (top < 8) top = 8;
+            }
+            snippetLayer.style.left = left + 'px';
+            snippetLayer.style.top = top + 'px';
+        }
+
+        function renderSnippet() {
+            snippetLayer.innerHTML = '';
+            if (!activeItems.length) { closeSnippet(); return; }
+            for (var i = 0; i < activeItems.length; i++) {
+                var item = activeItems[i];
+                var row = document.createElement('div');
+                row.dataset.index = i;
+                var isActive = i === activeIndex;
+                row.style.cssText =
+                    'padding:7px 10px;border-radius:7px;cursor:pointer;' +
+                    'color:#f0f3f8;white-space:pre;overflow:hidden;text-overflow:ellipsis;' +
+                    (isActive
+                        ? 'background:linear-gradient(90deg,rgba(110,168,254,0.18),transparent);'
+                        : '');
+                row.textContent = item.label;
+                row.addEventListener('mousedown', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    acceptSnippet(parseInt(this.dataset.index, 10));
+                });
+                snippetLayer.appendChild(row);
+            }
+            positionPopup();
+        }
+
+        function openSnippet(trigger) {
+            var items = SNIPPETS[trigger];
+            if (!items || !items.length) { closeSnippet(); return; }
+            activeItems = items;
+            activeIndex = 0;
+            activeTriggerPos = textarea.selectionStart - 1;
+            activeTriggerEnd = textarea.selectionStart;
+            popupOpen = true;
+            snippetLayer.style.display = 'block';
+            renderSnippet();
+        }
+
+        function acceptSnippet(idx) {
+            if (!popupOpen) return;
+            var item = activeItems[idx];
+            if (!item) { closeSnippet(); return; }
+
+            var val = textarea.value;
+            var start = activeTriggerPos;
+            var end = activeTriggerEnd;
+
+            var marker = item.insert.indexOf('§');
+            var cleanInsert = item.insert.replace('§', '');
+
+            suppressInput = true;
+            textarea.value = val.slice(0, start) + cleanInsert + val.slice(end);
+            var cursorPos = start + (marker === -1 ? cleanInsert.length : marker);
+            textarea.selectionStart = textarea.selectionEnd = cursorPos;
+
+            suppressInput = false;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            closeSnippet();
+        }
+
+        textarea.addEventListener('keydown', function (e) {
+            var mod = e.ctrlKey || e.metaKey;
+
+            if (mod && e.code === 'Space') {
+                e.preventDefault();
+                var pos = textarea.selectionStart;
+                var prev = textarea.value[pos - 1] || '';
+                if (SNIPPETS[prev]) {
+                    openSnippet(prev);
+                } else {
+                    var generic = SNIPPETS['('].concat(SNIPPETS['=']).slice(0, 12);
+                    activeItems = generic;
+                    activeIndex = 0;
+                    activeTriggerPos = pos;
+                    activeTriggerEnd = pos;
+                    popupOpen = true;
+                    snippetLayer.style.display = 'block';
+                    renderSnippet();
+                }
+                return;
+            }
+
+            if (!popupOpen) return;
+
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                closeSnippet();
+                return;
+            }
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                activeIndex = Math.min(activeItems.length - 1, activeIndex + 1);
+                renderSnippet();
+                return;
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                activeIndex = Math.max(0, activeIndex - 1);
+                renderSnippet();
+                return;
+            }
+            if (e.key === 'Enter' || e.key === 'Tab') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                acceptSnippet(activeIndex);
+                return;
+            }
+            if (e.key === 'Backspace') {
+                closeSnippet();
+                return;
+            }
+        }, true);
+
+        textarea.addEventListener('input', function (e) {
+            if (suppressInput) return;
+            renderIndentGuides();
+
+            var data = e.data;
+            if (data && data.length === 1 && triggerChars.indexOf(data) !== -1) {
+                setTimeout(function () { openSnippet(data); }, 0);
+            } else if (popupOpen) {
+                closeSnippet();
+            }
+        });
+
+        textarea.addEventListener('scroll', syncIndentScroll);
+        textarea.addEventListener('blur', closeSnippet);
+
+        window.addEventListener('resize', function () {
+            charWidth = 0;
+            renderIndentGuides();
+        });
+
+        var origRender = window.__renderCode;
+        if (typeof origRender === 'function') {
+            window.__renderCode = function () {
+                origRender();
+                renderIndentGuides();
+            };
+        }
+
+        setTimeout(renderIndentGuides, 100);
     })();
     </script>
 </body>
