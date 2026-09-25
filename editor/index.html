@@ -3565,5 +3565,78 @@ function update(dt) {
         setTimeout(renderIndentGuides, 100);
     })();
     </script>
+
+    <script>
+    (function () {
+        var fab = document.getElementById('fab');
+        var fabMenu = document.getElementById('fabMenu');
+        var consoleDetails = document.getElementById('consoleDetails');
+        var consoleWindow = consoleDetails ? consoleDetails.querySelector('.console-window') : null;
+        if (!fab) return;
+
+        var fabStyle = document.createElement('style');
+        fabStyle.textContent =
+            '.fab-menu{pointer-events:none;}' +
+            '.fab.open .fab-menu{pointer-events:auto;}' +
+            '.fab.console-lift{bottom:auto;top:auto;}' +
+            '.fab.console-lift{transform:translateX(-50%) translateY(0);}';
+        document.head.appendChild(fabStyle);
+
+        if (fabMenu) {
+            fabMenu.style.pointerEvents = 'none';
+            var obs = new MutationObserver(function () {
+                fabMenu.style.pointerEvents =
+                    fab.classList.contains('open') ? 'auto' : 'none';
+            });
+            obs.observe(fab, { attributes: true, attributeFilter: ['class'] });
+        }
+
+        function checkOverlap() {
+            if (!consoleDetails || !consoleDetails.open || !consoleWindow) {
+                fab.classList.remove('console-lift');
+                fab.style.bottom = '';
+                return;
+            }
+            var cRect = consoleWindow.getBoundingClientRect();
+            var fRect = fab.getBoundingClientRect();
+            var vh = window.innerHeight;
+            if (fRect.top < cRect.bottom && cRect.top < vh) {
+                fab.classList.add('console-lift');
+                var liftPx = Math.max(12, vh - cRect.top + 12);
+                fab.style.bottom = liftPx + 'px';
+            } else {
+                fab.classList.remove('console-lift');
+                fab.style.bottom = '';
+            }
+        }
+
+        if (consoleDetails) {
+            consoleDetails.addEventListener('toggle', checkOverlap);
+        }
+
+        if (consoleDetails) {
+            consoleDetails.addEventListener('mousedown', function () {
+                if (fab.classList.contains('open')) fab.classList.remove('open');
+            }, true);
+            consoleDetails.addEventListener('focusin', function () {
+                if (fab.classList.contains('open')) fab.classList.remove('open');
+            });
+        }
+
+        var replInput = document.getElementById('consoleReplInput');
+        if (replInput) {
+            replInput.addEventListener('focus', function () {
+                if (fab.classList.contains('open')) fab.classList.remove('open');
+                if (consoleDetails && consoleDetails.open) checkOverlap();
+            });
+        }
+
+        window.addEventListener('resize', checkOverlap);
+        window.addEventListener('scroll', checkOverlap, true);
+
+        setTimeout(checkOverlap, 200);
+        setInterval(checkOverlap, 800);
+    })();
+    </script>
 </body>
 </html>
