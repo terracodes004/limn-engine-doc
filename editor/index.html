@@ -581,6 +581,7 @@
         .code-btn:hover { background: var(--bg-4); border-color: var(--border-3); }
         .code-btn.copied { background: linear-gradient(135deg, var(--success-2), var(--success)); border-color: var(--success); color: #04140a; }
         .code-btn.icon-only { padding: 7px 9px; }
+        .code-btn.active { background: rgba(110,168,254,0.15); border-color: rgba(110,168,254,0.5); color: var(--accent); }
         .code-select {
             padding: 7px 12px;
             background: var(--bg-3);
@@ -1348,43 +1349,129 @@ body.game-open .toast {
     margin: 0;
 }
 
-.code-header-right .undo-redo-group {
-    display: inline-flex;
-    gap: 4px;
-}
-.code-header-right .undo-redo-group .code-btn {
-    padding: 7px 10px;
-    font-size: 14px;
-}
-.mobile-undo-redo {
-    display: none;
+/* FAB - bottom-left, non-obstructing (fixed, floats over editor) */
+.editor-fab {
     position: fixed;
-    bottom: 16px;
-    right: 16px;
-    z-index: 8500;
+    left: 18px;
+    bottom: 18px;
+    z-index: 8200;
+    display: flex;
     flex-direction: column;
-    gap: 8px;
+    align-items: flex-start;
+    gap: 10px;
 }
-.mobile-undo-redo button {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
+.editor-fab-toggle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
     border: 1px solid var(--border-2);
-    background: linear-gradient(135deg, #1a1f2b, #0d0f16);
-    color: var(--text-0);
-    font-size: 20px;
+    background: linear-gradient(135deg, #7c3aed, #a371f7);
+    color: #fff;
+    font-size: 24px;
+    font-weight: 300;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(124,58,237,0.5);
+    transition: transform 0.2s, background 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
     touch-action: manipulation;
 }
-.mobile-undo-redo button:active { transform: scale(0.92); }
-@media (max-width: 900px) {
-    .mobile-undo-redo { display: flex; }
-    body.code-fill .mobile-undo-redo { bottom: 72px; }
+.editor-fab-toggle:hover { transform: scale(1.05); }
+.editor-fab-toggle:active { transform: scale(0.94); }
+.editor-fab.open .editor-fab-toggle {
+    transform: rotate(45deg);
+    background: linear-gradient(135deg, #ec4899, #f87171);
 }
+.editor-fab-panel {
+    display: grid;
+    grid-template-columns: repeat(3, 46px);
+    gap: 6px;
+    padding: 10px;
+    background: rgba(18,20,29,0.97);
+    border: 1px solid var(--border-2);
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.65);
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px) scale(0.95);
+    transform-origin: bottom left;
+    transition: opacity 0.2s, transform 0.2s;
+    max-height: 70vh;
+    overflow-y: auto;
+    width: max-content;
+}
+.editor-fab.open .editor-fab-panel {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+.editor-fab-panel button {
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    background: var(--bg-2);
+    color: var(--text-1);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    cursor: pointer;
+    font-size: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    position: relative;
+    font-family: inherit;
+}
+.editor-fab-panel button:hover {
+    color: var(--text-0);
+    background: var(--bg-4);
+    border-color: var(--border-3);
+}
+.editor-fab-panel button:active { transform: scale(0.92); }
+.editor-fab-panel button.active {
+    color: var(--accent);
+    background: rgba(110,168,254,0.15);
+    border-color: rgba(110,168,254,0.5);
+}
+.editor-fab-panel button[data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--bg-4);
+    color: var(--text-0);
+    border: 1px solid var(--border-2);
+    padding: 5px 9px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    z-index: 8300;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+}
+.editor-fab-panel button[data-tip]:hover::after { opacity: 1; }
+.editor-fab-panel .fab-divider {
+    grid-column: 1 / -1;
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+}
+
+@media (max-width: 640px) {
+    .editor-fab { left: 12px; bottom: 12px; }
+    .editor-fab-toggle { width: 46px; height: 46px; font-size: 22px; }
+    .editor-fab-panel { grid-template-columns: repeat(3, 42px); padding: 8px; gap: 5px; }
+    .editor-fab-panel button { width: 42px; height: 42px; font-size: 15px; }
+    .editor-fab-panel button[data-tip]::after { display: none; }
+}
+
+body.game-open .editor-fab { display: none; }
     </style>
 </head>
 <body>
@@ -1648,6 +1735,43 @@ function update(dt) {
                 </details>
             </div>
         </main>
+    </div>
+
+    <div class="editor-fab" id="editorFab">
+        <div class="editor-fab-panel" id="editorFabPanel">
+            <button type="button" data-action="undo" data-tip="Undo (Ctrl+Z)">↶</button>
+            <button type="button" data-action="redo" data-tip="Redo (Ctrl+Y)">↷</button>
+            <button type="button" data-action="save" data-tip="Save (Ctrl+S)">💾</button>
+
+            <button type="button" data-action="find" data-tip="Find (Ctrl+F)">🔍</button>
+            <button type="button" data-action="palette" data-tip="Command palette (Ctrl+K)">⌘</button>
+            <button type="button" data-action="goto" data-tip="Go to line (Ctrl+G)">→</button>
+
+            <button type="button" data-action="comment" data-tip="Toggle comment (Ctrl+/)">💬</button>
+            <button type="button" data-action="duplicate" data-tip="Duplicate line (Ctrl+D)">⎘</button>
+            <button type="button" data-action="deleteLine" data-tip="Delete line (Ctrl+Shift+K)">✖</button>
+
+            <button type="button" data-action="moveUp" data-tip="Move line up (Alt+↑)">↑</button>
+            <button type="button" data-action="moveDown" data-tip="Move line down (Alt+↓)">↓</button>
+            <button type="button" data-action="selectLine" data-tip="Select line (Ctrl+L)">▭</button>
+
+            <button type="button" data-action="indent" data-tip="Indent (Tab)">⇥</button>
+            <button type="button" data-action="outdent" data-tip="Outdent (Shift+Tab)">⇤</button>
+            <button type="button" data-action="format" data-tip="Format code">⤸</button>
+
+            <button type="button" data-action="wrap" data-tip="Toggle word wrap (Alt+Z)">↩</button>
+            <button type="button" data-action="fontDec" data-tip="Decrease font (Ctrl+-)">A−</button>
+            <button type="button" data-action="fontInc" data-tip="Increase font (Ctrl+=)">A+</button>
+
+            <button type="button" data-action="copy" data-tip="Copy all (Ctrl+A Ctrl+C)">📋</button>
+            <button type="button" data-action="selectAll" data-tip="Select all (Ctrl+A)">▣</button>
+            <button type="button" data-action="clear" data-tip="Clear editor">🗑</button>
+
+            <button type="button" data-action="top" data-tip="Scroll to top (Ctrl+Home)">⤒</button>
+            <button type="button" data-action="bottom" data-tip="Scroll to bottom (Ctrl+End)">⤓</button>
+            <button type="button" data-action="run" data-tip="Run game (Ctrl+Enter)">▶</button>
+        </div>
+        <button class="editor-fab-toggle" id="editorFabToggle" title="Editor tools" aria-label="Toggle editor tools">＋</button>
     </div>
 
     <div class="toast-container" id="toastContainer"></div>
@@ -1921,6 +2045,7 @@ function update(dt) {
                 var t = document.getElementById('title');
                 if (t) t.textContent = '*Untitled*';
                 if (window.__renderCode) window.__renderCode();
+                if (window.__resetHistory) window.__resetHistory();
                 closeSidebar();
             }
         });
@@ -1941,6 +2066,7 @@ function update(dt) {
                         var t = document.getElementById('title');
                         if (t) t.textContent = file.name;
                         if (window.__renderCode) window.__renderCode();
+                        if (window.__resetHistory) window.__resetHistory();
                         closeSidebar();
                         window.toast('Opened ' + file.name, 'success');
                     };
@@ -1974,6 +2100,7 @@ function update(dt) {
                     var t = document.getElementById('title');
                     if (t) t.textContent = name;
                     if (window.__renderCode) window.__renderCode();
+                    if (window.__resetHistory) window.__resetHistory();
                     closeSidebar();
                 });
 
@@ -2367,9 +2494,35 @@ function update(dt) {
                 duplicateLine();
                 return;
             }
+            if (mod && e.shiftKey && (e.key === 'k' || e.key === 'K')) {
+                e.preventDefault();
+                deleteLine();
+                return;
+            }
+            if (mod && (e.key === 'l' || e.key === 'L')) {
+                e.preventDefault();
+                selectLine();
+                return;
+            }
+            if (mod && (e.key === 'z' || e.key === 'Z')) {
+                e.preventDefault();
+                if (e.shiftKey) window.__limnRedo();
+                else window.__limnUndo();
+                return;
+            }
+            if (mod && (e.key === 'y' || e.key === 'Y')) {
+                e.preventDefault();
+                window.__limnRedo();
+                return;
+            }
             if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
                 e.preventDefault();
                 moveLine(e.key === 'ArrowUp' ? -1 : 1);
+                return;
+            }
+            if (e.altKey && (e.key === 'z' || e.key === 'Z')) {
+                e.preventDefault();
+                toggleWrap();
                 return;
             }
             if (mod && e.key === 'Enter') {
@@ -2429,6 +2582,29 @@ function update(dt) {
             render();
         }
 
+        function deleteLine() {
+            var start = textarea.selectionStart;
+            var val = textarea.value;
+            var lineStart = val.lastIndexOf('\n', start - 1) + 1;
+            var lineEnd = val.indexOf('\n', start);
+            if (lineEnd === -1) lineEnd = val.length;
+            else lineEnd++;
+            textarea.value = val.slice(0, lineStart) + val.slice(lineEnd);
+            textarea.selectionStart = textarea.selectionEnd = lineStart;
+            render();
+        }
+
+        function selectLine() {
+            var start = textarea.selectionStart;
+            var val = textarea.value;
+            var lineStart = val.lastIndexOf('\n', start - 1) + 1;
+            var lineEnd = val.indexOf('\n', start);
+            if (lineEnd === -1) lineEnd = val.length;
+            textarea.selectionStart = lineStart;
+            textarea.selectionEnd = lineEnd;
+            textarea.focus();
+        }
+
         function moveLine(dir) {
             var start = textarea.selectionStart;
             var val = textarea.value;
@@ -2472,6 +2648,15 @@ function update(dt) {
             textarea.selectionEnd = lineStart + out.length;
             render();
         };
+
+        window.__toggleWrap = function () {
+            var wrapped = textarea.classList.toggle('wrap');
+            if (highlight) highlight.classList.toggle('wrap', wrapped);
+            var btn = document.querySelector('[data-action="wrap"]');
+            if (btn) btn.classList.toggle('active', wrapped);
+            if (window.toast) window.toast(wrapped ? 'Word wrap on' : 'Word wrap off', 'success');
+        };
+        function toggleWrap() { window.__toggleWrap(); }
 
         textarea.addEventListener('input', function () {
             updateActiveLine();
@@ -2578,6 +2763,17 @@ function update(dt) {
         }
 
         window.__renderCode = render;
+        window.__editor = {
+            render: render,
+            duplicateLine: duplicateLine,
+            deleteLine: deleteLine,
+            selectLine: selectLine,
+            moveLine: moveLine,
+            indentSelection: indentSelection,
+            applyFont: applyFont,
+            fontSize: function () { return fontSize; },
+            setFontSize: function (n) { fontSize = Math.max(10, Math.min(22, n)); applyFont(); }
+        };
         render();
 
         var lastSavedCode = textarea.value;
@@ -2617,7 +2813,10 @@ function update(dt) {
             { icon: '→', label: 'Go to line…', shortcut: 'Ctrl+G', action: function () { window.gotoLine(); } },
             { icon: '💬', label: 'Toggle comment', shortcut: 'Ctrl+/', action: function () { window.toggleComment(); } },
             { icon: '⤸', label: 'Format code', action: function () { var b = document.getElementById('formatCodeBtn'); if (b) b.click(); } },
-            { icon: '↩', label: 'Toggle word wrap', action: function () { var ta = document.getElementById('js'); var hl = document.getElementById('highlightLayer'); if (ta) { var w = ta.classList.toggle('wrap'); if (hl) hl.classList.toggle('wrap', w); } } },
+            { icon: '↩', label: 'Toggle word wrap', action: function () { window.__toggleWrap(); } },
+            { icon: '↶', label: 'Undo', shortcut: 'Ctrl+Z', action: function () { window.__limnUndo(); } },
+            { icon: '↷', label: 'Redo', shortcut: 'Ctrl+Y', action: function () { window.__limnRedo(); } },
+            { icon: '⎘', label: 'Duplicate line', shortcut: 'Ctrl+D', action: function () { window.__editor.duplicateLine(); } },
             { icon: '📁', label: 'Open file sidebar', action: function () { document.getElementById('openBtn').click(); } },
             { icon: '📂', label: 'Open from device', action: function () { document.getElementById('sidebarOpenFile').click(); } },
             { icon: '🎨', label: 'Switch to Build tab', action: function () { document.querySelector('.tab[data-tab="build"]').click(); } },
@@ -3482,70 +3681,271 @@ function update(dt) {
 
     <script>
     (function () {
-        var headerRight = document.querySelector('.code-header-right');
-        if (!headerRight) return;
+        "use strict";
 
-        var group = document.createElement('div');
-        group.className = 'undo-redo-group';
+        var textarea = document.getElementById('js');
+        if (!textarea) return;
 
-        var undoBtn = document.createElement('button');
-        undoBtn.className = 'code-btn icon-only';
-        undoBtn.type = 'button';
-        undoBtn.title = 'Undo (Ctrl+Z)';
-        undoBtn.setAttribute('aria-label', 'Undo');
-        undoBtn.textContent = '↶';
+        var undoStack = [];
+        var redoStack = [];
+        var MAX_HISTORY = 300;
+        var lastSnapshot = textarea.value;
+        var lastSelectionStart = textarea.selectionStart;
+        var lastSelectionEnd = textarea.selectionEnd;
+        var isApplying = false;
+        var debounceTimer = null;
+        var DEBOUNCE_MS = 300;
 
-        var redoBtn = document.createElement('button');
-        redoBtn.className = 'code-btn icon-only';
-        redoBtn.type = 'button';
-        redoBtn.title = 'Redo (Ctrl+Shift+Z)';
-        redoBtn.setAttribute('aria-label', 'Redo');
-        redoBtn.textContent = '↷';
-
-        group.appendChild(undoBtn);
-        group.appendChild(redoBtn);
-        headerRight.insertBefore(group, headerRight.firstChild);
-
-        var mobileWrap = document.createElement('div');
-        mobileWrap.className = 'mobile-undo-redo';
-        var mUndo = undoBtn.cloneNode(true);
-        var mRedo = redoBtn.cloneNode(true);
-        mobileWrap.appendChild(mUndo);
-        mobileWrap.appendChild(mRedo);
-        document.body.appendChild(mobileWrap);
-
-        function doUndo() {
-            var ta = document.getElementById('js');
-            if (!ta) return;
-            ta.focus();
-            try { document.execCommand('undo'); } catch (e) {}
-            if (window.__renderCode) window.__renderCode();
-        }
-        function doRedo() {
-            var ta = document.getElementById('js');
-            if (!ta) return;
-            ta.focus();
-            try { document.execCommand('redo'); } catch (e) {}
-            if (window.__renderCode) window.__renderCode();
+        function snapshot() {
+            return {
+                value: textarea.value,
+                selStart: textarea.selectionStart,
+                selEnd: textarea.selectionEnd
+            };
         }
 
-        undoBtn.addEventListener('click', doUndo);
-        redoBtn.addEventListener('click', doRedo);
-        mUndo.addEventListener('click', doUndo);
-        mRedo.addEventListener('click', doRedo);
+        function pushHistory() {
+            if (isApplying) return;
+            var current = textarea.value;
+            if (current === lastSnapshot) return;
+            undoStack.push({
+                value: lastSnapshot,
+                selStart: lastSelectionStart,
+                selEnd: lastSelectionEnd
+            });
+            if (undoStack.length > MAX_HISTORY) undoStack.shift();
+            redoStack.length = 0;
+            lastSnapshot = current;
+            lastSelectionStart = textarea.selectionStart;
+            lastSelectionEnd = textarea.selectionEnd;
+            updateFabState();
+        }
+
+        function scheduleSnapshot() {
+            if (debounceTimer) clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(pushHistory, DEBOUNCE_MS);
+        }
+
+        function applySnapshot(snap) {
+            isApplying = true;
+            textarea.value = snap.value;
+            textarea.selectionStart = snap.selStart;
+            textarea.selectionEnd = snap.selEnd;
+            lastSnapshot = snap.value;
+            lastSelectionStart = snap.selStart;
+            lastSelectionEnd = snap.selEnd;
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            if (window.__renderCode) window.__renderCode();
+            isApplying = false;
+        }
+
+        function undo() {
+            if (debounceTimer) { clearTimeout(debounceTimer); pushHistory(); }
+            if (undoStack.length === 0) return;
+            var current = {
+                value: textarea.value,
+                selStart: textarea.selectionStart,
+                selEnd: textarea.selectionEnd
+            };
+            redoStack.push(current);
+            var snap = undoStack.pop();
+            applySnapshot(snap);
+            updateFabState();
+        }
+
+        function redo() {
+            if (redoStack.length === 0) return;
+            var current = {
+                value: textarea.value,
+                selStart: textarea.selectionStart,
+                selEnd: textarea.selectionEnd
+            };
+            undoStack.push(current);
+            var snap = redoStack.pop();
+            applySnapshot(snap);
+            updateFabState();
+        }
+
+        function resetHistory() {
+            undoStack.length = 0;
+            redoStack.length = 0;
+            lastSnapshot = textarea.value;
+            lastSelectionStart = textarea.selectionStart;
+            lastSelectionEnd = textarea.selectionEnd;
+            updateFabState();
+        }
+
+        function updateFabState() {
+            var undoBtn = document.querySelector('[data-action="undo"]');
+            var redoBtn = document.querySelector('[data-action="redo"]');
+            if (undoBtn) undoBtn.classList.toggle('active', undoStack.length > 0);
+            if (redoBtn) redoBtn.classList.toggle('active', redoStack.length > 0);
+        }
+
+        textarea.addEventListener('input', function (e) {
+            if (isApplying) return;
+            scheduleSnapshot();
+        });
+
+        textarea.addEventListener('keydown', function (e) {
+            var mod = e.ctrlKey || e.metaKey;
+            if (!mod) return;
+            var key = e.key.toLowerCase();
+            if (key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                undo();
+            } else if ((key === 'z' && e.shiftKey) || key === 'y') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                redo();
+            }
+        }, true);
+
+        window.__limnUndo = undo;
+        window.__limnRedo = redo;
+        window.__resetHistory = resetHistory;
+
+        resetHistory();
+    })();
+    </script>
+
+    <script>
+    (function () {
+        "use strict";
+
+        var fab = document.getElementById('editorFab');
+        var toggle = document.getElementById('editorFabToggle');
+        var panel = document.getElementById('editorFabPanel');
+        if (!fab || !toggle) return;
+
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            fab.classList.toggle('open');
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!fab.contains(e.target)) fab.classList.remove('open');
+        });
 
         document.addEventListener('keydown', function (e) {
-            var mod = e.ctrlKey || e.metaKey;
-            var t = e.target;
-            var tag = t && t.tagName ? t.tagName.toLowerCase() : '';
-            if (tag !== 'textarea' && tag !== 'input') return;
-            if (!mod) return;
-            if (e.key === 'z' || e.key === 'Z') {
-                e.preventDefault();
-                if (e.shiftKey) doRedo(); else doUndo();
-            } else if (e.key === 'y' || e.key === 'Y') {
-                e.preventDefault();
-                doRedo();
+            if (e.key === 'Escape') fab.classList.remove('open');
+        });
+
+        var textarea = document.getElementById('js');
+
+        function focusEditor() {
+            if (textarea) textarea.focus();
+        }
+
+        var actions = {
+            undo: function () { focusEditor(); window.__limnUndo(); },
+            redo: function () { focusEditor(); window.__limnRedo(); },
+            save: function () { if (typeof save === 'function') save(); },
+
+            find: function () { if (window.openFind) window.openFind(); },
+            palette: function () { if (window.openPalette) window.openPalette(); },
+            goto: function () { if (window.gotoLine) window.gotoLine(); },
+
+            comment: function () { focusEditor(); if (window.toggleComment) window.toggleComment(); },
+            duplicate: function () { focusEditor(); if (window.__editor) window.__editor.duplicateLine(); },
+            deleteLine: function () { focusEditor(); if (window.__editor) window.__editor.deleteLine(); },
+
+            moveUp: function () { focusEditor(); if (window.__editor) window.__editor.moveLine(-1); },
+            moveDown: function () { focusEditor(); if (window.__editor) window.__editor.moveLine(1); },
+            selectLine: function () { focusEditor(); if (window.__editor) window.__editor.selectLine(); },
+
+            indent: function () {
+                focusEditor();
+                if (!textarea) return;
+                var start = textarea.selectionStart;
+                var end = textarea.selectionEnd;
+                if (start === end) {
+                    var pos = start;
+                    textarea.value = textarea.value.slice(0, pos) + '    ' + textarea.value.slice(pos);
+                    textarea.selectionStart = textarea.selectionEnd = pos + 4;
+                } else if (window.__editor) {
+                    window.__editor.indentSelection();
+                }
+                if (window.__renderCode) window.__renderCode();
+            },
+            outdent: function () {
+                focusEditor();
+                if (!textarea) return;
+                var start = textarea.selectionStart;
+                var end = textarea.selectionEnd;
+                var val = textarea.value;
+                var lineStart = val.lastIndexOf('\n', start - 1) + 1;
+                var lineEnd = val.indexOf('\n', end);
+                if (lineEnd === -1) lineEnd = val.length;
+                var block = val.slice(lineStart, lineEnd);
+                var out = block.split('\n').map(function (l) {
+                    if (l.startsWith('    ')) return l.slice(4);
+                    if (l.startsWith('\t')) return l.slice(1);
+                    return l.replace(/^ {1,4}/, '');
+                }).join('\n');
+                textarea.value = val.slice(0, lineStart) + out + val.slice(lineEnd);
+                textarea.selectionStart = lineStart;
+                textarea.selectionEnd = lineStart + out.length;
+                if (window.__renderCode) window.__renderCode();
+            },
+            format: function () {
+                var btn = document.getElementById('formatCodeBtn');
+                if (btn) btn.click();
+            },
+
+            wrap: function () { if (window.__toggleWrap) window.__toggleWrap(); },
+            fontDec: function () {
+                var ta = document.getElementById('js');
+                var fs = window.__editor ? window.__editor.fontSize() : 13;
+                if (window.__editor) window.__editor.setFontSize(fs - 1);
+            },
+            fontInc: function () {
+                var fs = window.__editor ? window.__editor.fontSize() : 13;
+                if (window.__editor) window.__editor.setFontSize(fs + 1);
+            },
+
+            copy: function () {
+                var btn = document.getElementById('copyCodeBtn');
+                if (btn) btn.click();
+            },
+            selectAll: function () {
+                focusEditor();
+                if (textarea) {
+                    textarea.select();
+                }
+            },
+            clear: function () {
+                if (!textarea) return;
+                if (!confirm('Clear the entire editor?')) return;
+                textarea.value = '';
+                textarea.selectionStart = textarea.selectionEnd = 0;
+                if (window.__renderCode) window.__renderCode();
+                if (window.__resetHistory) window.__resetHistory();
+            },
+
+            top: function () {
+                if (!textarea) return;
+                textarea.scrollTop = 0;
+                textarea.selectionStart = textarea.selectionEnd = 0;
+                if (window.__renderCode) window.__renderCode();
+            },
+            bottom: function () {
+                if (!textarea) return;
+                textarea.scrollTop = textarea.scrollHeight;
+                var end = textarea.value.length;
+                textarea.selectionStart = textarea.selectionEnd = end;
+                if (window.__renderCode) window.__renderCode();
+            },
+            run: function () { if (typeof runn === 'function') runn(); }
+        };
+
+        panel.addEventListener('click', function (e) {
+            var btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            var action = btn.dataset.action;
+            if (actions[action]) {
+                actions[action]();
             }
         });
     })();
