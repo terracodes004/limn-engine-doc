@@ -745,6 +745,21 @@ let currentGameData = null;
 let isLoadingFromCache = false;
 let zoomLevel = 1;
 
+// ─── PHONE DETECTION ───
+function isPhone() {
+  const ua = navigator.userAgent || '';
+  const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  const narrowScreen = window.innerWidth <= 900;
+  const touchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  // Phone if mobile user agent, OR narrow screen + touch (catches most phones + landscape phones)
+  return mobileUA || (narrowScreen && touchDevice);
+}
+
+// Apply the default phone zoom early so the label is correct before the iframe loads
+if (isPhone()) {
+  zoomLevel = 0.5;
+}
+
 function withTimeout(promise, ms, label) {
   return Promise.race([
     promise,
@@ -986,7 +1001,6 @@ function renderGame(data) {
 
   frame.srcdoc = html;
 
-  zoomLevel = 1;
   updateZoomLabel();
   log('Iframe rendered');
 }
@@ -1421,6 +1435,12 @@ function timeAgo(iso) {
   if (s < 3600) return Math.floor(s/60) + 'm ago';
   if (s < 86400) return Math.floor(s/3600) + 'h ago';
   return Math.floor(s/86400) + 'd ago';
+}
+
+// ─── APPLY INITIAL ZOOM LABEL ───
+updateZoomLabel();
+if (isPhone()) {
+  log('Phone detected — default zoom set to 50%');
 }
 
 // ─── ONLINE/OFFLINE EVENTS ───
