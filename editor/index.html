@@ -28,6 +28,8 @@
             --danger: #f87171;
             --radius: 10px;
             --radius-lg: 14px;
+            /* Code typography. Media queries below override these;
+               applyFont() only overrides them once the user picks a size. */
             --code-font-size: 13px;
             --code-line-height: 22px;
         }
@@ -76,6 +78,23 @@
             100% { background-position: 0% 50%; }
         }
 
+        /* Respect the OS "reduce motion" setting. */
+        @media (prefers-reduced-motion: reduce) {
+            .brand-mark::before,
+            .brand-mark::after,
+            .brand-mark img {
+                animation: none !important;
+            }
+            .brand-mark::after {
+                background: linear-gradient(135deg, #6ea8fe, #a371f7);
+                box-shadow: 0 0 12px rgba(110,168,254,0.6);
+            }
+            .brand-mark img { filter: none !important; }
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+            }
+        }
+
         dialog {
             width: 100vw; height: 100vh;
             max-width: 100vw; max-height: 100vh;
@@ -86,17 +105,18 @@
             inset: 0;
             z-index: 9000;
         }
-        dialog::backdrop { background: rgba(0,0,0,0.95); }
+        /* Single backdrop rule — the duplicate that used to live at the
+           bottom of the stylesheet silently overrode this one. */
+        dialog::backdrop { background: #000; }
         dialog > button.dialog-close {
             position: absolute; top: 16px; left: 16px; z-index: 9500;
             width: 40px; height: 40px; padding: 0;
-            background: rgba(255,255,255,0.08);
+            background: rgba(24,27,38,0.95);
             color: #fff;
             border: 1px solid rgba(255,255,255,0.15);
             border-radius: 12px;
             cursor: pointer;
             font-size: 17px;
-            backdrop-filter: blur(12px);
         }
         dialog > button.dialog-close:hover { background: rgba(255,255,255,0.16); }
         iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
@@ -109,7 +129,7 @@
         }
         .dialog-controls button {
             width: 44px; height: 44px; padding: 0;
-            background: rgba(24,27,38,0.9);
+            background: rgba(24,27,38,0.95);
             color: var(--text-0);
             border: 1px solid var(--border-2);
             border-radius: 12px;
@@ -117,7 +137,6 @@
             font-size: 20px; font-weight: 600; line-height: 1;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            backdrop-filter: blur(12px);
         }
         .dialog-controls button:hover { background: var(--bg-4); border-color: var(--border-3); }
         .dialog-controls button:active { transform: scale(0.94); }
@@ -287,7 +306,12 @@
             border-radius: 4px;
         }
         .dropdown-divider { height: 1px; background: var(--border); margin: 6px 4px; }
-        .dropdown:hover .dropdown-content { display: block; }
+        /* Click / keyboard toggled (see the dropdown script at the bottom). */
+        .dropdown.open .dropdown-content { display: block; }
+        /* Hover-to-open is a desktop nicety only — on touch it sticks. */
+        @media (hover: hover) and (pointer: fine) {
+            .dropdown:hover .dropdown-content { display: block; }
+        }
 
         .main {
             flex: 1;
@@ -652,6 +676,10 @@
             box-shadow: 0 0 8px rgba(248,113,113,0.8);
         }
 
+        /* Word wrap breaks the 1:1 line-number ↔ visual-row mapping, so the
+           gutter is hidden while wrapping is on rather than drifting. */
+        .editor-body.wrapped .gutter { display: none; }
+
         .editor-scroll { position: relative; flex: 1; overflow: hidden; }
         .highlight-layer,
         .code-input {
@@ -757,6 +785,7 @@
         .status-item.saving .badge { background: rgba(251,191,36,0.2); color: var(--warning); }
         .status-item.saved .badge { background: rgba(34,197,94,0.2); color: var(--success); }
         .status-item.unsaved .badge { background: rgba(248,113,113,0.2); color: var(--danger); }
+        .badge-error { background: rgba(248,113,113,0.2) !important; color: var(--danger) !important; }
 
         .sidebar {
             position: fixed;
@@ -904,11 +933,8 @@
             font-family: "JetBrains Mono", monospace;
             color: #6e7589;
         }
-        .console-toolbar-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .console-toolbar-left { display: flex; align-items: center; gap: 12px; }
+        .console-toolbar-right { display: flex; align-items: center; gap: 6px; }
         .console-toolbar-btn {
             background: transparent;
             border: 1px solid #232936;
@@ -1046,6 +1072,11 @@
             cursor: pointer;
             color: var(--text-0);
             font-size: 13.5px;
+            width: 100%;
+            background: none;
+            border: none;
+            font-family: inherit;
+            text-align: left;
         }
         .palette-item .pi-left { display: flex; align-items: center; gap: 12px; }
         .palette-item .pi-icon { font-size: 16px; width: 20px; text-align: center; }
@@ -1171,6 +1202,176 @@
             -webkit-backdrop-filter: none !important;
         }
 
+        body.game-open::before,
+        body.game-open::after {
+            display: none !important;
+        }
+
+        body.game-open .dialog-controls button,
+        body.game-open dialog > button.dialog-close {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            background: rgba(24, 27, 38, 0.95) !important;
+        }
+
+        body.game-open .palette,
+        body.game-open .palette-backdrop,
+        body.game-open .sidebar-backdrop,
+        body.game-open .toast {
+            transition: none !important;
+            animation: none !important;
+        }
+
+        /* ---- "Code fill" layout -------------------------------------------
+           Previously this hardcoded `calc(100vh - 56px)` for the topbar.
+           Now it's a proper flex column so the topbar height doesn't matter. */
+        .code-fill .app { height: 100vh; overflow: hidden; }
+        .code-fill .main {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            max-width: none;
+            margin: 0;
+        }
+        .code-fill .tabs { margin: 12px 16px; flex: 0 0 auto; }
+        .code-fill #codeSection {
+            display: flex !important;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+        .code-fill .code-shell {
+            flex: 1;
+            min-height: 0;
+            border-radius: 0;
+            border-left: 0;
+            border-right: 0;
+            border-bottom: 0;
+            box-shadow: none;
+            margin: 0;
+        }
+        .code-fill .editor-body { height: auto; flex: 1; min-height: 0; }
+        .code-fill .status-bar { border-radius: 0; flex: 0 0 auto; }
+        .code-fill .console-section { margin: 0; padding: 0 16px 16px; flex: 0 0 auto; }
+        .code-fill .console-section details { margin: 0; }
+        .code-fill #editor-console-logs { max-height: 220px; }
+
+        /* FAB - bottom-left, non-obstructing (fixed, floats over editor) */
+        .editor-fab {
+            position: fixed;
+            left: 18px;
+            bottom: 18px;
+            z-index: 8200;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .editor-fab-toggle {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 1px solid var(--border-2);
+            background: linear-gradient(135deg, #7c3aed, #a371f7);
+            color: #fff;
+            font-size: 24px;
+            font-weight: 300;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(124,58,237,0.5);
+            transition: transform 0.2s, background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+        .editor-fab-toggle:hover { transform: scale(1.05); }
+        .editor-fab-toggle:active { transform: scale(0.94); }
+        .editor-fab.open .editor-fab-toggle {
+            transform: rotate(45deg);
+            background: linear-gradient(135deg, #ec4899, #f87171);
+        }
+        .editor-fab-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 46px);
+            gap: 6px;
+            padding: 10px;
+            background: rgba(18,20,29,0.97);
+            border: 1px solid var(--border-2);
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.65);
+            backdrop-filter: blur(20px);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px) scale(0.95);
+            transform-origin: bottom left;
+            transition: opacity 0.2s, transform 0.2s;
+            max-height: 70vh;
+            overflow-y: auto;
+            width: max-content;
+        }
+        .editor-fab.open .editor-fab-panel {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+        .editor-fab-panel button {
+            width: 46px;
+            height: 46px;
+            padding: 0;
+            background: var(--bg-2);
+            color: var(--text-1);
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            cursor: pointer;
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            position: relative;
+            font-family: inherit;
+        }
+        .editor-fab-panel button:hover {
+            color: var(--text-0);
+            background: var(--bg-4);
+            border-color: var(--border-3);
+        }
+        .editor-fab-panel button:active { transform: scale(0.92); }
+        .editor-fab-panel button.active {
+            color: var(--accent);
+            background: rgba(110,168,254,0.15);
+            border-color: rgba(110,168,254,0.5);
+        }
+        .editor-fab-panel button[data-tip]::after {
+            content: attr(data-tip);
+            position: absolute;
+            left: calc(100% + 8px);
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--bg-4);
+            color: var(--text-0);
+            border: 1px solid var(--border-2);
+            padding: 5px 9px;
+            border-radius: 6px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+            z-index: 8300;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+        }
+        .editor-fab-panel button[data-tip]:hover::after { opacity: 1; }
+        .editor-fab-panel .fab-divider {
+            grid-column: 1 / -1;
+            height: 1px;
+            background: var(--border);
+            margin: 4px 0;
+        }
+
         @media (max-width: 900px) {
             .brand-mark::before { display: none; }
             .brand-mark::after {
@@ -1186,6 +1387,10 @@
         }
 
         @media (max-width: 900px) {
+            /* Typography is driven by the custom properties so applyFont()
+               (which writes inline vars) can override without fighting these. */
+            :root { --code-font-size: 12.5px; --code-line-height: 20px; }
+
             .main {
                 padding: 0 0 100px;
                 max-width: 100vw;
@@ -1226,10 +1431,9 @@
             .status-bar { padding: 6px 12px; font-size: 10.5px; gap: 8px; border-radius: 0; }
             .status-left, .status-right { gap: 10px; }
             .gutter { flex: 0 0 52px; }
-            .gutter-line { padding-right: 12px; padding-left: 12px; font-size: 12px; }
+            .gutter-line { padding-right: 12px; padding-left: 12px; }
             .highlight-layer,
-            .code-input { padding: 14px 14px; font-size: 12.5px; line-height: 20px; }
-            .gutter-line { height: 20px; line-height: 20px; }
+            .code-input { padding: 14px 14px; }
             .console-section { margin: 16px 0 0; }
             .console-section details { margin: 0 16px; }
             .palette { top: 5vh; max-height: 75vh; width: 94vw; }
@@ -1240,6 +1444,8 @@
         }
 
         @media (max-width: 640px) {
+            :root { --code-font-size: 12px; --code-line-height: 19px; }
+
             .topbar { padding: 12px 14px; gap: 10px; }
             #runBrowserBtn {
                 font-size: 0;
@@ -1265,10 +1471,9 @@
             .code-filename { font-size: 11.5px; padding: 4px 10px; }
             #codeStats { display: none; }
             .gutter { flex: 0 0 44px; }
-            .gutter-line { padding-right: 8px; padding-left: 8px; font-size: 11.5px; }
+            .gutter-line { padding-right: 8px; padding-left: 8px; }
             .highlight-layer,
-            .code-input { padding: 12px 12px; font-size: 12px; line-height: 19px; }
-            .gutter-line { height: 19px; line-height: 19px; }
+            .code-input { padding: 12px 12px; }
             .toast { font-size: 12px; padding: 10px 14px; }
             .sidebar-header { padding: 16px 18px; }
             .sidebar-body { padding: 14px 16px; }
@@ -1282,199 +1487,25 @@
             .editor-body { height: 55vh; min-height: 240px; }
         }
 
-dialog::backdrop {
-    background: #000;
-}
+        @media (max-width: 640px) {
+            .editor-fab { left: 12px; bottom: 12px; }
+            .editor-fab-toggle { width: 46px; height: 46px; font-size: 22px; }
+            .editor-fab-panel { grid-template-columns: repeat(3, 42px); padding: 8px; gap: 5px; }
+            .editor-fab-panel button { width: 42px; height: 42px; font-size: 15px; }
+            .editor-fab-panel button[data-tip]::after { display: none; }
+        }
 
-.dialog-controls button,
-dialog > button.dialog-close {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    background: rgba(24, 27, 38, 0.95);
-}
-
-body.game-open::before,
-body.game-open::after {
-    display: none !important;
-}
-
-body.game-open .dialog-controls button,
-body.game-open dialog > button.dialog-close {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: rgba(24, 27, 38, 0.95) !important;
-}
-
-body.game-open .palette,
-body.game-open .palette-backdrop,
-body.game-open .sidebar-backdrop,
-body.game-open .toast {
-    transition: none !important;
-    animation: none !important;
-}
-
-.code-fill .main {
-    padding: 0;
-    max-width: none;
-    margin: 0;
-}
-.code-fill .tabs {
-    margin: 12px 16px;
-}
-.code-fill #codeSection {
-    display: block !important;
-}
-.code-fill .code-shell {
-    border-radius: 0;
-    border-left: 0;
-    border-right: 0;
-    border-bottom: 0;
-    box-shadow: none;
-    margin: 0;
-    height: calc(100vh - 56px);
-}
-.code-fill .editor-body {
-    height: auto;
-    flex: 1;
-    min-height: 0;
-}
-.code-fill .status-bar {
-    border-radius: 0;
-}
-.code-fill .console-section {
-    margin: 0;
-    padding: 0 16px 16px;
-}
-.code-fill .console-section details {
-    margin: 0;
-}
-
-/* FAB - bottom-left, non-obstructing (fixed, floats over editor) */
-.editor-fab {
-    position: fixed;
-    left: 18px;
-    bottom: 18px;
-    z-index: 8200;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-}
-.editor-fab-toggle {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    border: 1px solid var(--border-2);
-    background: linear-gradient(135deg, #7c3aed, #a371f7);
-    color: #fff;
-    font-size: 24px;
-    font-weight: 300;
-    line-height: 1;
-    cursor: pointer;
-    box-shadow: 0 8px 32px rgba(124,58,237,0.5);
-    transition: transform 0.2s, background 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    touch-action: manipulation;
-}
-.editor-fab-toggle:hover { transform: scale(1.05); }
-.editor-fab-toggle:active { transform: scale(0.94); }
-.editor-fab.open .editor-fab-toggle {
-    transform: rotate(45deg);
-    background: linear-gradient(135deg, #ec4899, #f87171);
-}
-.editor-fab-panel {
-    display: grid;
-    grid-template-columns: repeat(3, 46px);
-    gap: 6px;
-    padding: 10px;
-    background: rgba(18,20,29,0.97);
-    border: 1px solid var(--border-2);
-    border-radius: 16px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.65);
-    backdrop-filter: blur(20px);
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(10px) scale(0.95);
-    transform-origin: bottom left;
-    transition: opacity 0.2s, transform 0.2s;
-    max-height: 70vh;
-    overflow-y: auto;
-    width: max-content;
-}
-.editor-fab.open .editor-fab-panel {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0) scale(1);
-}
-.editor-fab-panel button {
-    width: 46px;
-    height: 46px;
-    padding: 0;
-    background: var(--bg-2);
-    color: var(--text-1);
-    border: 1px solid var(--border);
-    border-radius: 11px;
-    cursor: pointer;
-    font-size: 17px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s;
-    position: relative;
-    font-family: inherit;
-}
-.editor-fab-panel button:hover {
-    color: var(--text-0);
-    background: var(--bg-4);
-    border-color: var(--border-3);
-}
-.editor-fab-panel button:active { transform: scale(0.92); }
-.editor-fab-panel button.active {
-    color: var(--accent);
-    background: rgba(110,168,254,0.15);
-    border-color: rgba(110,168,254,0.5);
-}
-.editor-fab-panel button[data-tip]::after {
-    content: attr(data-tip);
-    position: absolute;
-    left: calc(100% + 8px);
-    top: 50%;
-    transform: translateY(-50%);
-    background: var(--bg-4);
-    color: var(--text-0);
-    border: 1px solid var(--border-2);
-    padding: 5px 9px;
-    border-radius: 6px;
-    font-size: 11px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s;
-    z-index: 8300;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-}
-.editor-fab-panel button[data-tip]:hover::after { opacity: 1; }
-.editor-fab-panel .fab-divider {
-    grid-column: 1 / -1;
-    height: 1px;
-    background: var(--border);
-    margin: 4px 0;
-}
-
-@media (max-width: 640px) {
-    .editor-fab { left: 12px; bottom: 12px; }
-    .editor-fab-toggle { width: 46px; height: 46px; font-size: 22px; }
-    .editor-fab-panel { grid-template-columns: repeat(3, 42px); padding: 8px; gap: 5px; }
-    .editor-fab-panel button { width: 42px; height: 42px; font-size: 15px; }
-    .editor-fab-panel button[data-tip]::after { display: none; }
-}
-
-body.game-open .editor-fab { display: none; }
+        body.game-open .editor-fab { display: none; }
     </style>
 </head>
 <body>
+    <!-- NOTE ON SANDBOXING
+         The preview iframe is intentionally NOT sandboxed because the parent
+         injects __LIMN_CLICK_PATCH__ into it via contentWindow.eval(), and the
+         console REPL evaluates expressions in that window. Both require
+         same-origin access. If you ever make the preview load remote/shared
+         code, add `sandbox="allow-scripts allow-modals allow-pointer-lock"`
+         and route the patch + REPL through postMessage instead. -->
     <dialog id="runDialog">
         <button class="dialog-close" onclick="closeRunDialog()" aria-label="Close preview">✕</button>
         <div class="dialog-controls" id="dialogControls">
@@ -1487,7 +1518,7 @@ body.game-open .editor-fab { display: none; }
 
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-    <aside class="sidebar" id="fileSidebar">
+    <aside class="sidebar" id="fileSidebar" aria-label="Workspace">
         <div class="sidebar-header">
             <h2>Workspace</h2>
             <button class="sidebar-close" id="sidebarClose" aria-label="Close sidebar">✕</button>
@@ -1507,9 +1538,18 @@ body.game-open .editor-fab { display: none; }
     </aside>
 
     <div class="palette-backdrop" id="paletteBackdrop"></div>
-    <div class="palette" id="palette" role="dialog" aria-label="Command palette">
-        <input type="text" class="palette-input" id="paletteInput" placeholder="Type a command…" autocomplete="off" aria-label="Command search" />
-        <div class="palette-list" id="paletteList"></div>
+    <div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+        <input type="text"
+               class="palette-input"
+               id="paletteInput"
+               placeholder="Type a command…"
+               autocomplete="off"
+               role="combobox"
+               aria-expanded="true"
+               aria-controls="paletteList"
+               aria-autocomplete="list"
+               aria-label="Command search" />
+        <div class="palette-list" id="paletteList" role="listbox" aria-label="Commands"></div>
     </div>
 
     <div class="app">
@@ -1528,18 +1568,21 @@ body.game-open .editor-fab { display: none; }
                 <button id="run" class="btn btn-primary" type="button">▶ Run</button>
                 <button id="runBrowserBtn" class="btn" type="button">🌐 Open in tab</button>
                 <button id="openBtn" class="btn" type="button">📁 Open</button>
-                <div class="dropdown">
-                    <button class="btn" type="button">Menu ▾</button>
-                    <div class="dropdown-content">
-                        <button onclick="save()">💾 Save<span class="shortcut">Ctrl+S</span></button>
-                        <button onclick="saveAs()">💾 Save As<span class="shortcut">Ctrl+Shift+S</span></button>
-                        <button onclick="shareProject()">🔗 Share</button>
+                <div class="dropdown" id="mainMenu">
+                    <button class="btn" type="button" id="mainMenuBtn"
+                            aria-haspopup="true" aria-expanded="false" aria-controls="mainMenuContent">
+                        Menu ▾
+                    </button>
+                    <div class="dropdown-content" id="mainMenuContent" role="menu">
+                        <button type="button" role="menuitem" onclick="save()">💾 Save<span class="shortcut">Ctrl+S</span></button>
+                        <button type="button" role="menuitem" onclick="saveAs()">💾 Save As<span class="shortcut">Ctrl+Shift+S</span></button>
+                        <button type="button" role="menuitem" onclick="shareProject()">🔗 Share</button>
                         <div class="dropdown-divider"></div>
-                        <button onclick="openPalette()">⌘ Command Palette<span class="shortcut">Ctrl+K</span></button>
-                        <button onclick="openFind()">🔍 Find & Replace<span class="shortcut">Ctrl+F</span></button>
-                        <button onclick="gotoLine()">→ Go to Line<span class="shortcut">Ctrl+G</span></button>
+                        <button type="button" role="menuitem" onclick="openPalette()">⌘ Command Palette<span class="shortcut">Ctrl+K</span></button>
+                        <button type="button" role="menuitem" onclick="openFind()">🔍 Find &amp; Replace<span class="shortcut">Ctrl+F</span></button>
+                        <button type="button" role="menuitem" onclick="gotoLine()">→ Go to Line<span class="shortcut">Ctrl+G</span></button>
                         <div class="dropdown-divider"></div>
-                        <a href="/reference.html">📖 Docs</a>
+                        <a href="/reference.html" role="menuitem">📖 Docs</a>
                     </div>
                 </div>
             </div>
@@ -1551,9 +1594,9 @@ body.game-open .editor-fab { display: none; }
         </div>
 
         <main class="main">
-            <div class="tabs">
-                <button class="tab active" data-tab="build" type="button">⚙️ Build</button>
-                <button class="tab" data-tab="code" type="button">⌨️ Code</button>
+            <div class="tabs" role="tablist" aria-label="Workspace sections">
+                <button class="tab active" data-tab="build" type="button" role="tab" aria-selected="true" aria-controls="buildPanel">⚙️ Build</button>
+                <button class="tab" data-tab="code" type="button" role="tab" aria-selected="false" aria-controls="codeSection">⌨️ Code</button>
             </div>
 
             <div id="buildPanel" class="build-panel">
@@ -1563,25 +1606,26 @@ body.game-open .editor-fab { display: none; }
                     <div class="field">
                         <label id="templateLabel">Choose a game</label>
                         <div class="custom-select" id="templateSelect">
-                            <button type="button" class="custom-select-trigger" id="templateSelectTrigger" aria-labelledby="templateLabel">
+                            <button type="button" class="custom-select-trigger" id="templateSelectTrigger"
+                                    aria-labelledby="templateLabel" aria-haspopup="listbox" aria-expanded="false">
                                 <span id="templateSelectLabel">🎀 Dress-Up</span>
                             </button>
-                            <div class="custom-select-menu" id="templateSelectMenu">
-                                <button type="button" class="custom-select-option selected" data-value="dressup">🎀 Dress-Up</button>
-                                <button type="button" class="custom-select-option" data-value="platformer">🏃 Platformer</button>
-                                <button type="button" class="custom-select-option" data-value="runner">💨 Runner</button>
-                                <button type="button" class="custom-select-option" data-value="shooter">🔫 Shooter</button>
-                                <button type="button" class="custom-select-option" data-value="clicker">👆 Clicker</button>
-                                <button type="button" class="custom-select-option" data-value="breakout">🧱 Breakout</button>
-                                <button type="button" class="custom-select-option" data-value="flappy">🐤 Flappy</button>
-                                <button type="button" class="custom-select-option" data-value="snake">🐍 Snake</button>
-                                <button type="button" class="custom-select-option" data-value="catch">🧺 Catch</button>
-                                <button type="button" class="custom-select-option" data-value="dodge">🌀 Dodge</button>
-                                <button type="button" class="custom-select-option" data-value="tank">💥 Tank Battle</button>
-                                <button type="button" class="custom-select-option" data-value="dungeon">🗡️ Dungeon Crawler</button>
-                                <button type="button" class="custom-select-option" data-value="soccer">⚽ Soccer</button>
-                                <button type="button" class="custom-select-option" data-value="race">🏎️ Car Race</button>
-                                <button type="button" class="custom-select-option" data-value="asteroids">☄️ Asteroids</button>
+                            <div class="custom-select-menu" id="templateSelectMenu" role="listbox" aria-labelledby="templateLabel">
+                                <button type="button" class="custom-select-option selected" data-value="dressup" role="option" aria-selected="true">🎀 Dress-Up</button>
+                                <button type="button" class="custom-select-option" data-value="platformer" role="option" aria-selected="false">🏃 Platformer</button>
+                                <button type="button" class="custom-select-option" data-value="runner" role="option" aria-selected="false">💨 Runner</button>
+                                <button type="button" class="custom-select-option" data-value="shooter" role="option" aria-selected="false">🔫 Shooter</button>
+                                <button type="button" class="custom-select-option" data-value="clicker" role="option" aria-selected="false">👆 Clicker</button>
+                                <button type="button" class="custom-select-option" data-value="breakout" role="option" aria-selected="false">🧱 Breakout</button>
+                                <button type="button" class="custom-select-option" data-value="flappy" role="option" aria-selected="false">🐤 Flappy</button>
+                                <button type="button" class="custom-select-option" data-value="snake" role="option" aria-selected="false">🐍 Snake</button>
+                                <button type="button" class="custom-select-option" data-value="catch" role="option" aria-selected="false">🧺 Catch</button>
+                                <button type="button" class="custom-select-option" data-value="dodge" role="option" aria-selected="false">🌀 Dodge</button>
+                                <button type="button" class="custom-select-option" data-value="tank" role="option" aria-selected="false">💥 Tank Battle</button>
+                                <button type="button" class="custom-select-option" data-value="dungeon" role="option" aria-selected="false">🗡️ Dungeon Crawler</button>
+                                <button type="button" class="custom-select-option" data-value="soccer" role="option" aria-selected="false">⚽ Soccer</button>
+                                <button type="button" class="custom-select-option" data-value="race" role="option" aria-selected="false">🏎️ Car Race</button>
+                                <button type="button" class="custom-select-option" data-value="asteroids" role="option" aria-selected="false">☄️ Asteroids</button>
                             </div>
                         </div>
                     </div>
@@ -1609,7 +1653,7 @@ body.game-open .editor-fab { display: none; }
                 </div>
             </div>
 
-            <section id="codeSection" style="display:none">
+            <section id="codeSection" style="display:none" role="tabpanel" aria-label="Code">
                 <div class="code-shell">
                     <div class="code-header">
                         <div class="code-header-left">
@@ -1628,7 +1672,7 @@ body.game-open .editor-fab { display: none; }
                                 <option value="v3">Limn v3</option>
                                 <option value="v4" selected>Limn v4</option>
                             </select>
-                            <button id="findBtn" class="code-btn icon-only" title="Find & Replace (Ctrl+F)" aria-label="Find and replace" type="button">🔍</button>
+                            <button id="findBtn" class="code-btn icon-only" title="Find &amp; Replace (Ctrl+F)" aria-label="Find and replace" type="button">🔍</button>
                             <button id="fontDecBtn" class="code-btn icon-only" title="Smaller font" aria-label="Decrease font size" type="button">A−</button>
                             <button id="fontIncBtn" class="code-btn icon-only" title="Bigger font" aria-label="Increase font size" type="button">A+</button>
                             <button id="copyCodeBtn" class="code-btn" title="Copy code" aria-label="Copy code" type="button">
@@ -1662,7 +1706,7 @@ body.game-open .editor-fab { display: none; }
                     </div>
 
                     <div class="editor-body">
-                        <div class="gutter" id="gutter"></div>
+                        <div class="gutter" id="gutter" aria-hidden="true"></div>
                         <div class="editor-scroll">
                             <pre class="highlight-layer" id="highlightLayer" aria-hidden="true"></pre>
                             <textarea id="js" class="code-input" wrap="off" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" aria-label="Code editor">const display = new Display();
@@ -1704,6 +1748,7 @@ function update(dt) {
                             <span class="status-item"><span id="statusSelection">0</span> selected</span>
                         </div>
                         <div class="status-right">
+                            <span class="status-item" id="statusBracket" hidden><span class="badge badge-error" id="statusBracketText">–</span></span>
                             <span class="status-item" id="statusState"><span class="badge">Ready</span></span>
                             <span class="status-item">UTF-8</span>
                             <span class="status-item">Spaces: 4</span>
@@ -1721,15 +1766,15 @@ function update(dt) {
                             <div class="console-toolbar-left">
                                 <span id="consoleCount">0 messages</span>
                             </div>
-                            <div class="console-toolbar-left">
+                            <div class="console-toolbar-right">
                                 <button class="console-toolbar-btn" id="consoleClearBtn" type="button">Clear</button>
                                 <button class="console-toolbar-btn active" id="consoleAutoscroll" type="button">Auto-scroll</button>
                             </div>
                         </div>
-                        <div id="editor-console-logs"></div>
+                        <div id="editor-console-logs" role="log" aria-live="polite"></div>
                         <div class="console-input-row">
-                            <span class="console-chevron">&gt;</span>
-                            <input type="text" id="consoleReplInput" placeholder="Type an expression and press Enter (e.g. player.x, display.camera.x)" autocomplete="off" spellcheck="false" />
+                            <span class="console-chevron" aria-hidden="true">&gt;</span>
+                            <input type="text" id="consoleReplInput" placeholder="Type an expression and press Enter (e.g. player.x, display.camera.x)" autocomplete="off" spellcheck="false" aria-label="Console expression input" />
                         </div>
                     </div>
                 </details>
@@ -1777,6 +1822,8 @@ function update(dt) {
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
+        // Detached file input. Modern browsers allow .click() on an element
+        // that isn't in the document; this is deliberate, not an oversight.
         var inp = document.createElement("input");
         inp.type = "file";
         inp.accept = ".js";
@@ -1796,9 +1843,26 @@ function update(dt) {
                 console.warn('[limn-click-patch] Display not found. Load patch after epic.js.');
                 return;
             }
+            if (Display.prototype.__limnPatched) {
+                console.log('[limn-click-patch] Already installed.');
+                return;
+            }
+
+            // Wrap rather than replace: whatever the engine registered in
+            // addEventListeners (pointer handling, preventDefault on touch…)
+            // must keep working.
+            var original = Display.prototype.addEventListeners;
 
             Display.prototype.addEventListeners = function () {
                 var self = this;
+
+                if (typeof original === 'function') {
+                    try {
+                        original.apply(this, arguments);
+                    } catch (err) {
+                        console.warn('[limn-click-patch] Original addEventListeners threw:', err);
+                    }
+                }
 
                 window.addEventListener('keydown', function (e) {
                     self.keys[e.keyCode] = true;
@@ -1854,10 +1918,11 @@ function update(dt) {
                 });
                 window.addEventListener('touchstart', function (e) {
                     var t = e.touches[0];
+                    if (!t) return;
                     var p = toCanvasCoords(t.clientX, t.clientY);
                     self.x = p.x + self.camera.x;
                     self.y = p.y + self.camera.y;
-                });
+                }, { passive: true });
                 window.addEventListener('touchend', function () {
                     self.x = false;
                     self.y = false;
@@ -1871,12 +1936,15 @@ function update(dt) {
                 });
                 window.addEventListener('touchmove', function (e) {
                     var t = e.touches[0];
+                    if (!t) return;
                     var p = toCanvasCoords(t.clientX, t.clientY);
                     if (typeof mouse !== 'undefined') {
                         mouse.x = p.x;
                         mouse.y = p.y;
                     }
-                });
+                }, { passive: true });
+
+                Display.prototype.__limnPatched = true;
             };
 
             console.log('[limn-click-patch] Installed.');
@@ -1895,16 +1963,26 @@ function update(dt) {
         var menu = document.getElementById('templateSelectMenu');
         if (!root || !trigger || !menu) return;
 
-        function close() { root.classList.remove('open'); }
-        function open() { root.classList.add('open'); }
+        function close() {
+            root.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+        }
+        function open() {
+            root.classList.add('open');
+            trigger.setAttribute('aria-expanded', 'true');
+        }
 
         function pick(btn) {
             var val = btn.dataset.value;
             window.__templateSelectValue = val;
             label.textContent = btn.textContent;
             var opts = menu.querySelectorAll('.custom-select-option');
-            for (var i = 0; i < opts.length; i++) opts[i].classList.remove('selected');
+            for (var i = 0; i < opts.length; i++) {
+                opts[i].classList.remove('selected');
+                opts[i].setAttribute('aria-selected', 'false');
+            }
             btn.classList.add('selected');
+            btn.setAttribute('aria-selected', 'true');
             close();
             window.dispatchEvent(new CustomEvent('templatechange', { detail: { value: val } }));
         }
@@ -1920,6 +1998,10 @@ function update(dt) {
             if (!btn) return;
             e.stopPropagation();
             pick(btn);
+        });
+
+        trigger.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { close(); trigger.focus(); }
         });
 
         document.addEventListener('click', function (e) {
@@ -2093,6 +2175,7 @@ function update(dt) {
                 row.className = 'sidebar-file';
 
                 var openFile = document.createElement('button');
+                openFile.type = 'button';
                 openFile.textContent = name;
                 openFile.addEventListener('click', function () {
                     var ta = document.getElementById('js');
@@ -2108,12 +2191,14 @@ function update(dt) {
                 actions.className = 'sidebar-file-actions';
 
                 var dl = document.createElement('button');
+                dl.type = 'button';
                 dl.textContent = '⬇';
                 dl.title = 'Download';
                 dl.setAttribute('aria-label', 'Download ' + name);
                 dl.addEventListener('click', function () { if (window.down) window.down(name); });
 
                 var rm = document.createElement('button');
+                rm.type = 'button';
                 rm.textContent = '🗑';
                 rm.title = 'Delete';
                 rm.setAttribute('aria-label', 'Delete ' + name);
@@ -2141,8 +2226,12 @@ function update(dt) {
         for (var i = 0; i < tabs.length; i++) {
             tabs[i].addEventListener('click', function () {
                 var all = document.querySelectorAll('.tab');
-                for (var j = 0; j < all.length; j++) all[j].classList.remove('active');
+                for (var j = 0; j < all.length; j++) {
+                    all[j].classList.remove('active');
+                    all[j].setAttribute('aria-selected', 'false');
+                }
                 this.classList.add('active');
+                this.setAttribute('aria-selected', 'true');
                 var which = this.dataset.tab;
                 var bp = document.getElementById('buildPanel');
                 var cs = document.getElementById('codeSection');
@@ -2150,10 +2239,38 @@ function update(dt) {
                 if (cs) cs.style.display = which === 'code' ? 'block' : 'none';
                 document.body.classList.toggle('code-fill', which === 'code');
                 if (which === 'code' && window.__renderCode) window.__renderCode();
+                if (window.__refreshIndentGuides) window.__refreshIndentGuides();
             });
         }
 
         setTimeout(function () { if (window.__renderFileSidebar) window.__renderFileSidebar(); }, 1200);
+
+        /* ---- Main menu: click + keyboard, not hover-only ---------------- */
+        var menu = document.getElementById('mainMenu');
+        var menuBtn = document.getElementById('mainMenuBtn');
+        if (menu && menuBtn) {
+            function setMenuOpen(open) {
+                menu.classList.toggle('open', open);
+                menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            }
+            menuBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                setMenuOpen(!menu.classList.contains('open'));
+            });
+            menu.addEventListener('click', function (e) {
+                // Close after choosing an item.
+                if (e.target.closest('button, a')) setMenuOpen(false);
+            });
+            document.addEventListener('click', function (e) {
+                if (!menu.contains(e.target)) setMenuOpen(false);
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && menu.classList.contains('open')) {
+                    setMenuOpen(false);
+                    menuBtn.focus();
+                }
+            });
+        }
     })();
     </script>
 
@@ -2171,8 +2288,11 @@ function update(dt) {
         var statusCol = document.getElementById('statusCol');
         var statusSelection = document.getElementById('statusSelection');
         var statusSize = document.getElementById('statusSize');
+        var statusBracket = document.getElementById('statusBracket');
+        var statusBracketText = document.getElementById('statusBracketText');
         var breadcrumbFunc = document.getElementById('breadcrumbFunc');
         var stateDot = document.getElementById('stateDot');
+        var editorBody = document.querySelector('.editor-body');
         if (!textarea || !highlight || !gutter) return;
 
         var KEYWORDS = { 'const':1,'let':1,'var':1,'function':1,'return':1,'if':1,'else':1,'for':1,'while':1,'do':1,'break':1,'continue':1,'new':1,'this':1,'class':1,'extends':1,'super':1,'try':1,'catch':1,'finally':1,'throw':1,'switch':1,'case':1,'default':1,'typeof':1,'instanceof':1,'in':1,'of':1,'delete':1,'void':1,'yield':1,'await':1,'async':1,'static':1,'get':1,'set':1,'import':1,'export':1,'from':1,'as':1 };
@@ -2180,6 +2300,11 @@ function update(dt) {
         var LITERALS = { 'true':1,'false':1,'null':1,'undefined':1,'NaN':1,'Infinity':1 };
 
         function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+        /* Current visual line height — never assume 22px. */
+        function currentLineHeight() {
+            return parseFloat(getComputedStyle(textarea).lineHeight) || 22;
+        }
 
         function tokenize(code) {
             var out = '';
@@ -2250,6 +2375,7 @@ function update(dt) {
             return out;
         }
 
+        /* Returns { lines: {n:true}, count: n } */
         function analyzeBrackets(code) {
             var linesWithError = {};
             var stack = [];
@@ -2258,6 +2384,7 @@ function update(dt) {
             var inBlockComment = false;
             var inString = null;
             var lineNumber = 1;
+            var errorCount = 0;
 
             for (var i = 0; i < code.length; i++) {
                 var ch = code[i];
@@ -2287,6 +2414,7 @@ function update(dt) {
                 } else if (ch === ')' || ch === ']' || ch === '}') {
                     var expected = pairs[ch];
                     if (stack.length === 0 || stack[stack.length - 1].ch !== expected) {
+                        if (!linesWithError[lineNumber]) errorCount++;
                         linesWithError[lineNumber] = true;
                     } else {
                         stack.pop();
@@ -2295,19 +2423,28 @@ function update(dt) {
             }
 
             for (var k = 0; k < stack.length; k++) {
+                if (!linesWithError[stack[k].line]) errorCount++;
                 linesWithError[stack[k].line] = true;
             }
 
-            return linesWithError;
+            return { lines: linesWithError, count: errorCount, open: stack.length };
+        }
+
+        /* ---- Minimap ---------------------------------------------------- */
+
+        function minimapMetrics() {
+            var lines = textarea.value.split('\n');
+            var maxH = minimap.clientHeight || 500;
+            var lineH = Math.max(1, Math.min(2, Math.floor(maxH / Math.max(1, lines.length))));
+            return { lines: lines, lineH: lineH, maxH: maxH };
         }
 
         function renderMinimap() {
-            if (!minimap) return;
-            var code = textarea.value;
-            var lines = code.split('\n');
-            var maxH = minimap.clientHeight || 500;
-            var lineH = Math.max(1, Math.min(2, Math.floor(maxH / Math.max(1, lines.length))));
-            minimap.innerHTML = '';
+            if (!minimap || minimap.offsetParent === null) return;
+            var m = minimapMetrics();
+            var lines = m.lines;
+            var lineH = m.lineH;
+            var frag = document.createDocumentFragment();
             for (var i = 0; i < lines.length; i++) {
                 var line = lines[i];
                 if (!line.trim()) continue;
@@ -2321,30 +2458,40 @@ function update(dt) {
                 el.style.top = (i * lineH) + 'px';
                 el.style.left = (2 + Math.min(indent, 20) * 0.6) + 'px';
                 el.style.height = lineH + 'px';
-                minimap.appendChild(el);
+                frag.appendChild(el);
             }
             var vp = document.createElement('div');
             vp.className = 'minimap-viewport';
             vp.id = 'minimapViewport';
-            minimap.appendChild(vp);
+            frag.appendChild(vp);
+            minimap.innerHTML = '';
+            minimap.appendChild(frag);
             updateMinimapViewport();
+        }
+
+        var minimapTimer = null;
+        function scheduleMinimap() {
+            if (minimapTimer) clearTimeout(minimapTimer);
+            minimapTimer = setTimeout(function () {
+                minimapTimer = null;
+                renderMinimap();
+            }, 180);
         }
 
         function updateMinimapViewport() {
             var vp = document.getElementById('minimapViewport');
             if (!vp || !minimap) return;
-            var lines = textarea.value.split('\n');
-            var maxH = minimap.clientHeight || 500;
-            var lineH = Math.max(1, Math.min(2, Math.floor(maxH / Math.max(1, lines.length))));
+            var m = minimapMetrics();
             var scrollRatio = textarea.scrollTop / Math.max(1, textarea.scrollHeight - textarea.clientHeight);
             var visibleRatio = textarea.clientHeight / Math.max(1, textarea.scrollHeight);
-            var vpH = Math.max(20, visibleRatio * lines.length * lineH);
-            vp.style.top = (scrollRatio * Math.max(0, maxH - vpH)) + 'px';
+            var vpH = Math.max(20, visibleRatio * m.lines.length * m.lineH);
+            vp.style.top = (scrollRatio * Math.max(0, m.maxH - vpH)) + 'px';
             vp.style.height = vpH + 'px';
         }
 
-        var pendingErrorAnalysis = null;
+        /* ---- Rendering -------------------------------------------------- */
 
+        var pendingErrorAnalysis = null;
         var _lastLineCount = 0;
         var _renderQueued = false;
 
@@ -2365,11 +2512,20 @@ function update(dt) {
                 }
                 gutter.innerHTML = g;
                 _lastLineCount = lineCount;
-                renderMinimap();
             }
 
+            // Colour stats can change without the line count changing, so
+            // always refresh the minimap (debounced).
+            scheduleMinimap();
+
             if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
-            if (statusSize) statusSize.textContent = code.length + ' chars';
+            if (statusSize) {
+                var bytes = 0;
+                try { bytes = new Blob([code]).size; } catch (e) { bytes = code.length; }
+                statusSize.textContent = bytes < 1024
+                    ? bytes + ' B'
+                    : (bytes / 1024).toFixed(1) + ' KB';
+            }
 
             syncScroll();
             updateActiveLine();
@@ -2389,10 +2545,22 @@ function update(dt) {
 
         function runErrorAnalysis() {
             pendingErrorAnalysis = null;
-            var errors = analyzeBrackets(textarea.value);
+            var result = analyzeBrackets(textarea.value);
+            var errors = result.lines;
             var lines = gutter.children;
             for (var i = 0; i < lines.length; i++) {
                 lines[i].classList.toggle('has-error', !!errors[i + 1]);
+            }
+            if (statusBracket && statusBracketText) {
+                if (result.count > 0) {
+                    statusBracket.hidden = false;
+                    var msg = result.count + ' bracket ' + (result.count === 1 ? 'issue' : 'issues');
+                    if (result.open > 0) msg += ' · ' + result.open + ' unclosed';
+                    statusBracketText.textContent = msg;
+                    statusBracketText.title = 'Unbalanced (), [] or {} — check the red dots in the gutter.';
+                } else {
+                    statusBracket.hidden = true;
+                }
             }
         }
 
@@ -2429,14 +2597,31 @@ function update(dt) {
             breadcrumbFunc.textContent = func;
         }
 
+        /* ---- Mutation helpers -------------------------------------------
+           Every programmatic edit goes through setValue() so that the
+           `input` event fires: undo history, dirty flag, indent guides and
+           snippet handling all depend on it. */
+
+        function dispatchInput() {
+            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
+        function setValue(next, selStart, selEnd) {
+            textarea.value = next;
+            if (typeof selStart === 'number') {
+                textarea.selectionStart = selStart;
+                textarea.selectionEnd = (typeof selEnd === 'number') ? selEnd : selStart;
+            }
+            dispatchInput();
+            render();
+        }
+
         function insertAtCursor(text) {
             var start = textarea.selectionStart;
             var end = textarea.selectionEnd;
             var val = textarea.value;
-            textarea.value = val.slice(0, start) + text + val.slice(end);
-            var pos = start + text.length;
-            textarea.selectionStart = textarea.selectionEnd = pos;
-            render();
+            var next = val.slice(0, start) + text + val.slice(end);
+            setValue(next, start + text.length);
         }
 
         function indentSelection() {
@@ -2448,10 +2633,8 @@ function update(dt) {
             if (lineEnd === -1) lineEnd = val.length;
             var block = val.slice(lineStart, lineEnd);
             var indented = block.split('\n').map(function (l) { return '    ' + l; }).join('\n');
-            textarea.value = val.slice(0, lineStart) + indented + val.slice(lineEnd);
-            textarea.selectionStart = lineStart;
-            textarea.selectionEnd = lineStart + indented.length;
-            render();
+            setValue(val.slice(0, lineStart) + indented + val.slice(lineEnd),
+                     lineStart, lineStart + indented.length);
         }
 
         var PAIRS = { '(':')', '[':']', '{':'}', '"':'"', "'":"'", '`':'`' };
@@ -2548,8 +2731,14 @@ function update(dt) {
             }
             if (PAIRS[e.key] && start === end) {
                 e.preventDefault();
+                // Tell the snippet module an auto-pair is about to happen so
+                // it can suppress its own input handling, then hand it the
+                // trigger character *after* the closer exists.
+                if (window.__snippetBeforeAutoPair) window.__snippetBeforeAutoPair();
                 insertAtCursor(e.key + PAIRS[e.key]);
                 textarea.selectionStart = textarea.selectionEnd = start + 1;
+                updateActiveLine();
+                if (window.__snippetAutoPair) window.__snippetAutoPair(e.key, start);
                 return;
             }
             if (CLOSERS[e.key] && start === end && val[start] === e.key) {
@@ -2562,9 +2751,7 @@ function update(dt) {
                 var after = val[start];
                 if (PAIRS[before] && PAIRS[before] === after) {
                     e.preventDefault();
-                    textarea.value = val.slice(0, start - 1) + val.slice(start + 1);
-                    textarea.selectionStart = textarea.selectionEnd = start - 1;
-                    render();
+                    setValue(val.slice(0, start - 1) + val.slice(start + 1), start - 1);
                     return;
                 }
             }
@@ -2577,9 +2764,8 @@ function update(dt) {
             var lineEnd = val.indexOf('\n', start);
             if (lineEnd === -1) lineEnd = val.length;
             var line = val.slice(lineStart, lineEnd);
-            textarea.value = val.slice(0, lineEnd) + '\n' + line + val.slice(lineEnd);
-            textarea.selectionStart = textarea.selectionEnd = lineEnd + 1 + line.length;
-            render();
+            var next = val.slice(0, lineEnd) + '\n' + line + val.slice(lineEnd);
+            setValue(next, lineEnd + 1 + line.length);
         }
 
         function deleteLine() {
@@ -2589,9 +2775,7 @@ function update(dt) {
             var lineEnd = val.indexOf('\n', start);
             if (lineEnd === -1) lineEnd = val.length;
             else lineEnd++;
-            textarea.value = val.slice(0, lineStart) + val.slice(lineEnd);
-            textarea.selectionStart = textarea.selectionEnd = lineStart;
-            render();
+            setValue(val.slice(0, lineStart) + val.slice(lineEnd), lineStart);
         }
 
         function selectLine() {
@@ -2603,6 +2787,7 @@ function update(dt) {
             textarea.selectionStart = lineStart;
             textarea.selectionEnd = lineEnd;
             textarea.focus();
+            updateActiveLine();
         }
 
         function moveLine(dir) {
@@ -2617,16 +2802,15 @@ function update(dt) {
             if (dir === -1) {
                 var prevStart = val.lastIndexOf('\n', lineStart - 2) + 1;
                 var prevLine = val.slice(prevStart, lineStart - 1);
-                textarea.value = val.slice(0, prevStart) + line + '\n' + prevLine + val.slice(lineEnd);
-                textarea.selectionStart = textarea.selectionEnd = prevStart + line.length;
+                var next = val.slice(0, prevStart) + line + '\n' + prevLine + val.slice(lineEnd);
+                setValue(next, prevStart + line.length);
             } else {
                 var nextEnd = val.indexOf('\n', lineEnd + 1);
                 if (nextEnd === -1) nextEnd = val.length;
                 var nextLine = val.slice(lineEnd + 1, nextEnd);
-                textarea.value = val.slice(0, lineStart) + nextLine + '\n' + line + val.slice(nextEnd);
-                textarea.selectionStart = textarea.selectionEnd = lineStart + nextLine.length + 1 + line.length;
+                var out = val.slice(0, lineStart) + nextLine + '\n' + line + val.slice(nextEnd);
+                setValue(out, lineStart + nextLine.length + 1 + line.length);
             }
-            render();
         }
 
         window.toggleComment = function () {
@@ -2643,18 +2827,23 @@ function update(dt) {
                 if (allCommented) return l.replace(/^(\s*)\/\/\s?/, '$1');
                 return l.replace(/^(\s*)/, '$1// ');
             }).join('\n');
-            textarea.value = val.slice(0, lineStart) + out + val.slice(lineEnd);
-            textarea.selectionStart = lineStart;
-            textarea.selectionEnd = lineStart + out.length;
-            render();
+            setValue(val.slice(0, lineStart) + out + val.slice(lineEnd),
+                     lineStart, lineStart + out.length);
         };
 
         window.__toggleWrap = function () {
-            var wrapped = textarea.classList.toggle('wrap');
+            var wrapped = !textarea.classList.contains('wrap');
+            textarea.classList.toggle('wrap', wrapped);
             if (highlight) highlight.classList.toggle('wrap', wrapped);
+            if (editorBody) editorBody.classList.toggle('wrapped', wrapped);
             var btn = document.querySelector('[data-action="wrap"]');
             if (btn) btn.classList.toggle('active', wrapped);
-            if (window.toast) window.toast(wrapped ? 'Word wrap on' : 'Word wrap off', 'success');
+            if (window.toast) {
+                window.toast(
+                    wrapped ? 'Word wrap on (line numbers hidden)' : 'Word wrap off',
+                    'success'
+                );
+            }
         };
         function toggleWrap() { window.__toggleWrap(); }
 
@@ -2715,37 +2904,47 @@ function update(dt) {
                     if (!/^[}\])]/.test(line)) depth += opens - closes;
                     else depth += opens;
                 }
-                textarea.value = out.join('\n');
-                render();
+                setValue(out.join('\n'));
                 if (window.toast) window.toast('Code formatted', 'success');
             });
         }
 
-        var fontDec = document.getElementById('fontDecBtn');
-        var fontInc = document.getElementById('fontIncBtn');
-        var fontSize = 13;
+        /* ---- Font size ---------------------------------------------------
+           `userFontSize === null` means "follow the CSS / media queries".
+           Only once the user clicks A+/A− do we write inline vars (which
+           override the media queries, as intended). */
+        var userFontSize = null;
         var fontRoot = document.documentElement;
 
-        function applyFont() {
-            var lh = fontSize + 9;
-            fontRoot.style.setProperty('--code-font-size', fontSize + 'px');
-            fontRoot.style.setProperty('--code-line-height', lh + 'px');
-            textarea.style.fontSize = fontSize + 'px';
-            highlight.style.fontSize = fontSize + 'px';
-            textarea.style.lineHeight = lh + 'px';
-            highlight.style.lineHeight = lh + 'px';
-            var lines = gutter.querySelectorAll('.gutter-line');
-            for (var i = 0; i < lines.length; i++) {
-                lines[i].style.height = lh + 'px';
-                lines[i].style.lineHeight = lh + 'px';
-                lines[i].style.fontSize = fontSize + 'px';
-            }
+        function effectiveFontSize() {
+            var v = getComputedStyle(fontRoot).getPropertyValue('--code-font-size');
+            var n = parseFloat(v);
+            return isNaN(n) ? 13 : n;
         }
+
+        function applyFont() {
+            if (userFontSize === null) {
+                fontRoot.style.removeProperty('--code-font-size');
+                fontRoot.style.removeProperty('--code-line-height');
+            } else {
+                fontRoot.style.setProperty('--code-font-size', userFontSize + 'px');
+                fontRoot.style.setProperty('--code-line-height', (userFontSize + 9) + 'px');
+            }
+            // The cached character width in the indent-guide module is now
+            // stale, and the gutter rows rely on the CSS var.
+            if (window.__refreshIndentGuides) window.__refreshIndentGuides();
+            render();
+        }
+
+        var fontDec = document.getElementById('fontDecBtn');
+        var fontInc = document.getElementById('fontIncBtn');
         if (fontDec) fontDec.addEventListener('click', function () {
-            fontSize = Math.max(10, fontSize - 1); applyFont();
+            userFontSize = Math.max(10, effectiveFontSize() - 1);
+            applyFont();
         });
         if (fontInc) fontInc.addEventListener('click', function () {
-            fontSize = Math.min(22, fontSize + 1); applyFont();
+            userFontSize = Math.min(22, effectiveFontSize() + 1);
+            applyFont();
         });
 
         var findBtn = document.getElementById('findBtn');
@@ -2763,16 +2962,23 @@ function update(dt) {
         }
 
         window.__renderCode = render;
+        window.__editorSetValue = setValue;
         window.__editor = {
             render: render,
+            setValue: setValue,
+            insertAtCursor: insertAtCursor,
             duplicateLine: duplicateLine,
             deleteLine: deleteLine,
             selectLine: selectLine,
             moveLine: moveLine,
             indentSelection: indentSelection,
             applyFont: applyFont,
-            fontSize: function () { return fontSize; },
-            setFontSize: function (n) { fontSize = Math.max(10, Math.min(22, n)); applyFont(); }
+            lineHeight: currentLineHeight,
+            fontSize: function () { return effectiveFontSize(); },
+            setFontSize: function (n) {
+                userFontSize = Math.max(10, Math.min(22, n));
+                applyFont();
+            }
         };
         render();
 
@@ -2852,14 +3058,20 @@ function update(dt) {
                 empty.className = 'palette-empty';
                 empty.textContent = 'No matching commands';
                 paletteList.appendChild(empty);
+                paletteInput.removeAttribute('aria-activedescendant');
                 return;
             }
 
             if (focusedIndex >= matches.length) focusedIndex = 0;
             matches.forEach(function (m, i) {
-                var el = document.createElement('div');
+                var el = document.createElement('button');
+                el.type = 'button';
+                el.id = 'palette-item-' + i;
                 el.className = 'palette-item' + (i === focusedIndex ? ' focused' : '');
-                var left = document.createElement('div');
+                el.setAttribute('role', 'option');
+                el.setAttribute('aria-selected', i === focusedIndex ? 'true' : 'false');
+
+                var left = document.createElement('span');
                 left.className = 'pi-left';
                 var icon = document.createElement('span');
                 icon.className = 'pi-icon';
@@ -2881,6 +3093,8 @@ function update(dt) {
                 });
                 paletteList.appendChild(el);
             });
+
+            paletteInput.setAttribute('aria-activedescendant', 'palette-item-' + focusedIndex);
         }
 
         function openPalette() {
@@ -2907,6 +3121,10 @@ function update(dt) {
                 else if (e.key === 'ArrowDown') { e.preventDefault(); focusedIndex = Math.min(items.length - 1, focusedIndex + 1); renderPalette(this.value); }
                 else if (e.key === 'ArrowUp') { e.preventDefault(); focusedIndex = Math.max(0, focusedIndex - 1); renderPalette(this.value); }
                 else if (e.key === 'Enter') { e.preventDefault(); var c = items[focusedIndex]; if (c) { closePalette(); c.action(); } }
+                else if (e.key === 'Tab') {
+                    // Combobox pattern: focus never leaves the input.
+                    e.preventDefault();
+                }
             });
         }
 
@@ -2967,7 +3185,7 @@ function update(dt) {
             textarea.focus();
             textarea.setSelectionRange(pos, pos + findInput.value.length);
             var lineCount = textarea.value.slice(0, pos).split('\n').length;
-            var lineH = 22;
+            var lineH = window.__editor ? window.__editor.lineHeight() : 22;
             textarea.scrollTop = Math.max(0, (lineCount - 6) * lineH);
         }
 
@@ -2996,9 +3214,12 @@ function update(dt) {
             var sel = textarea.value.slice(textarea.selectionStart, textarea.selectionEnd);
             if (sel.toLowerCase() === q.toLowerCase()) {
                 var start = textarea.selectionStart;
-                textarea.value = textarea.value.slice(0, start) + replaceInput.value + textarea.value.slice(textarea.selectionEnd);
-                textarea.selectionStart = textarea.selectionEnd = start + replaceInput.value.length;
-                if (window.__renderCode) window.__renderCode();
+                if (window.__editorSetValue) {
+                    window.__editorSetValue(
+                        textarea.value.slice(0, start) + replaceInput.value + textarea.value.slice(textarea.selectionEnd),
+                        start + replaceInput.value.length
+                    );
+                }
             }
             findAll();
         });
@@ -3006,8 +3227,7 @@ function update(dt) {
             var q = findInput.value;
             if (!q) return;
             var re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-            textarea.value = textarea.value.replace(re, replaceInput.value);
-            if (window.__renderCode) window.__renderCode();
+            if (window.__editorSetValue) window.__editorSetValue(textarea.value.replace(re, replaceInput.value));
             findAll();
         });
         findClose.addEventListener('click', window.closeFind);
@@ -3032,7 +3252,7 @@ function update(dt) {
             for (var i = 0; i < line - 1; i++) pos += lines[i].length + 1;
             textarea.focus();
             textarea.setSelectionRange(pos, pos);
-            var lineH = 22;
+            var lineH = window.__editor ? window.__editor.lineHeight() : 22;
             textarea.scrollTop = Math.max(0, (line - 6) * lineH);
         };
     })();
@@ -3152,6 +3372,11 @@ function update(dt) {
                 var result = win.eval(code);
                 window.__logToConsole('result', [formatValue(result)]);
             } catch (e) {
+                // Cross-origin previews can't be evaluated from here.
+                if (e && e.name === 'SecurityError') {
+                    window.__logToConsole('error', ['Console evaluation is unavailable for this preview (cross-origin).']);
+                    return;
+                }
                 window.__logToConsole('error', [e.name + ': ' + e.message], e.stack);
             }
         }
@@ -3204,6 +3429,11 @@ function update(dt) {
         window.addEventListener('message', function (e) {
             if (!e.data || typeof e.data !== 'object') return;
             if (e.data.type !== 'console' && e.data.type !== 'error') return;
+
+            // Only accept messages from *our* preview frame.
+            var frame = document.getElementById('gameFrame');
+            if (!frame || e.source !== frame.contentWindow) return;
+
             pendingMessages.push(e.data);
             if (!flushScheduled) {
                 flushScheduled = true;
@@ -3357,6 +3587,8 @@ function update(dt) {
             'font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12.5px;';
         document.body.appendChild(snippetLayer);
 
+        var PAIRS = { '(':')', '[':']', '{':'}', '"':'"', "'":"'", '`':'`' };
+
         var charWidth = 0;
         function measureChar() {
             var probe = document.createElement('span');
@@ -3415,6 +3647,12 @@ function update(dt) {
                 'translate(' + (-textarea.scrollLeft) + 'px,' +
                 (-textarea.scrollTop) + 'px)';
         }
+
+        /* Called by applyFont() when the code font size changes. */
+        window.__refreshIndentGuides = function () {
+            charWidth = 0;
+            renderIndentGuides();
+        };
 
         var SNIPPETS = {
             '(': [
@@ -3481,18 +3719,23 @@ function update(dt) {
             ]
         };
 
-        var triggerChars = '([{"\'`' + ':' + ';!=' ;
+        var triggerChars = '([{"\'`' + ':;!=';
         var activeItems = [];
         var activeIndex = 0;
         var activeTriggerPos = -1;
         var activeTriggerEnd = -1;
+        var activeAutoCloserEnd = -1;
+        var activeAutoCloserChar = null;
         var popupOpen = false;
         var suppressInput = false;
+        var suppressPopupClose = false;
 
         function closeSnippet() {
             popupOpen = false;
             activeItems = [];
             activeIndex = 0;
+            activeAutoCloserEnd = -1;
+            activeAutoCloserChar = null;
             snippetLayer.style.display = 'none';
             snippetLayer.innerHTML = '';
         }
@@ -3518,14 +3761,15 @@ function update(dt) {
 
         function positionPopup() {
             var c = caretXY();
-            var popupW = 240;
+            var popupW = snippetLayer.offsetWidth || 240;
+            var popupH = snippetLayer.offsetHeight || 200;
             var vw = window.innerWidth;
             var vh = window.innerHeight;
             var left = Math.min(c.x, vw - popupW - 12);
             if (left < 8) left = 8;
             var top = c.y + 4;
-            if (top + 220 > vh) {
-                top = c.y - c.lineHeight - 220;
+            if (top + popupH > vh) {
+                top = c.y - c.lineHeight - popupH;
                 if (top < 8) top = 8;
             }
             snippetLayer.style.left = left + 'px';
@@ -3564,10 +3808,45 @@ function update(dt) {
             activeIndex = 0;
             activeTriggerPos = textarea.selectionStart - 1;
             activeTriggerEnd = textarea.selectionStart;
+            activeAutoCloserEnd = -1;
+            activeAutoCloserChar = null;
             popupOpen = true;
             snippetLayer.style.display = 'block';
             renderSnippet();
         }
+
+        /* ---- Auto-pair bridge -------------------------------------------
+           The editor auto-inserts the matching closer and then calls us.
+           We take over from there and remember the closer so accepting a
+           snippet can remove it instead of leaving it orphaned. */
+
+        window.__snippetBeforeAutoPair = function () {
+            suppressPopupClose = true;
+            setTimeout(function () { suppressPopupClose = false; }, 0);
+        };
+
+        window.__snippetAutoPair = function (trigger, pos) {
+            var items = SNIPPETS[trigger];
+            if (!items || !items.length) return;
+
+            activeItems = items;
+            activeIndex = 0;
+            activeTriggerPos = pos;
+            activeTriggerEnd = pos + 1; // the trigger char itself
+
+            var closer = PAIRS[trigger];
+            if (closer && textarea.value[pos + 1] === closer) {
+                activeAutoCloserEnd = pos + 2;
+                activeAutoCloserChar = closer;
+            } else {
+                activeAutoCloserEnd = -1;
+                activeAutoCloserChar = null;
+            }
+
+            popupOpen = true;
+            snippetLayer.style.display = 'block';
+            renderSnippet();
+        };
 
         function acceptSnippet(idx) {
             if (!popupOpen) return;
@@ -3578,16 +3857,28 @@ function update(dt) {
             var start = activeTriggerPos;
             var end = activeTriggerEnd;
 
+            // If the editor auto-inserted a closer right after the trigger,
+            // swallow it too so we don't leave `)` behind.
+            if (activeAutoCloserEnd > 0 &&
+                val[activeAutoCloserEnd - 1] === activeAutoCloserChar) {
+                end = activeAutoCloserEnd;
+            }
+
             var marker = item.insert.indexOf('§');
             var cleanInsert = item.insert.replace('§', '');
+            var cursorPos = start + (marker === -1 ? cleanInsert.length : marker);
 
             suppressInput = true;
-            textarea.value = val.slice(0, start) + cleanInsert + val.slice(end);
-            var cursorPos = start + (marker === -1 ? cleanInsert.length : marker);
-            textarea.selectionStart = textarea.selectionEnd = cursorPos;
-
+            var next = val.slice(0, start) + cleanInsert + val.slice(end);
+            if (window.__editorSetValue) {
+                window.__editorSetValue(next, cursorPos);
+            } else {
+                textarea.value = next;
+                textarea.selectionStart = textarea.selectionEnd = cursorPos;
+                textarea.dispatchEvent(new Event('input', { bubbles: true }));
+            }
             suppressInput = false;
-            textarea.dispatchEvent(new Event('input', { bubbles: true }));
+
             closeSnippet();
         }
 
@@ -3606,6 +3897,8 @@ function update(dt) {
                     activeIndex = 0;
                     activeTriggerPos = pos;
                     activeTriggerEnd = pos;
+                    activeAutoCloserEnd = -1;
+                    activeAutoCloserChar = null;
                     popupOpen = true;
                     snippetLayer.style.display = 'block';
                     renderSnippet();
@@ -3651,9 +3944,17 @@ function update(dt) {
             if (suppressInput) return;
             renderIndentGuides();
 
-            var data = e.data;
-            if (data && data.length === 1 && triggerChars.indexOf(data) !== -1) {
-                setTimeout(function () { openSnippet(data); }, 0);
+            // Synthetic input events (from setValue) carry no `data` — they
+            // should never open or close the popup.
+            if (!e.data) return;
+
+            if (suppressPopupClose) return;
+
+            if (e.data.length === 1 && triggerChars.indexOf(e.data) !== -1) {
+                // Characters that aren't auto-paired (`:`, `;`, `!`, `=`)
+                // arrive here; the auto-paired ones go through
+                // __snippetAutoPair instead.
+                setTimeout(function () { openSnippet(e.data); }, 0);
             } else if (popupOpen) {
                 closeSnippet();
             }
@@ -3695,14 +3996,6 @@ function update(dt) {
         var isApplying = false;
         var debounceTimer = null;
         var DEBOUNCE_MS = 300;
-
-        function snapshot() {
-            return {
-                value: textarea.value,
-                selStart: textarea.selectionStart,
-                selEnd: textarea.selectionEnd
-            };
-        }
 
         function pushHistory() {
             if (isApplying) return;
@@ -3772,6 +4065,7 @@ function update(dt) {
             lastSnapshot = textarea.value;
             lastSelectionStart = textarea.selectionStart;
             lastSelectionEnd = textarea.selectionEnd;
+            if (debounceTimer) { clearTimeout(debounceTimer); debounceTimer = null; }
             updateFabState();
         }
 
@@ -3782,7 +4076,7 @@ function update(dt) {
             if (redoBtn) redoBtn.classList.toggle('active', redoStack.length > 0);
         }
 
-        textarea.addEventListener('input', function (e) {
+        textarea.addEventListener('input', function () {
             if (isApplying) return;
             scheduleSnapshot();
         });
@@ -3861,13 +4155,10 @@ function update(dt) {
                 var start = textarea.selectionStart;
                 var end = textarea.selectionEnd;
                 if (start === end) {
-                    var pos = start;
-                    textarea.value = textarea.value.slice(0, pos) + '    ' + textarea.value.slice(pos);
-                    textarea.selectionStart = textarea.selectionEnd = pos + 4;
+                    if (window.__editor) window.__editor.insertAtCursor('    ');
                 } else if (window.__editor) {
                     window.__editor.indentSelection();
                 }
-                if (window.__renderCode) window.__renderCode();
             },
             outdent: function () {
                 focusEditor();
@@ -3880,14 +4171,16 @@ function update(dt) {
                 if (lineEnd === -1) lineEnd = val.length;
                 var block = val.slice(lineStart, lineEnd);
                 var out = block.split('\n').map(function (l) {
-                    if (l.startsWith('    ')) return l.slice(4);
                     if (l.startsWith('\t')) return l.slice(1);
-                    return l.replace(/^ {1,4}/, '');
+                    var m = l.match(/^ {1,4}/);
+                    return m ? l.slice(m[0].length) : l;
                 }).join('\n');
-                textarea.value = val.slice(0, lineStart) + out + val.slice(lineEnd);
-                textarea.selectionStart = lineStart;
-                textarea.selectionEnd = lineStart + out.length;
-                if (window.__renderCode) window.__renderCode();
+                if (window.__editorSetValue) {
+                    window.__editorSetValue(
+                        val.slice(0, lineStart) + out + val.slice(lineEnd),
+                        lineStart, lineStart + out.length
+                    );
+                }
             },
             format: function () {
                 var btn = document.getElementById('formatCodeBtn');
@@ -3896,7 +4189,6 @@ function update(dt) {
 
             wrap: function () { if (window.__toggleWrap) window.__toggleWrap(); },
             fontDec: function () {
-                var ta = document.getElementById('js');
                 var fs = window.__editor ? window.__editor.fontSize() : 13;
                 if (window.__editor) window.__editor.setFontSize(fs - 1);
             },
@@ -3911,16 +4203,13 @@ function update(dt) {
             },
             selectAll: function () {
                 focusEditor();
-                if (textarea) {
-                    textarea.select();
-                }
+                if (textarea) textarea.select();
             },
             clear: function () {
                 if (!textarea) return;
                 if (!confirm('Clear the entire editor?')) return;
-                textarea.value = '';
-                textarea.selectionStart = textarea.selectionEnd = 0;
-                if (window.__renderCode) window.__renderCode();
+                if (window.__editorSetValue) window.__editorSetValue('', 0);
+                else textarea.value = '';
                 if (window.__resetHistory) window.__resetHistory();
             },
 
@@ -3944,9 +4233,7 @@ function update(dt) {
             var btn = e.target.closest('button[data-action]');
             if (!btn) return;
             var action = btn.dataset.action;
-            if (actions[action]) {
-                actions[action]();
-            }
+            if (actions[action]) actions[action]();
         });
     })();
     </script>
