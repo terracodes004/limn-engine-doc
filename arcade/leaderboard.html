@@ -4,6 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Leaderboard — Arcade</title>
+<meta name="description" content="Weekly leaderboard of the most-loved games and creators on Limn Arcade.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Limn Arcade">
+<meta property="og:title" content="Leaderboard — Limn Arcade">
+<meta property="og:description" content="Weekly leaderboard of the most-loved games and creators on Limn Arcade.">
+<meta property="og:image" content="https://limn-engine-doc.vercel.app/editor/logo.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Leaderboard — Limn Arcade">
+<meta name="twitter:description" content="Weekly leaderboard of the most-loved games and creators on Limn Arcade.">
+<meta name="twitter:image" content="https://limn-engine-doc.vercel.app/editor/logo.png">
+<link rel="canonical" href="https://limn-engine-doc.vercel.app/arcade/leaderboard.html">
 <style>
   :root {
     --bg: #05060c;
@@ -214,6 +225,46 @@
   .week-chip::before {
     content: "📅";
     font-size: 14px;
+  }
+
+  .view-toggle {
+    display: flex;
+    gap: 6px;
+    max-width: 760px;
+    margin: 18px auto 0;
+    padding: 0 24px;
+  }
+  .view-toggle button {
+    flex: 1;
+    padding: 11px 12px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-2);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+  }
+  .view-toggle button:hover { color: var(--text-1); border-color: var(--border-2); }
+  .view-toggle button.active {
+    background: linear-gradient(135deg, rgba(110,168,254,0.18), rgba(163,113,247,0.18));
+    border-color: rgba(110,168,254,0.55);
+    color: #fff;
+    box-shadow: 0 0 20px rgba(110,168,254,0.25);
+  }
+  .view-toggle button.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 20%; right: 20%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    border-radius: 2px;
   }
 
   main {
@@ -561,6 +612,149 @@
     animation: logoBob 3s ease-in-out infinite;
   }
 
+  .hall-wrap {
+    margin-top: 12px;
+  }
+  .hall-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(163,113,247,0.08));
+    border: 1px solid rgba(251,191,36,0.28);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.22s;
+    user-select: none;
+  }
+  .hall-toggle:hover {
+    border-color: rgba(251,191,36,0.55);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(251,191,36,0.12);
+  }
+  .hall-toggle-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .hall-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 14px rgba(251,191,36,0.4);
+    flex-shrink: 0;
+  }
+  .hall-text { display: flex; flex-direction: column; gap: 2px; }
+  .hall-text strong {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: 0.2px;
+  }
+  .hall-text span {
+    font-size: 11.5px;
+    color: var(--text-2);
+  }
+  .hall-arrow {
+    font-size: 20px;
+    color: var(--warning);
+    transition: transform 0.28s;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .hall-wrap.open .hall-arrow { transform: rotate(90deg); }
+
+  .hall-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.34s ease;
+    overflow: hidden;
+  }
+  .hall-wrap.open .hall-panel { grid-template-rows: 1fr; }
+  .hall-panel-inner { overflow: hidden; min-height: 0; }
+  .hall-list {
+    margin-top: 12px;
+    background: linear-gradient(180deg, rgba(21,21,42,0.85), rgba(16,16,30,0.85));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px;
+    backdrop-filter: blur(10px);
+  }
+  .hall-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.18s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .hall-row:hover { background: rgba(255,255,255,0.05); }
+  .hall-row + .hall-row { border-top: 1px solid rgba(255,255,255,0.05); }
+  .hall-row-rank {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, rgba(251,191,36,0.22), rgba(245,158,11,0.22));
+    border: 1px solid rgba(251,191,36,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 900;
+    color: #fbbf24;
+    flex-shrink: 0;
+    box-shadow: 0 0 10px rgba(251,191,36,0.2);
+  }
+  .hall-row-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .hall-row-title {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: var(--text);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hall-row-meta {
+    font-size: 11.5px;
+    color: var(--text-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hall-row-meta a {
+    color: var(--warning);
+    text-decoration: none;
+    font-weight: 700;
+  }
+  .hall-row-meta a:hover { text-decoration: underline; }
+  .hall-row-likes {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #ff8fa3;
+    flex-shrink: 0;
+    padding: 4px 10px;
+    background: rgba(255,84,112,0.08);
+    border: 1px solid rgba(255,84,112,0.25);
+    border-radius: 10px;
+  }
+  .hall-row-likes .heart {
+    color: #ff5470;
+    filter: drop-shadow(0 0 3px rgba(255,84,112,0.6));
+  }
+
   footer {
     margin-top: 40px;
     padding: 30px 24px 40px;
@@ -624,6 +818,9 @@
     .page-head p { font-size: 13px; }
     .week-chip { font-size: 11.5px; padding: 7px 14px; }
 
+    .view-toggle { padding: 0 16px; margin-top: 14px; }
+    .view-toggle button { padding: 10px 8px; font-size: 11.5px; }
+
     main { padding: 8px 16px 40px; }
 
     .podium {
@@ -654,6 +851,15 @@
     .rank-meta { padding: 3px 8px; gap: 8px; }
     .rank-meta .creator { font-size: 11px; max-width: 120px; }
     .rank-meta .likes { font-size: 11px; padding-left: 8px; }
+
+    .hall-toggle { padding: 12px 14px; }
+    .hall-icon { width: 34px; height: 34px; font-size: 17px; }
+    .hall-text strong { font-size: 13px; }
+    .hall-text span { font-size: 11px; }
+    .hall-row { padding: 10px 10px; gap: 10px; }
+    .hall-row-rank { width: 28px; height: 28px; font-size: 12px; }
+    .hall-row-title { font-size: 12.5px; }
+    .hall-row-likes { font-size: 11px; padding: 3px 8px; }
 
     footer { padding: 24px 16px 30px; }
     .footer-logo-wrap { width: 44px; height: 44px; }
@@ -688,12 +894,24 @@
   <div class="week-chip" id="weekLabel">Loading…</div>
 </div>
 
-<main>
-  <div class="section-head"><h2>Top Games</h2></div>
-  <div id="games"><div class="empty">Loading…</div></div>
+<div class="view-toggle">
+  <button id="tabThisWeek" data-tab="thisweek">📅 This Week</button>
+  <button id="tabHallOfFame" data-tab="hall">🏆 Hall of Fame</button>
+</div>
 
-  <div class="section-head"><h2>Top Creators</h2></div>
-  <div id="creators"><div class="empty">Loading…</div></div>
+<main>
+  <div id="viewThisWeek">
+    <div class="section-head"><h2>Top Games</h2></div>
+    <div id="games"><div class="empty">Loading…</div></div>
+
+    <div class="section-head"><h2>Top Creators</h2></div>
+    <div id="creators"><div class="empty">Loading…</div></div>
+  </div>
+
+  <div id="viewHall" style="display:none">
+    <div class="section-head"><h2>Past Weekly Winners</h2></div>
+    <div id="hall"><div class="empty">Loading…</div></div>
+  </div>
 </main>
 
 <footer>
@@ -713,6 +931,31 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38'
 );
 
+const HALL_LOOKBACK_WEEKS = 12;
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
+}
+
+function getWeekStart(date) {
+  const d = new Date(date);
+  const day = (d.getUTCDay() + 6) % 7;
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day, 0, 0, 0));
+}
+
+function getWeekKey(date) {
+  return getWeekStart(date).toISOString().slice(0, 10);
+}
+
+function formatWeekLabel(weekStartIso) {
+  const start = new Date(weekStartIso + 'T00:00:00Z');
+  const end = new Date(start.getTime() + 6 * 86400000);
+  const opts = { month: 'short', day: 'numeric' };
+  return start.toLocaleDateString('en', opts) + ' – ' + end.toLocaleDateString('en', opts);
+}
+
 const now = new Date();
 const dayOfWeek = now.getUTCDay();
 const diffToMonday = (dayOfWeek + 6) % 7;
@@ -727,6 +970,8 @@ document.getElementById('weekLabel').textContent =
   sunday.toLocaleDateString('en', { month: 'short', day: 'numeric' });
 
 const since = monday.toISOString();
+const thisWeekKey = getWeekKey(now);
+const hallLookbackStart = new Date(monday.getTime() - HALL_LOOKBACK_WEEKS * 7 * 86400000);
 
 const { data: likes } = await supabase
   .from('likes')
@@ -910,11 +1155,128 @@ if (rankedCreators.length === 0) {
   }
 }
 
-function esc(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  })[c]);
+async function loadHallOfFame() {
+  const hallEl = document.getElementById('hall');
+
+  const { data: allLikes, error } = await supabase
+    .from('likes')
+    .select('game_id, created_at')
+    .gte('created_at', hallLookbackStart.toISOString());
+
+  if (error || !allLikes || allLikes.length === 0) {
+    hallEl.innerHTML = '<div class="empty">No past winners yet. Check back next week!</div>';
+    return;
+  }
+
+  const buckets = {};
+  for (const l of allLikes) {
+    if (!l.created_at) continue;
+    const key = getWeekKey(new Date(l.created_at));
+    if (!buckets[key]) buckets[key] = {};
+    buckets[key][l.game_id] = (buckets[key][l.game_id] || 0) + 1;
+  }
+
+  const weeks = Object.keys(buckets).sort().reverse();
+  const winners = [];
+  for (const weekKey of weeks) {
+    if (weekKey === thisWeekKey) continue;
+    const counts = buckets[weekKey];
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    if (sorted.length === 0) continue;
+    const topId = sorted[0][0];
+    const topLikes = sorted[0][1];
+    const game = gameMap[topId];
+    if (!game) continue;
+    winners.push({ weekKey, game, likes: topLikes });
+  }
+
+  if (winners.length === 0) {
+    hallEl.innerHTML = '<div class="empty">No past winners yet. Check back next week!</div>';
+    return;
+  }
+
+  const medalFor = (i) => {
+    if (i === 0) return '🥇';
+    if (i === 1) return '🥈';
+    if (i === 2) return '🥉';
+    return '🏅';
+  };
+
+  const rowsHtml = winners.map((w, i) => {
+    const rank = i + 1;
+    return '<a class="hall-row" href="/arcade/game.html?slug=' +
+      encodeURIComponent(w.game.slug) + '">' +
+      '<div class="hall-row-rank">' + medalFor(i) + '</div>' +
+      '<div class="hall-row-content">' +
+        '<h4 class="hall-row-title">' + esc(w.game.title) + '</h4>' +
+        '<p class="hall-row-meta">Week of ' + esc(formatWeekLabel(w.weekKey)) +
+          ' · by ' + creatorLink(w.game) + '</p>' +
+      '</div>' +
+      '<div class="hall-row-likes"><span class="heart">♥</span>' + w.likes + '</div>' +
+    '</a>';
+  }).join('');
+
+  const first = winners[0];
+  const summaryText = winners.length === 1
+    ? '1 past winner'
+    : winners.length + ' past winners · last: ' + formatWeekLabel(first.weekKey);
+
+  hallEl.innerHTML =
+    '<div class="hall-wrap" id="hallWrap">' +
+      '<div class="hall-toggle" id="hallToggle">' +
+        '<div class="hall-toggle-left">' +
+          '<div class="hall-icon">🏆</div>' +
+          '<div class="hall-text">' +
+            '<strong>Hall of Fame</strong>' +
+            '<span>' + esc(summaryText) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="hall-arrow">›</div>' +
+      '</div>' +
+      '<div class="hall-panel">' +
+        '<div class="hall-panel-inner">' +
+          '<div class="hall-list">' + rowsHtml + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  const toggle = document.getElementById('hallToggle');
+  const wrap = document.getElementById('hallWrap');
+  if (toggle && wrap) {
+    toggle.addEventListener('click', () => {
+      wrap.classList.toggle('open');
+    });
+  }
 }
+
+let hallLoaded = false;
+
+function switchTab(tab) {
+  const thisWeekView = document.getElementById('viewThisWeek');
+  const hallView = document.getElementById('viewHall');
+  const tabThisWeek = document.getElementById('tabThisWeek');
+  const tabHall = document.getElementById('tabHallOfFame');
+
+  if (tab === 'hall') {
+    thisWeekView.style.display = 'none';
+    hallView.style.display = 'block';
+    tabHall.classList.add('active');
+    tabThisWeek.classList.remove('active');
+    if (!hallLoaded) {
+      hallLoaded = true;
+      loadHallOfFame();
+    }
+  } else {
+    thisWeekView.style.display = 'block';
+    hallView.style.display = 'none';
+    tabThisWeek.classList.add('active');
+    tabHall.classList.remove('active');
+  }
+}
+
+document.getElementById('tabThisWeek').addEventListener('click', () => switchTab('thisweek'));
+document.getElementById('tabHallOfFame').addEventListener('click', () => switchTab('hall'));
+switchTab('thisweek');
 </script>
 
 </body>
