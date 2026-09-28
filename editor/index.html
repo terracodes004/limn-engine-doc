@@ -2069,10 +2069,6 @@ function update(dt) {
         /* ============================================================
            SIDEBAR — mobile-safe open/close + robust tap handling
            ============================================================ */
-        var sidebar = document.getElementById('fileSidebar');
-        var backdrop = document.getElementById('sidebarBackdrop');
-        var closeBtn = document.getElementById('sidebarClose');
-        var openBtn = document.getElementById('openBtn');
 
         /* attachTap — fires the handler on a genuine tap, ignores scrolls.
            On mobile, browsers frequently cancel `click` and even `pointerup`
@@ -2111,6 +2107,11 @@ function update(dt) {
                 }
             }, { passive: false });
         }
+
+        var sidebar = document.getElementById('fileSidebar');
+        var backdrop = document.getElementById('sidebarBackdrop');
+        var closeBtn = document.getElementById('sidebarClose');
+        var openBtn = document.getElementById('openBtn');
 
         function openSidebar() {
             sidebar.classList.add('open');
