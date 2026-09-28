@@ -3,7 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Profile — Arcade</title>
+<title>Profile — Arcade | Limn Engine</title>
+
+<meta name="description" content="Browse games made by Limn Engine creators. See their published games, likes, followers, and weekly leaderboard wins.">
+<meta name="author" content="Limn Engine">
+<meta name="robots" content="index, follow">
+
+<meta property="og:type" content="profile">
+<meta property="og:site_name" content="Limn Engine">
+<meta property="og:title" content="Profile — Limn Arcade">
+<meta property="og:description" content="Browse games made by Limn Engine creators. See their published games, likes, and weekly leaderboard wins.">
+<meta property="og:image" content="https://limn-engine-doc.vercel.app/editor/logo.png">
+<meta property="og:url" content="https://limn-engine-doc.vercel.app/u/">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Profile — Limn Arcade">
+<meta name="twitter:description" content="Browse games made by Limn Engine creators.">
+<meta name="twitter:image" content="https://limn-engine-doc.vercel.app/editor/logo.png">
+
+<link rel="canonical" href="https://limn-engine-doc.vercel.app/u/">
+
 <style>
   :root {
     --bg: #05060c;
@@ -302,6 +321,12 @@
     animation: badgeShine 4s linear infinite;
     position: relative;
     overflow: hidden;
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .badge:hover {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 8px 24px rgba(245,158,11,0.6);
   }
   .badge::after {
     content: "";
@@ -434,6 +459,16 @@
   }
   .card:hover .thumb { transform: scale(1.06); }
   .card .thumb-wrap { overflow: hidden; position: relative; }
+
+  .winner-crown {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 22px;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.7));
+    animation: cardFloat 2.5s ease-in-out infinite;
+    z-index: 2;
+  }
 
   .info { padding: 12px 14px; }
   .info h3 {
@@ -624,6 +659,18 @@
 
 </div>
 
+<script type="application/ld+json" id="profileSchema">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  "mainEntity": {
+    "@type": "Person",
+    "name": "Limn creator",
+    "url": "https://limn-engine-doc.vercel.app/u/"
+  }
+}
+</script>
+
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
@@ -646,7 +693,7 @@ async function run() {
     return;
   }
 
-  document.title = '@' + username + ' — Arcade';
+  document.title = '@' + username + ' — Limn Arcade';
 
   const { data: profile, error: profileErr } = await supabase
     .from('profiles')
@@ -658,6 +705,26 @@ async function run() {
     document.getElementById('username').textContent = 'User not found.';
     gridEl.innerHTML = '';
     return;
+  }
+
+  const canonicalUrl = 'https://limn-engine-doc.vercel.app/u/?u=' + encodeURIComponent(profile.username);
+  document.querySelector('link[rel="canonical"]').setAttribute('href', canonicalUrl);
+  document.querySelector('meta[property="og:url"]').setAttribute('content', canonicalUrl);
+
+  const displayName = profile.display_name || profile.username;
+  const pageTitle = '@' + profile.username + ' — Limn Arcade';
+  const pageDescription = 'Games made by ' + displayName + ' on the Limn Arcade. Browse published games, likes, and weekly leaderboard wins.';
+
+  document.title = pageTitle;
+  document.querySelector('meta[property="og:title"]').setAttribute('content', pageTitle);
+  document.querySelector('meta[property="og:description"]').setAttribute('content', pageDescription);
+  document.querySelector('meta[name="twitter:title"]').setAttribute('content', pageTitle);
+  document.querySelector('meta[name="twitter:description"]').setAttribute('content', pageDescription);
+  document.querySelector('meta[name="description"]').setAttribute('content', pageDescription);
+
+  if (profile.avatar_url) {
+    document.querySelector('meta[property="og:image"]').setAttribute('content', profile.avatar_url);
+    document.querySelector('meta[name="twitter:image"]').setAttribute('content', profile.avatar_url);
   }
 
   document.getElementById('username').textContent = '@' + profile.username;
@@ -675,13 +742,22 @@ async function run() {
   const gameList = games || [];
   document.getElementById('gameCount').textContent = gameList.length;
 
-  if (gameList.length > 0) {
-    const gameIds = gameList.map(g => g.id);
+  const gameIds = gameList.map(g => g.id);
+  const winnerSet = new Set();
+
+  if (gameIds.length > 0) {
     const { count: likeTotal } = await supabase
       .from('likes')
       .select('*', { count: 'exact', head: true })
       .in('game_id', gameIds);
     document.getElementById('likeCount').textContent = likeTotal || 0;
+
+    const { data: wins } = await supabase
+      .from('weekly_winners')
+      .select('game_id')
+      .in('game_id', gameIds);
+
+    if (wins) wins.forEach(w => winnerSet.add(w.game_id));
   }
 
   const { count: followerTotal } = await supabase
@@ -693,16 +769,22 @@ async function run() {
   try {
     const { data: wins } = await supabase
       .from('weekly_winners')
-      .select('week_start')
+      .select('week_start, likes_at_win, game_id, games ( title, slug )')
       .eq('user_id', profile.user_id)
       .order('week_start', { ascending: false })
-      .limit(3);
+      .limit(10);
 
     if (wins && wins.length > 0) {
       badgesEl.innerHTML = wins.map(w => {
         const d = new Date(w.week_start);
         const label = d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
-        return '<span class="badge">🏆 Won week of ' + label + '</span>';
+        const title = (w.games && w.games.title) || 'a game';
+        const slug = (w.games && w.games.slug) || '';
+        return '<a class="badge" href="/arcade/game.html?slug=' +
+          encodeURIComponent(slug) +
+          '" title="' + esc(title) + ' won with ♥ ' + w.likes_at_win + '">' +
+          '🏆 Won week of ' + label +
+          '</a>';
       }).join('');
     }
   } catch (e) {}
@@ -718,13 +800,43 @@ async function run() {
       a.style.animationDelay = (i * 0.05) + 's';
       a.href = '/arcade/game.html?slug=' + encodeURIComponent(g.slug);
       const desc = (g.description || '').trim();
+      const crown = winnerSet.has(g.id) ? '<span class="winner-crown">👑</span>' : '';
       a.innerHTML =
-        '<div class="thumb-wrap">' + thumbSVG(g) + '</div>' +
+        '<div class="thumb-wrap">' + thumbSVG(g) + crown + '</div>' +
         '<div class="info">' +
           '<h3>' + esc(g.title) + '</h3>' +
           '<p>' + (desc ? esc(desc) : 'No description') + '</p>' +
         '</div>';
       gridEl.appendChild(a);
+    });
+  }
+
+  const schemaEl = document.getElementById('profileSchema');
+  if (schemaEl) {
+    schemaEl.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "ProfilePage",
+      "url": canonicalUrl,
+      "mainEntity": {
+        "@type": "Person",
+        "name": displayName,
+        "alternateName": '@' + profile.username,
+        "url": canonicalUrl,
+        "image": profile.avatar_url || undefined,
+        "interactionStatistic": [
+          {
+            "@type": "InteractionCounter",
+            "interactionType": "https://schema.org/FollowAction",
+            "userInteractionCount": followerTotal || 0
+          }
+        ]
+      },
+      "about": gameList.slice(0, 20).map(g => ({
+        "@type": "VideoGame",
+        "name": g.title,
+        "url": "https://limn-engine-doc.vercel.app/arcade/game.html?slug=" + encodeURIComponent(g.slug),
+        "description": (g.description || '').slice(0, 200)
+      }))
     });
   }
 
@@ -933,7 +1045,6 @@ function renderScene(type, w, h, p, hash) {
     }
     art += '<rect x="' + (w * 0.15) + '" y="' + (h * 0.3) + '" width="30" height="30" fill="' + c1 + '" rx="4"/>';
     art += '<rect x="' + (w * 0.5) + '" y="' + (h * 0.4) + '" width="26" height="26" fill="' + c3 + '" rx="3"/>';
-    art += '<circle cx="' + (w * 0.75) + '" cy="' + (h * 0.35) + '" r="8" fill="' + c4 + '"/>';
   } else if (type === 'soccer') {
     art += '<rect x="0" y="0" width="' + w + '" height="' + h + '" fill="#0a3d0a"/>';
     art += '<rect x="' + (w / 2 - 1) + '" y="0" width="2" height="' + h + '" fill="#fff" opacity="0.6"/>';
