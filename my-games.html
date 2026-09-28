@@ -4,6 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>My Games — Limn</title>
+<meta name="description" content="Manage and share the games you've created with the Limn Engine.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Limn Arcade">
+<meta property="og:title" content="My Games — Limn">
+<meta property="og:description" content="Manage and share the games you've created with the Limn Engine.">
+<meta property="og:image" content="https://limn-engine-doc.vercel.app/editor/logo.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="My Games — Limn">
+<meta name="twitter:description" content="Manage and share the games you've created with the Limn Engine.">
+<meta name="twitter:image" content="https://limn-engine-doc.vercel.app/editor/logo.png">
+<link rel="canonical" href="https://limn-engine-doc.vercel.app/my-games.html">
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; color: #fff;
@@ -186,7 +197,38 @@
     box-shadow: 0 12px 32px rgba(236, 72, 153, 0.25);
   }
 
-  .thumb { width: 100%; aspect-ratio: 4/3; display: block; }
+  .thumb-wrap { position: relative; overflow: hidden; }
+  .thumb { width: 100%; aspect-ratio: 4/3; display: block; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+  .card-wrap:hover .thumb { transform: scale(1.05); }
+
+  .winner-chip {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 4px 10px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    border: 1px solid rgba(255,255,255,0.55);
+    color: #1a1000;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.8px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 14px rgba(251,191,36,0.55), 0 0 24px rgba(251,191,36,0.35);
+    z-index: 3;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    animation: winnerPulse 2.4s ease-in-out infinite;
+  }
+  .winner-chip.lastweek {
+    background: linear-gradient(135deg, #fbbf24, #b45309);
+  }
+  @keyframes winnerPulse {
+    0%, 100% { box-shadow: 0 4px 14px rgba(251,191,36,0.55), 0 0 24px rgba(251,191,36,0.35); }
+    50% { box-shadow: 0 4px 20px rgba(251,191,36,0.85), 0 0 40px rgba(251,191,36,0.55); }
+  }
 
   .info { padding: 16px 18px; }
   .info h3 {
@@ -347,6 +389,60 @@ const grid = document.getElementById('grid');
 const subtitle = document.getElementById('subtitle');
 const statsBar = document.getElementById('statsBar');
 
+function getWeekStart(date) {
+  const d = new Date(date);
+  const day = (d.getUTCDay() + 6) % 7;
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day, 0, 0, 0));
+}
+
+function getWeekKey(date) {
+  return getWeekStart(date).toISOString().slice(0, 10);
+}
+
+async function computeWinners(gameIds) {
+  const result = { current: null, last: null };
+  if (!gameIds || gameIds.length === 0) return result;
+
+  const now = new Date();
+  const thisWeekStart = getWeekStart(now);
+  const lastWeekStart = new Date(thisWeekStart.getTime() - 7 * 86400000);
+  const lookbackStart = new Date(thisWeekStart.getTime() - 14 * 86400000);
+
+  const { data: likes } = await supabase
+    .from('likes')
+    .select('game_id, created_at')
+    .in('game_id', gameIds)
+    .gte('created_at', lookbackStart.toISOString());
+
+  if (!likes || likes.length === 0) return result;
+
+  const buckets = {};
+  for (const l of likes) {
+    if (!l.created_at) continue;
+    const key = getWeekKey(new Date(l.created_at));
+    if (!buckets[key]) buckets[key] = {};
+    buckets[key][l.game_id] = (buckets[key][l.game_id] || 0) + 1;
+  }
+
+  const thisWeekKey = getWeekKey(now);
+  const lastWeekKey = getWeekKey(lastWeekStart);
+
+  const pickTop = (bucket) => {
+    if (!bucket) return null;
+    const sorted = Object.entries(bucket).sort((a, b) => b[1] - a[1]);
+    if (sorted.length === 0) return null;
+    return { gameId: sorted[0][0], likes: sorted[0][1] };
+  };
+
+  const current = pickTop(buckets[thisWeekKey]);
+  const last = pickTop(buckets[lastWeekKey]);
+
+  if (current && gameIds.includes(current.gameId)) result.current = current.gameId;
+  if (last && gameIds.includes(last.gameId)) result.last = last.gameId;
+
+  return result;
+}
+
 async function boot() {
   let user = null;
   try {
@@ -388,9 +484,10 @@ async function boot() {
 
   const ids = list.map(g => g.id);
 
-  const [likesRes, commentsRes] = await Promise.all([
+  const [likesRes, commentsRes, winners] = await Promise.all([
     supabase.from('likes').select('game_id').in('game_id', ids),
-    supabase.from('comments').select('game_id').in('game_id', ids)
+    supabase.from('comments').select('game_id').in('game_id', ids),
+    computeWinners(ids)
   ]);
 
   const lc = {}, cc = {};
@@ -419,9 +516,19 @@ async function boot() {
       ? '<p class="desc">' + esc(g.description) + '</p>'
       : '';
 
+    let chipHtml = '';
+    if (g.id === winners.current) {
+      chipHtml = '<div class="winner-chip">🏆 Game of the Week</div>';
+    } else if (g.id === winners.last) {
+      chipHtml = '<div class="winner-chip lastweek">🥇 Last Week\'s Winner</div>';
+    }
+
     wrap.innerHTML =
       '<a class="card" href="/arcade/game.html?slug=' + encodeURIComponent(g.slug) + '">' +
-        thumbSVG(g.config) +
+        '<div class="thumb-wrap">' +
+          thumbSVG(g.config) +
+          chipHtml +
+        '</div>' +
         '<div class="info">' +
           '<h3>' + esc(g.title) + '</h3>' +
           descHtml +
