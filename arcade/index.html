@@ -4,6 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Arcade — Limn</title>
+<meta name="description" content="Play games made by the Limn Engine community — no install, no downloads, just hit play.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Limn Arcade">
+<meta property="og:title" content="Arcade — Limn">
+<meta property="og:description" content="Play games made by the Limn Engine community.">
+<meta property="og:image" content="https://limn-engine-doc.vercel.app/editor/logo.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Arcade — Limn">
+<meta name="twitter:description" content="Play games made by the Limn Engine community.">
+<meta name="twitter:image" content="https://limn-engine-doc.vercel.app/editor/logo.png">
+<link rel="canonical" href="https://limn-engine-doc.vercel.app/arcade/">
 <style>
   :root {
     --bg: #05060c;
@@ -310,7 +321,6 @@
     border-radius: 2px;
   }
 
-  /* Offline tab count badge */
   .view-toggle button .badge {
     display: inline-block;
     margin-left: 6px;
@@ -329,6 +339,136 @@
   }
 
   .featured-wrap { padding: 16px 20px 0; max-width: 900px; margin: 0 auto; }
+  .featured-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 700px) {
+    .featured-grid { grid-template-columns: 1fr; }
+  }
+
+  .winners-bar {
+    max-width: 900px;
+    margin: 14px auto 0;
+    padding: 0 20px;
+  }
+  .winners-bar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    background: linear-gradient(180deg, rgba(21,21,42,0.85), rgba(16,16,30,0.85));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition: all 0.22s;
+    position: relative;
+    overflow: hidden;
+  }
+  .winners-bar-inner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(251,191,36,0.08), rgba(236,72,153,0.06), rgba(163,113,247,0.08));
+    opacity: 0;
+    transition: opacity 0.22s;
+    pointer-events: none;
+  }
+  .winners-bar-inner:hover { border-color: rgba(251,191,36,0.5); transform: translateY(-1px); }
+  .winners-bar-inner:hover::before { opacity: 1; }
+  .winners-bar-left { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
+  .winners-bar-icon {
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 14px rgba(251,191,36,0.4);
+    flex-shrink: 0;
+  }
+  .winners-bar-text { display: flex; flex-direction: column; gap: 2px; }
+  .winners-bar-text strong {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: 0.2px;
+  }
+  .winners-bar-text span { font-size: 11.5px; color: var(--text-2); }
+  .winners-bar-arrow {
+    font-size: 18px;
+    color: var(--warning);
+    transition: transform 0.25s;
+    position: relative; z-index: 1;
+    font-weight: 700;
+  }
+  .winners-bar-inner.open .winners-bar-arrow { transform: rotate(90deg); }
+
+  .winners-panel {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.32s ease;
+    overflow: hidden;
+  }
+  .winners-panel.open { grid-template-rows: 1fr; }
+  .winners-panel-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+  .winners-list {
+    margin-top: 12px;
+    background: linear-gradient(180deg, rgba(21,21,42,0.85), rgba(16,16,30,0.85));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px;
+    backdrop-filter: blur(10px);
+  }
+  .winner-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.18s;
+  }
+  .winner-row:hover { background: rgba(255,255,255,0.04); }
+  .winner-row + .winner-row { border-top: 1px solid rgba(255,255,255,0.04); }
+  .winner-row-thumb {
+    width: 52px; height: 38px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #0a0a18;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .winner-row-thumb svg { width: 100%; height: 100%; display: block; }
+  .winner-row-info { flex: 1; min-width: 0; }
+  .winner-row-info h4 {
+    margin: 0 0 2px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .winner-row-info p {
+    margin: 0;
+    font-size: 11px;
+    color: var(--text-2);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .winner-row-week {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--warning);
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
 
   main { padding: 18px 20px 40px; max-width: 900px; margin: 0 auto; }
 
@@ -499,7 +639,6 @@
     max-height: 2.7em;
   }
 
-  /* Offline badge on card thumbnails */
   .offline-chip {
     position: absolute;
     top: 8px; left: 8px;
@@ -517,7 +656,32 @@
     pointer-events: none;
   }
 
-  /* Remove offline button */
+  .winner-chip {
+    position: absolute;
+    top: 8px; left: 8px;
+    padding: 4px 10px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    border: 1px solid rgba(255,255,255,0.55);
+    color: #1a1000;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.8px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 14px rgba(251,191,36,0.55), 0 0 24px rgba(251,191,36,0.35);
+    z-index: 3;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    animation: winnerPulse 2.4s ease-in-out infinite;
+  }
+  .winner-chip.offline-shift { top: auto; bottom: 8px; left: 8px; }
+  @keyframes winnerPulse {
+    0%, 100% { box-shadow: 0 4px 14px rgba(251,191,36,0.55), 0 0 24px rgba(251,191,36,0.35); }
+    50% { box-shadow: 0 4px 20px rgba(251,191,36,0.85), 0 0 40px rgba(251,191,36,0.55); }
+  }
+
   .offline-remove {
     position: absolute;
     top: 8px; right: 8px;
@@ -585,14 +749,21 @@
 
   .featured {
     border-radius: 18px;
-    padding: 24px;
-    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    padding: 22px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
     position: relative; overflow: hidden;
     background: linear-gradient(135deg,
       #ec4899 0%, #a371f7 25%, #6ea8fe 50%, #22d3ee 75%, #4ade80 100%);
     background-size: 200% 200%;
     animation: gradShift 12s ease-in-out infinite;
     box-shadow: 0 20px 60px rgba(236,72,153,0.3), 0 8px 24px rgba(34,211,238,0.2);
+    min-height: 130px;
+  }
+  .featured.past {
+    background: linear-gradient(135deg,
+      #fbbf24 0%, #f59e0b 35%, #b45309 70%, #78350f 100%);
+    background-size: 200% 200%;
+    box-shadow: 0 20px 60px rgba(251,191,36,0.3), 0 8px 24px rgba(180,83,9,0.25);
   }
   @keyframes gradShift {
     0%, 100% { background-position: 0% 50%; }
@@ -625,22 +796,22 @@
     display: flex; align-items: center; gap: 6px;
   }
   .featured-title {
-    margin: 0 0 6px; font-size: 24px;
-    letter-spacing: -0.6px; color: #fff;
+    margin: 0 0 6px; font-size: 20px;
+    letter-spacing: -0.5px; color: #fff;
     font-weight: 900; text-shadow: 0 2px 8px rgba(0,0,0,0.5);
     line-height: 1.1;
   }
   .featured-sub {
-    margin: 0; font-size: 13px;
+    margin: 0; font-size: 12.5px;
     color: rgba(255,255,255,0.95);
     text-shadow: 0 1px 3px rgba(0,0,0,0.4);
   }
   .featured-play {
-    padding: 13px 24px;
+    padding: 11px 20px;
     background: rgba(10,10,20,0.85);
     color: #fff; border-radius: 12px;
     font-weight: 800; text-decoration: none;
-    font-size: 14px;
+    font-size: 13px;
     border: 2px solid rgba(255,255,255,0.9);
     box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     transition: all 0.2s;
@@ -841,6 +1012,8 @@
     .view-toggle button { padding: 10px 8px; font-size: 11.5px; }
     .view-toggle button .badge { font-size: 10px; padding: 1px 5px; margin-left: 4px; }
     .featured-wrap { padding: 12px 16px 0; }
+    .winners-bar { padding: 0 16px; margin-top: 12px; }
+    .winners-panel { padding: 0 16px; }
     main { padding: 14px 16px 32px; }
     .creator-head { padding: 12px 14px; gap: 10px; }
     .creator-avatar { width: 40px; height: 40px; }
@@ -852,12 +1025,15 @@
     .project-card .p-info h3 { font-size: 12px; }
     .project-card .p-info p { font-size: 10.5px; }
     .project-card .p-info .p-desc { font-size: 10px; }
-    .featured { padding: 18px; gap: 14px; }
-    .featured-title { font-size: 20px; }
-    .featured-play { padding: 11px 18px; font-size: 13px; }
+    .featured { padding: 16px; gap: 12px; min-height: 110px; }
+    .featured-title { font-size: 17px; }
+    .featured-play { padding: 9px 16px; font-size: 12px; }
+    .featured-tag { font-size: 9px; letter-spacing: 1.8px; }
+    .featured-sub { font-size: 11.5px; }
     .sheet-title { font-size: 19px; }
     .sheet-body { padding: 16px 18px 22px; }
     .offline-remove { width: 24px; height: 24px; font-size: 12px; }
+    .winner-chip { font-size: 9px; padding: 3px 8px; }
   }
 </style>
 </head>
@@ -906,6 +1082,24 @@
 
 <div class="featured-wrap" id="featuredWrap" style="display:none"></div>
 
+<div class="winners-bar" id="winnersBar" style="display:none">
+  <div class="winners-bar-inner" id="winnersBarInner">
+    <div class="winners-bar-left">
+      <div class="winners-bar-icon">🏆</div>
+      <div class="winners-bar-text">
+        <strong>Hall of Fame</strong>
+        <span id="winnersBarSub">See all past weekly winners</span>
+      </div>
+    </div>
+    <div class="winners-bar-arrow">›</div>
+  </div>
+  <div class="winners-panel" id="winnersPanel">
+    <div class="winners-panel-inner">
+      <div class="winners-list" id="winnersList"></div>
+    </div>
+  </div>
+</div>
+
 <main id="grid"><div class="empty"><h2>Loading...</h2></div></main>
 
 </div>
@@ -936,9 +1130,8 @@ const supabase = createClient(
 );
 
 const CREATORS_PER_PAGE = 24;
-
-// ─── OFFLINE STORAGE (matches game.html key) ───
 const OFFLINE_GAMES_KEY = 'limn_arcade_offline_games_v1';
+const WINNERS_LOOKBACK_WEEKS = 12;
 
 function getOfflineGames() {
   try { return JSON.parse(localStorage.getItem(OFFLINE_GAMES_KEY) || '{}'); }
@@ -979,7 +1172,31 @@ let visibleCreatorCount = CREATORS_PER_PAGE;
 let currentFilter = '';
 let profileMapGlobal = {};
 let likeCountMapGlobal = {};
+let weeklyWinnerId = null;
+let weeklyWinnerLikes = 0;
+let lastWeekWinnerId = null;
+let weeklyWinners = [];
 let viewMode = localStorage.getItem('arcade_view') || 'creators';
+
+function getWeekStart(date) {
+  const d = new Date(date);
+  const day = (d.getUTCDay() + 6) % 7;
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day, 0, 0, 0));
+}
+
+function getWeekKey(date) {
+  const ws = getWeekStart(date);
+  return ws.toISOString().slice(0, 10);
+}
+
+function formatWeekLabel(weekStartIso) {
+  const start = new Date(weekStartIso + 'T00:00:00Z');
+  const end = new Date(start.getTime() + 6 * 86400000);
+  const opts = { month: 'short', day: 'numeric' };
+  const startStr = start.toLocaleDateString(undefined, opts);
+  const endStr = end.toLocaleDateString(undefined, opts);
+  return startStr + ' – ' + endStr;
+}
 
 async function boot() {
   const { data, error } = await supabase
@@ -1050,11 +1267,12 @@ async function boot() {
     .filter(c => c.games.length > 0)
     .sort((a, b) => b.games.length - a.games.length);
 
+  await loadWinners();
+
   refreshOfflineBadge();
   updateViewButtons();
   updateSearchPlaceholder();
   render();
-  loadFeatured();
 }
 
 function matchesFilter(c) {
@@ -1073,7 +1291,6 @@ function render() {
   refreshOfflineBadge();
 }
 
-/* ─── PROJECTS ─── */
 function renderProjects(grid) {
   const q = currentFilter.toLowerCase();
 
@@ -1109,12 +1326,15 @@ function renderProjects(grid) {
     }
 
     const desc = (g.description || '').trim();
+    const isWinner = g.id === weeklyWinnerId;
 
     const card = document.createElement('div');
     card.className = 'project-card';
     card.style.animationDelay = (i * 0.03) + 's';
     card.innerHTML =
-      '<div class="thumb-wrap">' + thumbSVG(g, false) + '</div>' +
+      '<div class="thumb-wrap">' + thumbSVG(g, false) +
+        (isWinner ? '<div class="winner-chip">🏆 Game of the Week</div>' : '') +
+      '</div>' +
       '<div class="p-info">' +
         '<h3>' + escapeHtml(g.title || 'Untitled') + '</h3>' +
         '<p>' + creatorHtml + '</p>' +
@@ -1127,7 +1347,6 @@ function renderProjects(grid) {
   grid.appendChild(wrap);
 }
 
-/* ─── OFFLINE ─── */
 function renderOffline(grid) {
   const offlineMap = getOfflineGames();
   const list = Object.values(offlineMap).sort(
@@ -1160,7 +1379,6 @@ function renderOffline(grid) {
   wrap.className = 'projects-grid';
 
   filtered.forEach((g, i) => {
-    // Try to enrich creator name via profileMapGlobal if author_id known
     const profile = g.author_id ? profileMapGlobal[g.author_id] : null;
     let creatorHtml;
     if (profile && profile.username) {
@@ -1170,6 +1388,7 @@ function renderOffline(grid) {
     }
 
     const desc = (g.description || '').trim();
+    const isWinner = g.id === weeklyWinnerId;
 
     const card = document.createElement('div');
     card.className = 'project-card';
@@ -1177,7 +1396,8 @@ function renderOffline(grid) {
     card.innerHTML =
       '<div class="thumb-wrap">' +
         thumbSVG(g, false) +
-        '<div class="offline-chip">📴 Saved</div>' +
+        (isWinner ? '<div class="winner-chip offline-shift">🏆 Game of the Week</div>' :
+                    '<div class="offline-chip">📴 Saved</div>') +
         '<button class="offline-remove" data-slug="' + escapeHtml(g.slug) + '" title="Remove from offline">✕</button>' +
       '</div>' +
       '<div class="p-info">' +
@@ -1186,7 +1406,6 @@ function renderOffline(grid) {
         (desc ? '<div class="p-desc">' + escapeHtml(desc) + '</div>' : '') +
       '</div>';
 
-    // Click on card opens sheet, but ignore clicks on the remove button
     card.addEventListener('click', (e) => {
       if (e.target.closest('.offline-remove')) return;
       openSheet(g, true);
@@ -1197,7 +1416,6 @@ function renderOffline(grid) {
 
   grid.appendChild(wrap);
 
-  // Wire remove buttons
   grid.querySelectorAll('.offline-remove').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1211,7 +1429,6 @@ function renderOffline(grid) {
   });
 }
 
-/* ─── CREATORS ─── */
 function renderCreators(grid) {
   const filtered = creators.filter(matchesFilter);
 
@@ -1273,8 +1490,12 @@ function renderCreatorCard(c, idx) {
   const openClass = gameCount > 1 ? 'creator-games' : 'creator-games always-open';
   let gamesHtml = '';
   for (const g of c.games) {
+    const isWinner = g.id === weeklyWinnerId;
     gamesHtml += '<a class="game-tile" data-game-id="' + escapeHtml(g.id) + '" href="#">' +
-      thumbSVG(g, true) +
+      '<div class="thumb-wrap" style="position:relative;">' +
+        thumbSVG(g, true) +
+        (isWinner ? '<div class="winner-chip">🏆</div>' : '') +
+      '</div>' +
       '<div class="tile-name">' + escapeHtml(g.title) + '</div>' +
       '</a>';
   }
@@ -1349,42 +1570,168 @@ document.getElementById('search').addEventListener('input', (e) => {
   render();
 });
 
-async function loadFeatured() {
+async function loadWinners() {
   const now = new Date();
-  const d = (now.getUTCDay() + 6) % 7;
-  const weekStart = new Date(Date.UTC(now.getUTCFullYear(),
-    now.getUTCMonth(), now.getUTCDate() - d, 0, 0, 0)).toISOString();
+  const thisWeekStart = getWeekStart(now);
+  const lookbackStart = new Date(thisWeekStart.getTime() - WINNERS_LOOKBACK_WEEKS * 7 * 86400000);
 
-  const { data: weekLikes } = await supabase
+  const { data: likes, error } = await supabase
     .from('likes')
-    .select('game_id')
-    .gte('created_at', weekStart);
+    .select('game_id, created_at')
+    .gte('created_at', lookbackStart.toISOString());
 
-  if (!weekLikes || weekLikes.length === 0) return;
+  if (error || !likes || likes.length === 0) return;
 
-  const counts = {};
-  for (const l of weekLikes) counts[l.game_id] = (counts[l.game_id] || 0) + 1;
+  const buckets = {};
+  for (const l of likes) {
+    if (!l.created_at) continue;
+    const key = getWeekKey(new Date(l.created_at));
+    if (!buckets[key]) buckets[key] = {};
+    buckets[key][l.game_id] = (buckets[key][l.game_id] || 0) + 1;
+  }
 
-  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  if (sorted.length === 0) return;
+  const thisWeekKey = getWeekKey(now);
+  const weeks = Object.keys(buckets).sort().reverse();
 
-  const topId = sorted[0][0];
-  const top = allGames.find(g => g.id === topId);
-  if (!top) return;
+  weeklyWinners = [];
+  for (const weekKey of weeks) {
+    const counts = buckets[weekKey];
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    if (sorted.length === 0) continue;
+    const topId = sorted[0][0];
+    const topLikes = sorted[0][1];
+    const game = allGames.find(g => g.id === topId);
+    if (!game) continue;
+    weeklyWinners.push({
+      weekKey: weekKey,
+      game: game,
+      likes: topLikes,
+      isCurrent: weekKey === thisWeekKey
+    });
+  }
 
+  const current = weeklyWinners.find(w => w.isCurrent);
+  if (current) {
+    weeklyWinnerId = current.game.id;
+    weeklyWinnerLikes = current.likes;
+  }
+
+  const past = weeklyWinners.filter(w => !w.isCurrent);
+  if (past.length > 0) {
+    lastWeekWinnerId = past[0].game.id;
+  }
+
+  renderFeatured();
+  renderWinnersPanel();
+}
+
+function renderFeatured() {
   const wrap = document.getElementById('featuredWrap');
-  wrap.style.display = 'block';
-  wrap.innerHTML =
-    '<div class="featured">' +
-      '<div style="flex: 1; min-width: 160px;">' +
-        '<div class="featured-tag"><span>🏆</span><span>Game of the Week</span></div>' +
-        '<h2 class="featured-title">' + escapeHtml(top.title) + '</h2>' +
-        '<p class="featured-sub">♥ ' + counts[topId] + '</p>' +
-      '</div>' +
-      '<div class="featured-play" data-game-id="' + escapeHtml(top.id) + '">▶ Play</div>' +
-    '</div>';
+  if (!wrap) return;
 
-  wrap.querySelector('.featured-play').addEventListener('click', () => openSheet(top));
+  const current = weeklyWinners.find(w => w.isCurrent);
+  const past = weeklyWinners.filter(w => !w.isCurrent);
+  const lastWeek = past[0];
+
+  if (!current && !lastWeek) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  wrap.style.display = 'block';
+
+  let html = '<div class="featured-grid">';
+
+  if (current) {
+    html +=
+      '<div class="featured">' +
+        '<div style="flex: 1; min-width: 120px;">' +
+          '<div class="featured-tag"><span>🏆</span><span>Game of the Week</span></div>' +
+          '<h2 class="featured-title">' + escapeHtml(current.game.title) + '</h2>' +
+          '<p class="featured-sub">♥ ' + current.likes + ' this week</p>' +
+        '</div>' +
+        '<div class="featured-play" data-game-id="' + escapeHtml(current.game.id) + '">▶ Play</div>' +
+      '</div>';
+  }
+
+  if (lastWeek) {
+    html +=
+      '<div class="featured past">' +
+        '<div style="flex: 1; min-width: 120px;">' +
+          '<div class="featured-tag"><span>🥇</span><span>Last Week\'s Winner</span></div>' +
+          '<h2 class="featured-title">' + escapeHtml(lastWeek.game.title) + '</h2>' +
+          '<p class="featured-sub">♥ ' + lastWeek.likes + ' · ' + formatWeekLabel(lastWeek.weekKey) + '</p>' +
+        '</div>' +
+        '<div class="featured-play" data-game-id="' + escapeHtml(lastWeek.game.id) + '">▶ Play</div>' +
+      '</div>';
+  }
+
+  html += '</div>';
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('.featured-play').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const game = allGames.find(g => g.id === btn.dataset.gameId);
+      if (game) openSheet(game);
+    });
+  });
+}
+
+function renderWinnersPanel() {
+  const bar = document.getElementById('winnersBar');
+  const list = document.getElementById('winnersList');
+  const sub = document.getElementById('winnersBarSub');
+  if (!bar || !list) return;
+
+  const past = weeklyWinners.filter(w => !w.isCurrent);
+  if (past.length === 0) {
+    bar.style.display = 'none';
+    return;
+  }
+
+  bar.style.display = 'block';
+  if (sub) {
+    sub.textContent = past.length === 1
+      ? '1 past winner'
+      : past.length + ' past winners';
+  }
+
+  list.innerHTML = past.map(w => {
+    const profile = w.game.author_id ? profileMapGlobal[w.game.author_id] : null;
+    const creatorName = profile && profile.username
+      ? '@' + profile.username
+      : '@' + (w.game.author_name || 'anonymous').split('@')[0];
+    return '<div class="winner-row" data-game-id="' + escapeHtml(w.game.id) + '">' +
+      '<div class="winner-row-thumb">' + thumbSVG(w.game, true) + '</div>' +
+      '<div class="winner-row-info">' +
+        '<h4>' + escapeHtml(w.game.title) + '</h4>' +
+        '<p>' + escapeHtml(creatorName) + ' · ♥ ' + w.likes + '</p>' +
+      '</div>' +
+      '<div class="winner-row-week">' + formatWeekLabel(w.weekKey) + '</div>' +
+    '</div>';
+  }).join('');
+
+  list.querySelectorAll('.winner-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const game = allGames.find(g => g.id === row.dataset.gameId);
+      if (game) openSheet(game);
+    });
+  });
+}
+
+const winnersBarInner = document.getElementById('winnersBarInner');
+const winnersPanel = document.getElementById('winnersPanel');
+if (winnersBarInner && winnersPanel) {
+  winnersBarInner.addEventListener('click', () => {
+    const isOpen = winnersPanel.classList.contains('open');
+    if (isOpen) {
+      winnersPanel.classList.remove('open');
+      winnersBarInner.classList.remove('open');
+    } else {
+      winnersPanel.classList.add('open');
+      winnersBarInner.classList.add('open');
+    }
+  });
 }
 
 function hashString(str) {
@@ -1644,7 +1991,17 @@ let currentSheetSlug = null;
 function openSheet(game, isOfflineView) {
   currentSheetSlug = game.slug || null;
 
-  sheetHero.innerHTML = thumbSVG(game, false);
+  const isCurrent = game.id === weeklyWinnerId;
+  const isLast = game.id === lastWeekWinnerId;
+
+  let heroBadge = '';
+  if (isCurrent) {
+    heroBadge = '<div class="winner-chip" style="top:14px;left:14px;">🏆 Game of the Week</div>';
+  } else if (isLast) {
+    heroBadge = '<div class="winner-chip" style="top:14px;left:14px;background:linear-gradient(135deg,#fbbf24,#b45309);">🥇 Last Week\'s Winner</div>';
+  }
+
+  sheetHero.innerHTML = thumbSVG(game, false) + heroBadge;
 
   sheetTitle.textContent = game.title || 'Untitled';
 
@@ -1676,19 +2033,29 @@ function openSheet(game, isOfflineView) {
     sheetDesc.classList.add('empty');
   }
 
+  let statsHtml = '';
+  if (isCurrent) {
+    statsHtml += '<div class="stat-pill" style="border-color:rgba(251,191,36,0.55);background:rgba(251,191,36,0.1);color:#fbbf24;">🏆 <strong style="color:#fbbf24;">Game of the Week</strong> · ♥ ' + weeklyWinnerLikes + '</div>';
+  }
+  if (isLast) {
+    const lw = weeklyWinners.find(w => !w.isCurrent);
+    if (lw) {
+      statsHtml += '<div class="stat-pill" style="border-color:rgba(251,191,36,0.55);background:rgba(251,191,36,0.1);color:#fbbf24;">🥇 <strong style="color:#fbbf24;">Last Week\'s Winner</strong> · ♥ ' + lw.likes + '</div>';
+    }
+  }
   if (isOfflineView) {
-    sheetStats.innerHTML =
+    statsHtml +=
       '<div class="stat-pill">📴 <strong>Offline ready</strong></div>' +
       '<div class="stat-pill">🎮 <strong>' + detectTemplate(game) + '</strong></div>';
   } else {
-    sheetStats.innerHTML =
+    statsHtml +=
       '<div class="stat-pill">🎮 <strong>' + detectTemplate(game) + '</strong></div>' +
       '<div class="stat-pill">📅 <strong>' + formatDate(game.created_at) + '</strong></div>';
   }
+  sheetStats.innerHTML = statsHtml;
 
   sheetPlay.href = '/arcade/game.html?slug=' + encodeURIComponent(game.slug);
 
-  // Show the Remove button only in offline view
   if (isOfflineView) {
     sheetRemove.style.display = 'inline-block';
   } else {
@@ -1735,7 +2102,6 @@ function escapeHtml(s) {
   })[c]);
 }
 
-// Keep the offline badge in sync if the user opens another tab and saves/removes games
 window.addEventListener('storage', (e) => {
   if (e.key === OFFLINE_GAMES_KEY) {
     refreshOfflineBadge();
