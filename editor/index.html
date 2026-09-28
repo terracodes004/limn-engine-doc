@@ -2074,72 +2074,17 @@ function update(dt) {
         var closeBtn = document.getElementById('sidebarClose');
         var openBtn = document.getElementById('openBtn');
 
-        function openSidebar() {
-            sidebar.classList.add('open');
-            backdrop.classList.add('open');
-            document.body.classList.add('sidebar-open');
-            renderFileList();
-        }
-        function closeSidebar() {
-            sidebar.classList.remove('open');
-            backdrop.classList.remove('open');
-            document.body.classList.remove('sidebar-open');
-        }
-
-        if (openBtn) openBtn.addEventListener('click', openSidebar);
-        if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
-        if (backdrop) backdrop.addEventListener('click', closeSidebar);
-
-        var newBtn = document.getElementById('sidebarNew');
-        if (newBtn) newBtn.addEventListener('click', function () {
-            if (confirm('Create a new file? Unsaved changes will be lost.')) {
-                var ta = document.getElementById('js');
-                if (ta) ta.value = '';
-                var t = document.getElementById('title');
-                if (t) t.textContent = '*Untitled*';
-                if (window.__renderCode) window.__renderCode();
-                if (window.__resetHistory) window.__resetHistory();
-                closeSidebar();
-            }
-        });
-
-        var openFileBtn = document.getElementById('sidebarOpenFile');
-        if (openFileBtn) openFileBtn.addEventListener('click', function () {
-            if (confirm('Open a file from your device? Unsaved changes will be lost.')) {
-                inp.click();
-                inp.onchange = function (e) {
-                    var file = e.target.files[0];
-                    if (!file) return;
-                    var reader = new FileReader();
-                    reader.readAsText(file, 'UTF-8');
-                    reader.onload = function (ev) {
-                        var content = ev.target.result;
-                        var ta = document.getElementById('js');
-                        if (ta) ta.value = content;
-                        var t = document.getElementById('title');
-                        if (t) t.textContent = file.name;
-                        if (window.__renderCode) window.__renderCode();
-                        if (window.__resetHistory) window.__resetHistory();
-                        closeSidebar();
-                        window.toast('Opened ' + file.name, 'success');
-                    };
-                };
-            }
-        });
-
-        /* ============================================================
-           attachTap — fires the handler on a genuine tap, ignores scrolls.
-
+        /* attachTap — fires the handler on a genuine tap, ignores scrolls.
            On mobile, browsers frequently cancel `click` and even `pointerup`
            when they decide a gesture *might* be a scroll. This tracks the
            touch directly: if the finger didn't drift more than 12px and the
-           gesture finished within 600ms, we run the handler.
-           ============================================================ */
+           gesture finished within 600ms, we run the handler. */
         var __hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
         var __TAP_MOVE_LIMIT = 12;
         var __TAP_TIME_LIMIT = 600;
 
         function attachTap(el, handler) {
+            if (!el) return;
             if (!__hasTouch) {
                 el.addEventListener('click', handler);
                 return;
@@ -2166,6 +2111,59 @@ function update(dt) {
                 }
             }, { passive: false });
         }
+
+        function openSidebar() {
+            sidebar.classList.add('open');
+            backdrop.classList.add('open');
+            document.body.classList.add('sidebar-open');
+            renderFileList();
+        }
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            backdrop.classList.remove('open');
+            document.body.classList.remove('sidebar-open');
+        }
+
+        attachTap(openBtn, openSidebar);
+        attachTap(closeBtn, closeSidebar);
+        if (backdrop) backdrop.addEventListener('click', closeSidebar);
+
+        var newBtn = document.getElementById('sidebarNew');
+        attachTap(newBtn, function () {
+            if (confirm('Create a new file? Unsaved changes will be lost.')) {
+                var ta = document.getElementById('js');
+                if (ta) ta.value = '';
+                var t = document.getElementById('title');
+                if (t) t.textContent = '*Untitled*';
+                if (window.__renderCode) window.__renderCode();
+                if (window.__resetHistory) window.__resetHistory();
+                closeSidebar();
+            }
+        });
+
+        var openFileBtn = document.getElementById('sidebarOpenFile');
+        attachTap(openFileBtn, function () {
+            if (confirm('Open a file from your device? Unsaved changes will be lost.')) {
+                inp.click();
+                inp.onchange = function (e) {
+                    var file = e.target.files[0];
+                    if (!file) return;
+                    var reader = new FileReader();
+                    reader.readAsText(file, 'UTF-8');
+                    reader.onload = function (ev) {
+                        var content = ev.target.result;
+                        var ta = document.getElementById('js');
+                        if (ta) ta.value = content;
+                        var t = document.getElementById('title');
+                        if (t) t.textContent = file.name;
+                        if (window.__renderCode) window.__renderCode();
+                        if (window.__resetHistory) window.__resetHistory();
+                        closeSidebar();
+                        window.toast('Opened ' + file.name, 'success');
+                    };
+                };
+            }
+        });
 
         function renderFileList() {
             var list = document.getElementById('fileList');
