@@ -4,6 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Playing — Arcade</title>
+<meta name="description" content="Play games made by the Limn Engine community — no install, no downloads, just hit play.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Limn Arcade">
+<meta property="og:title" content="Playing — Limn Arcade">
+<meta property="og:description" content="Play games made by the Limn Engine community.">
+<meta property="og:image" content="https://limn-engine-doc.vercel.app/editor/logo.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Playing — Limn Arcade">
+<meta name="twitter:description" content="Play games made by the Limn Engine community.">
+<meta name="twitter:image" content="https://limn-engine-doc.vercel.app/editor/logo.png">
+<link rel="canonical" href="https://limn-engine-doc.vercel.app/arcade/">
 <style>
   :root {
     --bg: #05060c;
@@ -39,7 +50,7 @@
   }
   @keyframes spin {
     from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    to   { transform: rotate(360deg); }
   }
   @keyframes pop {
     0% { transform: scale(1); }
@@ -712,7 +723,12 @@ window.addEventListener('unhandledrejection', (e) => {
 
 log('Script started');
 
-// ─── OFFLINE STORAGE ───
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch((e) => {
+    log('Service worker registration failed: ' + e.message, true);
+  });
+}
+
 const OFFLINE_GAMES_KEY = 'limn_arcade_offline_games_v1';
 
 function getOfflineGames() {
@@ -729,7 +745,6 @@ function hasOfflineCopy(slug) {
   return !!games[slug];
 }
 
-// ─── SUPABASE ───
 const supabase = createClient(
   'https://pjtpesdhjfvcidfkxord.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38'
@@ -745,17 +760,14 @@ let currentGameData = null;
 let isLoadingFromCache = false;
 let zoomLevel = 1;
 
-// ─── PHONE DETECTION ───
 function isPhone() {
   const ua = navigator.userAgent || '';
   const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
   const narrowScreen = window.innerWidth <= 900;
   const touchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-  // Phone if mobile user agent, OR narrow screen + touch (catches most phones + landscape phones)
   return mobileUA || (narrowScreen && touchDevice);
 }
 
-// Apply the default phone zoom early so the label is correct before the iframe loads
 if (isPhone()) {
   zoomLevel = 0.5;
 }
@@ -790,7 +802,6 @@ function toast(msg, isError) {
   }, 2600);
 }
 
-// ─── BOOT ───
 async function boot() {
   log('boot() called with slug=' + slug);
 
@@ -818,7 +829,6 @@ async function boot() {
       '\n\nGo back online, open this game, and tap "Make Offline" to save it.</div>';
     return;
   } else {
-    // Online — try network
     try {
       log('Fetching game from Supabase...');
       const result = await withTimeout(
@@ -863,7 +873,6 @@ async function boot() {
     return;
   }
 
-  // Update cached copy when we successfully fetched and it was already cached
   if (!fromCache && cached) {
     try {
       const games = getOfflineGames();
@@ -900,11 +909,30 @@ function buildCacheEntry(data) {
 function applyGameData(data, fromCache) {
   currentGameId = data.id || null;
 
-  document.title = data.title + ' — Arcade';
+  document.title = data.title + ' — Limn Arcade';
+
+  const descText = (data.description || '').trim() ||
+    (data.title + ' — a game made with Limn Engine.');
+
+  const setMeta = (selector, content) => {
+    const el = document.querySelector(selector);
+    if (el) el.setAttribute('content', content);
+  };
+
+  setMeta('meta[name="description"]', descText);
+  setMeta('meta[property="og:title"]', data.title + ' — Limn Arcade');
+  setMeta('meta[property="og:description"]', descText);
+  setMeta('meta[name="twitter:title"]', data.title + ' — Limn Arcade');
+  setMeta('meta[name="twitter:description"]', descText);
+
+  const canonical = 'https://limn-engine-doc.vercel.app/arcade/game.html?slug=' +
+    encodeURIComponent(data.slug);
+  const link = document.querySelector('link[rel="canonical"]');
+  if (link) link.setAttribute('href', canonical);
+
   document.getElementById('title').textContent = data.title;
   document.getElementById('side').style.display = 'flex';
 
-  // Offline badge
   const badge = document.getElementById('offlineBadge');
   if (fromCache) {
     badge.classList.add('on');
@@ -923,8 +951,7 @@ function applyGameData(data, fromCache) {
   log('Rendering author...');
   renderAuthor(data);
 
-  // Update plays + load social only when online
-  if (!fromCache && !navigator.onLine === false) {
+  if (!fromCache && navigator.onLine) {
     supabase.from('games').update({ plays: (data.plays || 0) + 1 })
       .eq('id', data.id).then(() => {}).catch(() => {});
 
@@ -939,8 +966,7 @@ function applyGameData(data, fromCache) {
     }).catch((e) => {
       log('Session load failed: ' + e.message, true);
     });
-  } else if (fromCache) {
-    // Offline — show a message in comments area
+  } else if (fromCache && !navigator.onLine) {
     log('Offline mode: skipping likes/comments');
     const box = document.getElementById('comments');
     if (box) box.innerHTML = '<div class="empty-comments">Comments are unavailable offline</div>';
@@ -951,7 +977,6 @@ function applyGameData(data, fromCache) {
     const likeBtn = document.getElementById('likeBtn');
     if (likeBtn) likeBtn.disabled = true;
   } else {
-    // Online but social failed silently — still try
     loadLikes(data.id);
     loadComments(data.id);
   }
@@ -963,7 +988,6 @@ function applyGameData(data, fromCache) {
   log('boot() finished');
 }
 
-// ─── RENDER GAME ───
 function renderGame(data) {
   const userCode = data.code || '';
   const safeUserCode = userCode.replace(/<\/script>/gi, '<\\/script>');
@@ -994,7 +1018,6 @@ function renderGame(data) {
   stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" allowfullscreen id="gameFrame"></iframe>';
   const frame = document.getElementById('gameFrame');
 
-  // Re-apply zoom whenever the iframe finishes loading
   frame.addEventListener('load', () => {
     setTimeout(applyZoom, 60);
   });
@@ -1015,12 +1038,10 @@ window.addEventListener('message', (e) => {
   }
 });
 
-// ─── ZOOM (uses body.style.zoom inside iframe) ───
 function applyZoom() {
   const frame = document.getElementById('gameFrame');
   if (!frame) return;
 
-  // Prefer zooming the iframe's BODY — resizes the game canvas correctly
   try {
     const doc = frame.contentDocument;
     if (doc && doc.body) {
@@ -1029,10 +1050,8 @@ function applyZoom() {
       return;
     }
   } catch (e) {
-    // cross-origin fallback below
   }
 
-  // Fallback: zoom the iframe element itself
   frame.style.zoom = zoomLevel;
   updateZoomLabel();
 }
@@ -1042,7 +1061,6 @@ function updateZoomLabel() {
   if (el) el.textContent = Math.round(zoomLevel * 100) + '%';
 }
 
-// ─── AUTHOR ───
 async function renderAuthor(data) {
   let creatorUsername = null;
   let creatorLabel = 'anonymous';
@@ -1079,7 +1097,6 @@ async function renderAuthor(data) {
   }
 }
 
-// ─── SIGN-IN PROMPT ───
 function showSignInPrompt() {
   const existing = document.getElementById('signin-modal');
   if (existing) existing.remove();
@@ -1113,7 +1130,6 @@ function showSignInPrompt() {
   });
 }
 
-// ─── OFFLINE TOGGLE ───
 function updateOfflineBtnState() {
   const btn = document.getElementById('offlineBtn');
   if (!btn) return;
@@ -1135,22 +1151,18 @@ function toggleOffline() {
   const games = getOfflineGames();
 
   if (games[slug]) {
-    // Remove
     delete games[slug];
     saveOfflineGames(games);
     updateOfflineBtnState();
     toast('Removed from offline storage');
     log('Removed ' + slug + ' from offline cache');
   } else {
-    // Add
     games[slug] = buildCacheEntry(currentGameData);
     saveOfflineGames(games);
     updateOfflineBtnState();
     toast('Saved! You can now play this offline.');
     log('Saved ' + slug + ' to offline cache');
 
-    // Bonus: if online, also warm the HTTP cache for the engine file so
-    // the iframe can load it while offline.
     try {
       const version = (currentGameData.engine_version || 'v4').toLowerCase();
       const engineFile = version.includes('v2') ? 'tcjsgame-v2.js'
@@ -1161,7 +1173,6 @@ function toggleOffline() {
   }
 }
 
-// ─── WIRE BUTTONS ───
 function wireButtons(data) {
   document.getElementById('shareBtn').onclick = async () => {
     const url = location.origin + '/arcade/game.html?slug=' + slug;
@@ -1244,7 +1255,6 @@ function wireButtons(data) {
   document.getElementById('likeBtn').onclick = () => toggleLike();
 }
 
-// ─── LIKE / COMMENT ───
 async function toggleLike() {
   if (!navigator.onLine) { toast('You are offline', true); return; }
   const { data: { session } } = await supabase.auth.getSession();
@@ -1437,16 +1447,26 @@ function timeAgo(iso) {
   return Math.floor(s/86400) + 'd ago';
 }
 
-// ─── APPLY INITIAL ZOOM LABEL ───
 updateZoomLabel();
 if (isPhone()) {
   log('Phone detected — default zoom set to 50%');
 }
 
-// ─── ONLINE/OFFLINE EVENTS ───
 window.addEventListener('online', () => {
   log('Browser is online');
   toast('Back online');
+  if (currentGameData && currentGameId) {
+    const input = document.getElementById('commentInput');
+    if (input) { input.disabled = false; input.placeholder = 'Add a comment...'; }
+    const sendBtn = document.getElementById('commentSubmit');
+    if (sendBtn) sendBtn.disabled = false;
+    const likeBtn = document.getElementById('likeBtn');
+    if (likeBtn) likeBtn.disabled = false;
+    loadLikes(currentGameId, currentUserId);
+    loadComments(currentGameId);
+    const badge = document.getElementById('offlineBadge');
+    if (badge) badge.classList.remove('on');
+  }
 });
 window.addEventListener('offline', () => {
   log('Browser is offline');
