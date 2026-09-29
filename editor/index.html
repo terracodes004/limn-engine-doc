@@ -91,31 +91,71 @@
             position: fixed;
             inset: 0;
             z-index: 9000;
+            overflow: hidden;
         }
-        dialog::backdrop { background: rgba(0,0,0,0.95); }
+        dialog::backdrop { background: #000; }
         dialog > button.dialog-close {
             position: absolute; top: 16px; left: 16px; z-index: 9500;
             width: 40px; height: 40px; padding: 0;
-            background: rgba(255,255,255,0.08);
+            background: rgba(24,27,38,0.95);
             color: #fff;
             border: 1px solid rgba(255,255,255,0.15);
             border-radius: 12px;
             cursor: pointer;
             font-size: 17px;
-            backdrop-filter: blur(12px);
+            display: flex; align-items: center; justify-content: center;
         }
         dialog > button.dialog-close:hover { background: rgba(255,255,255,0.16); }
-        iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
+
+        .dialog-stage {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #000;
+        }
+        .dialog-frame-wrap {
+            width: 100%;
+            height: 100%;
+            transform-origin: center center;
+            transition: transform 0.15s ease;
+            will-change: transform;
+        }
+        .dialog-frame-wrap iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+            background: #000;
+        }
 
         .dialog-controls {
             position: absolute;
             bottom: 24px; right: 24px;
             display: flex; gap: 10px;
             z-index: 9500;
+            align-items: center;
         }
+        .dialog-zoom-display {
+            padding: 0 14px;
+            height: 44px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(24,27,38,0.95);
+            color: var(--text-0);
+            border: 1px solid var(--border-2);
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: "JetBrains Mono", monospace;
+            min-width: 76px;
+            cursor: pointer;
+        }
+        .dialog-zoom-display:hover { background: var(--bg-4); }
         .dialog-controls button {
             width: 44px; height: 44px; padding: 0;
-            background: rgba(24,27,38,0.9);
+            background: rgba(24,27,38,0.95);
             color: var(--text-0);
             border: 1px solid var(--border-2);
             border-radius: 12px;
@@ -123,7 +163,6 @@
             font-size: 20px; font-weight: 600; line-height: 1;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            backdrop-filter: blur(12px);
         }
         .dialog-controls button:hover { background: var(--bg-4); border-color: var(--border-3); }
         .dialog-controls button:active { transform: scale(0.94); }
@@ -300,7 +339,7 @@
             max-width: 1560px;
             width: 100%;
             margin: 0 auto;
-            padding: 24px 24px 120px;
+            padding: 24px 24px 160px;
         }
 
         .tabs {
@@ -383,6 +422,90 @@
             font-size: 11.5px; color: var(--text-1); font-weight: 500;
         }
 
+        .assets-panel { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .asset-card {
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px 24px;
+        }
+        .asset-card-head {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 6px;
+        }
+        .asset-card-icon {
+            width: 38px; height: 38px;
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, rgba(110,168,254,0.2), rgba(163,113,247,0.2));
+            border: 1px solid rgba(110,168,254,0.3);
+        }
+        .asset-card-icon.css {
+            background: linear-gradient(135deg, rgba(34,211,238,0.2), rgba(110,168,254,0.2));
+            border-color: rgba(34,211,238,0.3);
+        }
+        .asset-card-icon.scripts {
+            background: linear-gradient(135deg, rgba(251,191,36,0.2), rgba(236,72,153,0.2));
+            border-color: rgba(251,191,36,0.3);
+        }
+        .asset-card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-0);
+            margin: 0;
+        }
+        .asset-card-desc {
+            font-size: 12px;
+            color: var(--text-2);
+            margin: 4px 0 14px 50px;
+            line-height: 1.55;
+        }
+        .asset-card textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-0);
+            border: 1px solid var(--border-2);
+            border-radius: var(--radius);
+            color: var(--text-0);
+            font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+            font-size: 12.5px;
+            line-height: 1.6;
+            resize: vertical;
+            min-height: 100px;
+            outline: none;
+        }
+        .asset-card textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(110,168,254,0.15);
+        }
+        .asset-card textarea::placeholder { color: var(--text-3); }
+        .asset-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+        .asset-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 11.5px;
+            color: var(--text-2);
+            line-height: 1.5;
+        }
+        .asset-hint code {
+            background: var(--bg-3);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 11px;
+            color: var(--text-1);
+        }
+
         .section-title {
             font-size: 11px;
             color: var(--text-1);
@@ -419,19 +542,24 @@
             font-size: 14px;
             font-family: inherit; font-weight: 500;
             cursor: pointer; text-align: left; position: relative;
+            line-height: 1.4;
         }
         .custom-select-trigger:hover { border-color: var(--border-3); }
         .custom-select-trigger::after {
             content: "";
             position: absolute;
-            right: 16px; top: 50%;
-            width: 9px; height: 9px;
+            right: 18px;
+            top: 50%;
+            width: 8px; height: 8px;
             border-right: 2px solid var(--text-1);
             border-bottom: 2px solid var(--text-1);
-            transform: translateY(-70%) rotate(45deg);
+            transform: translateY(-65%) rotate(45deg);
+            transform-origin: center center;
             transition: transform 0.2s;
         }
-        .custom-select.open .custom-select-trigger::after { transform: translateY(-30%) rotate(-135deg); }
+        .custom-select.open .custom-select-trigger::after {
+            transform: translateY(-35%) rotate(-135deg);
+        }
         .custom-select.open .custom-select-trigger {
             border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(110,168,254,0.15);
@@ -459,6 +587,7 @@
             color: var(--text-0); text-align: left;
             font-size: 13.5px; font-family: inherit;
             border-radius: 8px; cursor: pointer;
+            line-height: 1.4;
         }
         .custom-select-option:hover { background: var(--bg-3); }
         .custom-select-option.selected {
@@ -658,6 +787,7 @@
         }
 
         .editor-scroll { position: relative; flex: 1; overflow: hidden; }
+
         .highlight-layer,
         .code-input {
             position: absolute;
@@ -672,9 +802,13 @@
             tab-size: 4;
             box-sizing: border-box;
             width: 100%;
-            height: 100%;
+            min-height: 100%;
             overflow: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
+        .highlight-layer::-webkit-scrollbar,
+        .code-input::-webkit-scrollbar { display: none; }
         .highlight-layer {
             pointer-events: none;
             z-index: 1;
@@ -801,6 +935,8 @@
             color: var(--text-1); font-size: 18px;
             cursor: pointer; padding: 6px 10px;
             border-radius: 8px;
+            min-width: 36px; min-height: 36px;
+            touch-action: manipulation;
         }
         .sidebar-close:hover { color: var(--text-0); background: var(--bg-3); }
         .sidebar-body { flex: 1; overflow-y: auto; padding: 18px 20px; }
@@ -814,6 +950,9 @@
             font-size: 13.5px; font-family: inherit;
             cursor: pointer; margin-bottom: 10px;
             text-align: left; transition: all 0.15s;
+            min-height: 48px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         .sidebar-action:hover { background: var(--bg-3); border-color: var(--border-3); transform: translateX(2px); }
         .sidebar-action .icon {
@@ -833,28 +972,36 @@
         .sidebar-section::after { content: ""; flex: 1; height: 1px; background: var(--border); }
         .sidebar-file {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 14px;
             background: var(--bg-2);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             margin-bottom: 8px;
+            overflow: hidden;
+            min-height: 52px;
         }
         .sidebar-file:hover { border-color: var(--border-2); background: var(--bg-3); }
-        .sidebar-file > button {
+        .sidebar-file > button.file-open {
             background: transparent; border: none;
             color: var(--text-0); cursor: pointer;
             font-size: 13px; font-family: inherit;
-            text-align: left; padding: 0; flex: 1;
+            text-align: left; padding: 14px 16px; flex: 1;
             display: flex; align-items: center; gap: 10px;
             overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            min-height: 52px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
-        .sidebar-file > button:hover { color: var(--accent); }
-        .sidebar-file > button::before { content: "📄"; font-size: 14px; flex-shrink: 0; }
-        .sidebar-file-actions { display: flex; gap: 4px; }
+        .sidebar-file > button.file-open:hover { color: var(--accent); background: rgba(110,168,254,0.06); }
+        .sidebar-file > button.file-open::before { content: "📄"; font-size: 14px; flex-shrink: 0; }
+        .sidebar-file-actions { display: flex; gap: 2px; padding-right: 6px; }
         .sidebar-file-actions button {
             background: transparent; border: none;
-            padding: 5px 8px; color: var(--text-1);
-            cursor: pointer; border-radius: 6px; font-size: 13px;
+            padding: 8px; color: var(--text-1);
+            cursor: pointer; border-radius: 6px; font-size: 15px;
+            min-width: 40px; min-height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         .sidebar-file-actions button:hover { color: var(--text-0); background: var(--bg-4); }
         .sidebar-empty {
@@ -977,8 +1124,6 @@
             border-left: 1px solid #334155;
             white-space: pre-wrap;
         }
-        .log-stack .stack-loc { color: #64748b; }
-        .log-stack .stack-fn  { color: #fbbf24; }
 
         .console-input-row {
             display: flex;
@@ -1030,46 +1175,95 @@
             box-shadow: 0 8px 32px rgba(124,58,237,0.5);
             transition: transform 0.2s;
             display: flex; align-items: center; justify-content: center;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         .fab-toggle:hover { transform: scale(1.05); }
         .fab.open .fab-toggle { transform: rotate(45deg); }
+
         .fab-menu {
-            display: flex;
-            gap: 6px;
+            position: absolute;
+            bottom: 68px;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px) scale(0.96);
+            width: 280px;
+            max-height: 70vh;
+            overflow-y: auto;
             padding: 8px;
-            background: rgba(18,20,29,0.95);
+            background: rgba(18,20,29,0.98);
             border: 1px solid var(--border-2);
-            border-radius: 18px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
             opacity: 0;
             pointer-events: none;
-            transform: translateY(10px) scale(0.95);
             transition: opacity 0.2s, transform 0.2s;
-            flex-wrap: wrap;
-            max-width: 92vw;
-            justify-content: center;
         }
         .fab.open .fab-menu {
             opacity: 1;
             pointer-events: auto;
-            transform: translateY(0) scale(1);
+            transform: translateX(-50%) translateY(0) scale(1);
         }
-        .fab-menu button {
-            width: 44px; height: 44px;
-            padding: 0;
+        .fab-menu-group-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--text-2);
+            padding: 10px 12px 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .fab-menu-group-label::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .fab-menu-group-label:first-child { padding-top: 4px; }
+        .fab-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 11px 12px;
             background: transparent;
-            color: var(--text-1);
-            border: 1px solid transparent;
-            border-radius: 12px;
+            border: none;
+            color: var(--text-0);
+            font-size: 13.5px;
+            font-family: inherit;
+            text-align: left;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 18px;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.15s;
+            transition: background 0.12s;
+            min-height: 44px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
-        .fab-menu button:hover { color: var(--text-0); background: var(--bg-3); }
-        .fab-menu button:active { transform: scale(0.9); }
-        .fab-menu button.active { color: var(--accent); background: rgba(110,168,254,0.15); }
+        .fab-menu-item:hover { background: var(--bg-3); }
+        .fab-menu-item:active { transform: scale(0.98); }
+        .fab-menu-item .fi-icon {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            flex-shrink: 0;
+            border-radius: 7px;
+            background: rgba(110,168,254,0.1);
+        }
+        .fab-menu-item .fi-label { flex: 1; }
+        .fab-menu-item .fi-shortcut {
+            font-size: 10.5px;
+            color: var(--text-2);
+            font-family: "JetBrains Mono", monospace;
+            padding: 2px 6px;
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+        .fab-menu-item.active { background: rgba(110,168,254,0.15); color: var(--accent); }
 
         .palette-backdrop {
             position: fixed; inset: 0;
@@ -1140,6 +1334,7 @@
             background: var(--bg-2);
             border-bottom: 1px solid var(--border);
             font-size: 13px;
+            flex-wrap: wrap;
         }
         .find-bar.open { display: flex; }
         .find-bar input {
@@ -1168,6 +1363,9 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 12px;
+            min-width: 36px;
+            min-height: 36px;
+            touch-action: manipulation;
         }
         .find-bar button:hover { background: var(--bg-4); }
 
@@ -1232,13 +1430,9 @@
             filter: none !important;
         }
 
-        body.game-open .fab-menu,
-        body.game-open .dropdown-content,
-        body.game-open .palette,
-        body.game-open .palette-backdrop,
-        body.game-open .sidebar-backdrop {
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
+        body.game-open::before,
+        body.game-open::after {
+            display: none !important;
         }
 
         @media (max-width: 900px) {
@@ -1257,7 +1451,7 @@
 
         @media (max-width: 900px) {
             .main {
-                padding: 0 0 100px;
+                padding: 0 0 140px;
                 max-width: 100vw;
             }
             .tabs {
@@ -1304,18 +1498,11 @@
             .console-section details { margin: 0 16px; }
             .palette { top: 5vh; max-height: 75vh; width: 94vw; }
             .palette-list { max-height: 55vh; }
-            .fab-menu {
-                max-width: 94vw;
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                overflow-y: hidden;
-                scrollbar-width: none;
-            }
-            .fab-menu::-webkit-scrollbar { height: 0; }
-            .fab-menu button { flex-shrink: 0; }
             .dropdown-content { min-width: 220px; }
-            .toast-container { bottom: 100px; right: 12px; left: 12px; }
+            .toast-container { bottom: 160px; right: 12px; left: 12px; }
             .toast { max-width: none; }
+            .asset-card { border-radius: 0; border-left: 0; border-right: 0; padding: 18px 16px; }
+            .asset-card-desc { margin-left: 0; }
         }
 
         @media (max-width: 640px) {
@@ -1340,7 +1527,7 @@
             .dropdown-content { min-width: 200px; }
             .field input[type="text"], .field input[type="number"], .field textarea { padding: 10px 12px; font-size: 13px; }
             .custom-select-trigger { padding: 11px 40px 11px 14px; font-size: 13px; }
-            .tab { padding: 8px 16px; font-size: 12px; }
+            .tab { padding: 8px 14px; font-size: 12px; }
             .code-filename { font-size: 11.5px; padding: 4px 10px; }
             #codeStats { display: none; }
             .gutter { flex: 0 0 44px; }
@@ -1350,10 +1537,9 @@
             .gutter-line { height: 19px; line-height: 19px; }
             .toast { font-size: 12px; padding: 10px 14px; }
             .fab-toggle { width: 48px; height: 48px; font-size: 22px; }
-            .fab-menu button { width: 40px; height: 40px; font-size: 16px; }
+            .fab-menu { width: 92vw; max-width: 360px; bottom: 60px; }
             .sidebar-header { padding: 16px 18px; }
             .sidebar-body { padding: 14px 16px; }
-            .sidebar-file { padding: 10px 12px; }
             .sidebar-close { padding: 4px 8px; }
             .find-bar { flex-wrap: wrap; }
             .find-bar input { min-width: 0; flex: 1; }
@@ -1363,72 +1549,22 @@
             .editor-body { height: 55vh; min-height: 240px; }
             .fab { bottom: 12px; }
         }
-        /* ============================================================
-   LIMN STUDIO — PREVIEW PERFORMANCE FIX
-   Neutralizes compositor-heavy effects while the game dialog
-   is open. Without this, backdrop-filter + fixed gradients +
-   an alpha dialog::backdrop force the GPU to re-blur the live
-   iframe every frame, tanking FPS in the preview only.
-   ============================================================ */
-
-/* 1. Fully opaque backdrop — lets the compositor skip rendering
-      and blending the parent page behind the dialog. */
-dialog::backdrop {
-    background: #000;
-}
-
-/* 2. Remove the 12px backdrop blur from every control that floats
-      over the live canvas. The blur re-samples the iframe every
-      frame; a solid panel looks nearly identical and costs nothing. */
-.dialog-controls button,
-dialog > button.dialog-close {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    background: rgba(24, 27, 38, 0.95);
-}
-
-/* 3. Kill the two full-page fixed radial gradients while the game
-      is open. They sit on <body>, outside .app, so the existing
-      `body.game-open .app *` rule never touched them. */
-body.game-open::before,
-body.game-open::after {
-    display: none !important;
-}
-
-/* 4. Belt-and-suspenders: also strip backdrop-filter from the
-      dialog controls when game-open is active, in case any future
-      rule re-introduces it. */
-body.game-open .dialog-controls button,
-body.game-open dialog > button.dialog-close {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: rgba(24, 27, 38, 0.95) !important;
-}
-
-
-/* 6. Stop the FAB menu, palette, and sidebar from animating their
-      opacity / transform while the game is open — a CSS transition
-      on a fixed-position element forces a repaint that cascades to
-      everything behind it, including the dialog backdrop. */
-body.game-open .fab-menu,
-body.game-open .palette,
-body.game-open .palette-backdrop,
-body.game-open .sidebar-backdrop,
-body.game-open .toast {
-    transition: none !important;
-    animation: none !important;
-}
     </style>
 </head>
 <body>
     <dialog id="runDialog">
-        <button class="dialog-close" onclick="closeRunDialog()" aria-label="Close preview">✕</button>
+        <button class="dialog-close" id="dialogClose" aria-label="Close preview">✕</button>
+        <div class="dialog-stage" id="dialogStage">
+            <div class="dialog-frame-wrap" id="dialogFrameWrap">
+                <iframe id="gameFrame" allowfullscreen srcdoc="<center style='padding-top:20vh;color:#8b949e;font-family:system-ui'><h1>Loading…</h1><progress></progress></center>"></iframe>
+            </div>
+        </div>
         <div class="dialog-controls" id="dialogControls">
             <button id="zoomOutBtn" type="button" title="Zoom out" aria-label="Zoom out">−</button>
+            <button class="dialog-zoom-display" id="zoomDisplay" type="button" title="Reset zoom" aria-label="Reset zoom">100%</button>
             <button id="zoomInBtn" type="button" title="Zoom in" aria-label="Zoom in">+</button>
             <button id="fsBtn" type="button" title="Fullscreen (F)" aria-label="Toggle fullscreen">⛶</button>
         </div>
-        <iframe id="gameFrame" srcdoc="<center style='padding-top:20vh;color:#8b949e;font-family:system-ui'><h1>Loading…</h1><progress></progress></center>"></iframe>
     </dialog>
 
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
@@ -1436,7 +1572,7 @@ body.game-open .toast {
     <aside class="sidebar" id="fileSidebar">
         <div class="sidebar-header">
             <h2>Workspace</h2>
-            <button class="sidebar-close" id="sidebarClose" aria-label="Close sidebar">✕</button>
+            <button class="sidebar-close" id="sidebarClose" aria-label="Close sidebar" type="button">✕</button>
         </div>
         <div class="sidebar-body">
             <button class="sidebar-action" id="sidebarNew" type="button">
@@ -1477,13 +1613,13 @@ body.game-open .toast {
                 <div class="dropdown">
                     <button class="btn" type="button">Menu ▾</button>
                     <div class="dropdown-content">
-                        <button onclick="save()">💾 Save<span class="shortcut">Ctrl+S</span></button>
-                        <button onclick="saveAs()">💾 Save As<span class="shortcut">Ctrl+Shift+S</span></button>
-                        <button onclick="shareProject()">🔗 Share</button>
+                        <button onclick="save()" type="button">💾 Save<span class="shortcut">Ctrl+S</span></button>
+                        <button onclick="saveAs()" type="button">💾 Save As<span class="shortcut">Ctrl+Shift+S</span></button>
+                        <button onclick="shareProject()" type="button">🔗 Share / Publish</button>
                         <div class="dropdown-divider"></div>
-                        <button onclick="openPalette()">⌘ Command Palette<span class="shortcut">Ctrl+K</span></button>
-                        <button onclick="openFind()">🔍 Find & Replace<span class="shortcut">Ctrl+F</span></button>
-                        <button onclick="gotoLine()">→ Go to Line<span class="shortcut">Ctrl+G</span></button>
+                        <button onclick="openPalette()" type="button">⌘ Command Palette<span class="shortcut">Ctrl+K</span></button>
+                        <button onclick="openFind()" type="button">🔍 Find & Replace<span class="shortcut">Ctrl+F</span></button>
+                        <button onclick="gotoLine()" type="button">→ Go to Line<span class="shortcut">Ctrl+G</span></button>
                         <div class="dropdown-divider"></div>
                         <a href="/reference.html">📖 Docs</a>
                     </div>
@@ -1500,6 +1636,7 @@ body.game-open .toast {
             <div class="tabs">
                 <button class="tab active" data-tab="build" type="button">⚙️ Build</button>
                 <button class="tab" data-tab="code" type="button">⌨️ Code</button>
+                <button class="tab" data-tab="assets" type="button">🔌 Assets</button>
             </div>
 
             <div id="buildPanel" class="build-panel">
@@ -1659,6 +1796,65 @@ function update(dt) {
                 </div>
             </section>
 
+            <section id="assetsSection" style="display:none">
+                <div class="assets-panel">
+                    <div class="asset-card">
+                        <div class="asset-card-head">
+                            <div class="asset-card-icon">📄</div>
+                            <h3 class="asset-card-title">Head HTML</h3>
+                        </div>
+                        <p class="asset-card-desc">
+                            Raw HTML injected inside <code>&lt;head&gt;</code>. Use this for <code>&lt;link&gt;</code>, <code>&lt;meta&gt;</code>, or any custom tags. Works in preview, published games, and downloads.
+                        </p>
+                        <textarea id="assetHead" placeholder="&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Inter&quot;&gt;
+&lt;meta name=&quot;theme-color&quot; content=&quot;#0a0a0a&quot;&gt;"></textarea>
+                        <div class="asset-hint">
+                            <span>💡</span>
+                            <span>Paste tags exactly as you'd write them in an HTML <code>&lt;head&gt;</code>.</span>
+                        </div>
+                    </div>
+
+                    <div class="asset-card">
+                        <div class="asset-card-head">
+                            <div class="asset-card-icon css">🎨</div>
+                            <h3 class="asset-card-title">Extra CSS</h3>
+                        </div>
+                        <p class="asset-card-desc">
+                            Raw CSS injected as a <code>&lt;style&gt;</code> block in the head. Applies to the whole game page — you can style the body, add background layers, or reset defaults.
+                        </p>
+                        <textarea id="assetCss" placeholder="body { background: linear-gradient(135deg, #0a0a1e, #150a2a); }
+canvas { box-shadow: 0 20px 60px rgba(110,168,254,0.3); }"></textarea>
+                        <div class="asset-hint">
+                            <span>💡</span>
+                            <span>Standard CSS. Runs <em>after</em> the engine's own styles so you can override them.</span>
+                        </div>
+                    </div>
+
+                    <div class="asset-card">
+                        <div class="asset-card-head">
+                            <div class="asset-card-icon scripts">📜</div>
+                            <h3 class="asset-card-title">External Scripts</h3>
+                        </div>
+                        <p class="asset-card-desc">
+                            One URL per line. Each becomes a <code>&lt;script src="..."&gt;</code> tag in the head, loaded <em>before</em> the engine. Use this for libraries like Three.js, Matter.js, or your own CDN bundles.
+                        </p>
+                        <textarea id="assetScripts" placeholder="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js
+https://cdn.example.com/my-library.js"></textarea>
+                        <div class="asset-hint">
+                            <span>💡</span>
+                            <span>Loads synchronously before the engine. If a script fails to load, the game will show an error in the console.</span>
+                        </div>
+                    </div>
+
+                    <div class="asset-actions">
+                        <button class="btn" type="button" id="assetTest">▶ Test in preview</button>
+                        <button class="btn" type="button" id="assetClear">🗑 Clear all assets</button>
+                        <span style="flex:1"></span>
+                        <span style="font-size:12px;color:var(--text-2);align-self:center">Changes apply on next Run or Save.</span>
+                    </div>
+                </div>
+            </section>
+
             <div class="console-section">
                 <details id="consoleDetails">
                     <summary>Console</summary>
@@ -1685,18 +1881,113 @@ function update(dt) {
 
     <div class="fab" id="fab">
         <div class="fab-menu" id="fabMenu">
-            <button id="floatRun" title="Run" aria-label="Run">▶</button>
-            <button id="floatSave" title="Save" aria-label="Save">💾</button>
-            <button id="floatUndo" title="Undo" aria-label="Undo">↶</button>
-            <button id="floatRedo" title="Redo" aria-label="Redo">↷</button>
-            <button id="floatFind" title="Find" aria-label="Find">🔍</button>
-            <button id="floatPalette" title="Palette" aria-label="Command palette">⌘</button>
-            <button id="floatFormat" title="Format" aria-label="Format code">⤸</button>
-            <button id="floatComment" title="Toggle comment" aria-label="Toggle comment">💬</button>
-            <button id="floatWrap" title="Word wrap" aria-label="Toggle word wrap">↩</button>
-            <button id="floatZoom" title="Fullscreen" aria-label="Fullscreen preview">⛶</button>
+            <div class="fab-menu-group-label">Run</div>
+            <button class="fab-menu-item" id="fabRun" type="button">
+                <span class="fi-icon">▶</span>
+                <span class="fi-label">Run game</span>
+                <span class="fi-shortcut">Ctrl+↵</span>
+            </button>
+            <button class="fab-menu-item" id="fabRunTab" type="button">
+                <span class="fi-icon">🌐</span>
+                <span class="fi-label">Open in new tab</span>
+            </button>
+            <button class="fab-menu-item" id="fabConsole" type="button">
+                <span class="fi-icon">🖥</span>
+                <span class="fi-label">Toggle console</span>
+            </button>
+
+            <div class="fab-menu-group-label">File</div>
+            <button class="fab-menu-item" id="fabSave" type="button">
+                <span class="fi-icon">💾</span>
+                <span class="fi-label">Save</span>
+                <span class="fi-shortcut">Ctrl+S</span>
+            </button>
+            <button class="fab-menu-item" id="fabSaveAs" type="button">
+                <span class="fi-icon">📝</span>
+                <span class="fi-label">Save as…</span>
+                <span class="fi-shortcut">Ctrl+⇧+S</span>
+            </button>
+            <button class="fab-menu-item" id="fabPublish" type="button">
+                <span class="fi-icon">🚀</span>
+                <span class="fi-label">Publish / Share</span>
+            </button>
+            <button class="fab-menu-item" id="fabDownload" type="button">
+                <span class="fi-icon">⬇</span>
+                <span class="fi-label">Download HTML</span>
+            </button>
+            <button class="fab-menu-item" id="fabSidebar" type="button">
+                <span class="fi-icon">📁</span>
+                <span class="fi-label">Workspace files</span>
+            </button>
+            <button class="fab-menu-item" id="fabNew" type="button">
+                <span class="fi-icon">🆕</span>
+                <span class="fi-label">New file</span>
+            </button>
+
+            <div class="fab-menu-group-label">Edit</div>
+            <button class="fab-menu-item" id="fabUndo" type="button">
+                <span class="fi-icon">↶</span>
+                <span class="fi-label">Undo</span>
+                <span class="fi-shortcut">Ctrl+Z</span>
+            </button>
+            <button class="fab-menu-item" id="fabRedo" type="button">
+                <span class="fi-icon">↷</span>
+                <span class="fi-label">Redo</span>
+                <span class="fi-shortcut">Ctrl+Y</span>
+            </button>
+            <button class="fab-menu-item" id="fabFind" type="button">
+                <span class="fi-icon">🔍</span>
+                <span class="fi-label">Find & Replace</span>
+                <span class="fi-shortcut">Ctrl+F</span>
+            </button>
+            <button class="fab-menu-item" id="fabFormat" type="button">
+                <span class="fi-icon">⤸</span>
+                <span class="fi-label">Format code</span>
+            </button>
+            <button class="fab-menu-item" id="fabComment" type="button">
+                <span class="fi-icon">💬</span>
+                <span class="fi-label">Toggle comment</span>
+                <span class="fi-shortcut">Ctrl+/</span>
+            </button>
+            <button class="fab-menu-item" id="fabWrap" type="button">
+                <span class="fi-icon">↩</span>
+                <span class="fi-label">Word wrap</span>
+            </button>
+
+            <div class="fab-menu-group-label">View</div>
+            <button class="fab-menu-item" id="fabZoomIn" type="button">
+                <span class="fi-icon">🔍</span>
+                <span class="fi-label">Zoom in</span>
+                <span class="fi-shortcut">+</span>
+            </button>
+            <button class="fab-menu-item" id="fabZoomOut" type="button">
+                <span class="fi-icon">🔎</span>
+                <span class="fi-label">Zoom out</span>
+                <span class="fi-shortcut">−</span>
+            </button>
+            <button class="fab-menu-item" id="fabZoomReset" type="button">
+                <span class="fi-icon">↺</span>
+                <span class="fi-label">Reset zoom</span>
+                <span class="fi-shortcut">0</span>
+            </button>
+            <button class="fab-menu-item" id="fabFullscreen" type="button">
+                <span class="fi-icon">⛶</span>
+                <span class="fi-label">Fullscreen</span>
+                <span class="fi-shortcut">F</span>
+            </button>
+
+            <div class="fab-menu-group-label">Help</div>
+            <button class="fab-menu-item" id="fabPalette" type="button">
+                <span class="fi-icon">⌘</span>
+                <span class="fi-label">Command palette</span>
+                <span class="fi-shortcut">Ctrl+K</span>
+            </button>
+            <a class="fab-menu-item" href="/reference.html">
+                <span class="fi-icon">📖</span>
+                <span class="fi-label">Docs</span>
+            </a>
         </div>
-        <button class="fab-toggle" id="fabToggle" title="Tools" aria-label="Toggle tools menu">＋</button>
+        <button class="fab-toggle" id="fabToggle" title="Tools" aria-label="Toggle tools menu" type="button">＋</button>
     </div>
 
     <div class="toast-container" id="toastContainer"></div>
@@ -1704,28 +1995,25 @@ function update(dt) {
     <script>
         var inp = document.createElement("input");
         inp.type = "file";
-        inp.accept = ".js";
+        inp.accept = ".js,.html,.css,.txt";
 
         window.closeRunDialog = function () {
             var d = document.getElementById('runDialog');
             if (!d) return;
+            try {
+                if (document.fullscreenElement || document.webkitFullscreenElement) {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                }
+            } catch (e) {}
             if (typeof d.close === 'function') {
                 try { d.close(); } catch (e) {}
             }
             d.removeAttribute('open');
-            d.style.display = '';
         };
 
-        /* ============================================================
-           LIMN CLICK PATCH — corrected for CSS zoom (Chromium bug)
-           Fixes the case where the preview is zoomed via body { zoom }
-           and getBoundingClientRect() returns unzoomed values.
-           ============================================================ */
         window.__LIMN_CLICK_PATCH__ = function () {
-            if (typeof Display === 'undefined') {
-                console.warn('[limn-click-patch] Display not found. Load patch after epic.js.');
-                return;
-            }
+            if (typeof Display === 'undefined') return;
 
             Display.prototype.addEventListeners = function () {
                 var self = this;
@@ -1748,8 +2036,6 @@ function update(dt) {
                         if (z && !isNaN(parseFloat(z))) bodyZoom = parseFloat(z);
                     } catch (e) {}
 
-                    // Chromium returns UNzoomed rect when an ancestor has `zoom`.
-                    // Detect which case we're in.
                     var rectIsZoomed = Math.abs(rect.width - layoutW * bodyZoom) <
                                        Math.abs(rect.width - layoutW);
 
@@ -1789,7 +2075,7 @@ function update(dt) {
                     var p = toCanvasCoords(t.clientX, t.clientY);
                     self.x = p.x + self.camera.x;
                     self.y = p.y + self.camera.y;
-                });
+                }, { passive: true });
                 window.addEventListener('touchend', function () {
                     self.x = false;
                     self.y = false;
@@ -1808,10 +2094,8 @@ function update(dt) {
                         mouse.x = p.x;
                         mouse.y = p.y;
                     }
-                });
+                }, { passive: true });
             };
-
-            console.log('[limn-click-patch] Installed.');
         };
     </script>
     <script src="jquery-3.7.1.min.js"></script>
@@ -1860,8 +2144,7 @@ function update(dt) {
     })();
     </script>
 
-    <script src="build.js"></script>
-    <script type="module" src="script.js"></script>
+    <script src="script.js" type="module"></script>
 
     <script>
     (function () {
@@ -1896,39 +2179,24 @@ function update(dt) {
                     return;
                 }
 
+                if (typeof window.buildGameHTML !== 'function') {
+                    alert('Preview builder not loaded. Refresh the page.');
+                    return;
+                }
+
                 var versionSelect = document.getElementById('version');
                 var version = versionSelect ? versionSelect.value.toLowerCase() : 'v4';
 
-                var engineFile = version.includes('v2') ? 'tcjsgame-v2.js'
-                               : version.includes('v3') ? 'tcjsgame-v3.js'
-                               : 'epic.js';
+                var engineCode = version.includes('v2') ? window.__v2t
+                               : version.includes('v3') ? window.__v3t
+                               : window.__v4t;
 
-                var engineUrl = location.origin + '/editor/' + engineFile;
+                if (!engineCode || !engineCode.trim()) {
+                    alert('Engine not loaded yet. Try again in a moment.');
+                    return;
+                }
 
-                var safeUserCode = userCode.replace(/<\/script>/gi, '<\\/script>');
-
-                // Build the click-patch source that will be injected into the
-                // generated page AFTER the engine loads but BEFORE the user code runs.
-                var patchSource = '(' + window.__LIMN_CLICK_PATCH__.toString() + ')();';
-
-                var html = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
-                    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-                    '<title>Limn — Preview</title>' +
-                    '<style>' +
-                        'html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%;}' +
-                        'canvas{display:block;margin:0 auto;}' +
-                    '</style>' +
-                    '</head><body>' +
-                    '<script src="' + engineUrl + '"><\/script>' +
-                    '<script>' + patchSource + '<\/script>' +
-                    '<script>' +
-                        'window.onerror = function(msg, src, line, col, err) {' +
-                            'document.body.innerHTML = "<pre style=\\"color:#f66;padding:20px;font-family:monospace;white-space:pre-wrap;\\">ERROR: " + msg + "\\n\\n" + (err && err.stack ? err.stack : "") + "</pre>";' +
-                            'return true;' +
-                        '};' +
-                        safeUserCode +
-                    '<\/script>' +
-                    '</body></html>';
+                var html = window.buildGameHTML(engineCode, userCode, window.getCurrentAssets());
 
                 var blob = new Blob([html], { type: 'text/html' });
                 var url = URL.createObjectURL(blob);
@@ -1945,11 +2213,6 @@ function update(dt) {
             });
         }
 
-        /* ============================================================
-           Inject the click patch into the PREVIEW iframe too.
-           This runs after the engine script has loaded, so it
-           overrides whatever addEventListeners the engine defined.
-           ============================================================ */
         var gameFrame = document.getElementById('gameFrame');
         if (gameFrame) {
             gameFrame.addEventListener('load', function () {
@@ -1958,9 +2221,7 @@ function update(dt) {
                     if (win && typeof win.Display !== 'undefined' && typeof win.eval === 'function') {
                         win.eval('(' + window.__LIMN_CLICK_PATCH__.toString() + ')();');
                     }
-                } catch (e) {
-                    console.warn('[limn-click-patch] Failed to inject into preview iframe:', e);
-                }
+                } catch (e) {}
             });
         }
 
@@ -1990,26 +2251,25 @@ function update(dt) {
 
         var openFileBtn = document.getElementById('sidebarOpenFile');
         if (openFileBtn) openFileBtn.addEventListener('click', function () {
-            if (confirm('Open a file from your device? Unsaved changes will be lost.')) {
-                inp.click();
-                inp.onchange = function (e) {
-                    var file = e.target.files[0];
-                    if (!file) return;
-                    var reader = new FileReader();
-                    reader.readAsText(file, 'UTF-8');
-                    reader.onload = function (ev) {
-                        var content = ev.target.result;
-                        var ta = document.getElementById('js');
-                        if (ta) ta.value = content;
-                        var t = document.getElementById('title');
-                        if (t) t.textContent = file.name;
-                        if (window.__renderCode) window.__renderCode();
-                        closeSidebar();
-                        window.toast('Opened ' + file.name, 'success');
-                    };
-                };
-            }
+            inp.click();
         });
+
+        inp.onchange = function (e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.readAsText(file, 'UTF-8');
+            reader.onload = function (ev) {
+                var content = ev.target.result;
+                var ta = document.getElementById('js');
+                if (ta) ta.value = content;
+                var t = document.getElementById('title');
+                if (t) t.textContent = file.name;
+                if (window.__renderCode) window.__renderCode();
+                closeSidebar();
+                if (window.toast) window.toast('Opened ' + file.name, 'success');
+            };
+        };
 
         function renderFileList() {
             var list = document.getElementById('fileList');
@@ -2030,6 +2290,8 @@ function update(dt) {
                 row.className = 'sidebar-file';
 
                 var openFile = document.createElement('button');
+                openFile.type = 'button';
+                openFile.className = 'file-open';
                 openFile.textContent = name;
                 openFile.addEventListener('click', function () {
                     var ta = document.getElementById('js');
@@ -2044,22 +2306,28 @@ function update(dt) {
                 actions.className = 'sidebar-file-actions';
 
                 var dl = document.createElement('button');
+                dl.type = 'button';
                 dl.textContent = '⬇';
                 dl.title = 'Download';
                 dl.setAttribute('aria-label', 'Download ' + name);
-                dl.addEventListener('click', function () { if (window.down) window.down(name); });
+                dl.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    if (window.down) window.down(name);
+                });
 
                 var rm = document.createElement('button');
+                rm.type = 'button';
                 rm.textContent = '🗑';
                 rm.title = 'Delete';
                 rm.setAttribute('aria-label', 'Delete ' + name);
-                rm.addEventListener('click', function () {
+                rm.addEventListener('click', function (e) {
+                    e.stopPropagation();
                     if (confirm('Delete "' + name + '"?')) {
                         delete store[name];
-                        window.filesName = names.filter(function (e) { return e !== name; });
+                        window.filesName = names.filter(function (e2) { return e2 !== name; });
                         if (window.__persistFiles) window.__persistFiles();
                         renderFileList();
-                        window.toast('Deleted ' + name, 'warning');
+                        if (window.toast) window.toast('Deleted ' + name, 'warning');
                     }
                 });
 
@@ -2082,8 +2350,10 @@ function update(dt) {
                 var which = this.dataset.tab;
                 var bp = document.getElementById('buildPanel');
                 var cs = document.getElementById('codeSection');
+                var as = document.getElementById('assetsSection');
                 if (bp) bp.style.display = which === 'build' ? 'grid' : 'none';
                 if (cs) cs.style.display = which === 'code' ? 'block' : 'none';
+                if (as) as.style.display = which === 'assets' ? 'block' : 'none';
                 if (which === 'code' && window.__renderCode) window.__renderCode();
             });
         }
@@ -2100,62 +2370,108 @@ function update(dt) {
             });
         }
 
-        var floatRun = document.getElementById('floatRun');
-        if (floatRun) floatRun.addEventListener('click', function () {
-            if (typeof runn === 'function') runn();
+        function closeFab() { fab.classList.remove('open'); }
+
+        var fabRun = document.getElementById('fabRun');
+        if (fabRun) fabRun.addEventListener('click', function () { closeFab(); if (typeof runn === 'function') runn(); });
+
+        var fabRunTab = document.getElementById('fabRunTab');
+        if (fabRunTab) fabRunTab.addEventListener('click', function () { closeFab(); if (runBrowserBtn) runBrowserBtn.click(); });
+
+        var fabConsole = document.getElementById('fabConsole');
+        if (fabConsole) fabConsole.addEventListener('click', function () {
+            closeFab();
+            var d = document.getElementById('consoleDetails');
+            if (!d) return;
+            d.open = !d.open;
+            if (d.open) {
+                setTimeout(function () {
+                    var logs = document.getElementById('editor-console-logs');
+                    if (logs) logs.scrollTop = logs.scrollHeight;
+                }, 60);
+            }
         });
 
-        var floatSave = document.getElementById('floatSave');
-        if (floatSave) floatSave.addEventListener('click', function () {
-            if (typeof save === 'function') save();
+        var fabSave = document.getElementById('fabSave');
+        if (fabSave) fabSave.addEventListener('click', function () { closeFab(); if (typeof save === 'function') save(); });
+
+        var fabSaveAs = document.getElementById('fabSaveAs');
+        if (fabSaveAs) fabSaveAs.addEventListener('click', function () { closeFab(); if (typeof saveAs === 'function') saveAs(); });
+
+        var fabPublish = document.getElementById('fabPublish');
+        if (fabPublish) fabPublish.addEventListener('click', function () { closeFab(); if (typeof shareProject === 'function') shareProject(); });
+
+        var fabDownload = document.getElementById('fabDownload');
+        if (fabDownload) fabDownload.addEventListener('click', function () {
+            closeFab();
+            var h5 = document.getElementById('title');
+            var name = h5 ? h5.textContent.replace(/\.js$/i, '') : 'game';
+            if (window.down) window.down(name + '.js');
         });
 
-        var floatUndo = document.getElementById('floatUndo');
-        if (floatUndo) floatUndo.addEventListener('click', function () {
+        var fabSidebar = document.getElementById('fabSidebar');
+        if (fabSidebar) fabSidebar.addEventListener('click', function () { closeFab(); openSidebar(); });
+
+        var fabNew = document.getElementById('fabNew');
+        if (fabNew) fabNew.addEventListener('click', function () { closeFab(); if (newBtn) newBtn.click(); });
+
+        var fabUndo = document.getElementById('fabUndo');
+        if (fabUndo) fabUndo.addEventListener('click', function () {
+            closeFab();
             var ta = document.getElementById('js');
             if (ta) { ta.focus(); try { document.execCommand('undo'); } catch (e) {} if (window.__renderCode) window.__renderCode(); }
         });
 
-        var floatRedo = document.getElementById('floatRedo');
-        if (floatRedo) floatRedo.addEventListener('click', function () {
+        var fabRedo = document.getElementById('fabRedo');
+        if (fabRedo) fabRedo.addEventListener('click', function () {
+            closeFab();
             var ta = document.getElementById('js');
             if (ta) { ta.focus(); try { document.execCommand('redo'); } catch (e) {} if (window.__renderCode) window.__renderCode(); }
         });
 
-        var floatFind = document.getElementById('floatFind');
-        if (floatFind) floatFind.addEventListener('click', function () { if (window.openFind) window.openFind(); });
+        var fabFind = document.getElementById('fabFind');
+        if (fabFind) fabFind.addEventListener('click', function () { closeFab(); if (window.openFind) window.openFind(); });
 
-        var floatPalette = document.getElementById('floatPalette');
-        if (floatPalette) floatPalette.addEventListener('click', function () { if (window.openPalette) window.openPalette(); });
-
-        var floatFormat = document.getElementById('floatFormat');
-        if (floatFormat) floatFormat.addEventListener('click', function () {
+        var fabFormat = document.getElementById('fabFormat');
+        if (fabFormat) fabFormat.addEventListener('click', function () {
+            closeFab();
             var btn = document.getElementById('formatCodeBtn');
             if (btn) btn.click();
         });
 
-        var floatComment = document.getElementById('floatComment');
-        if (floatComment) floatComment.addEventListener('click', function () {
+        var fabComment = document.getElementById('fabComment');
+        if (fabComment) fabComment.addEventListener('click', function () {
+            closeFab();
             if (window.toggleComment) window.toggleComment();
         });
 
-        var floatWrap = document.getElementById('floatWrap');
-        if (floatWrap) floatWrap.addEventListener('click', function () {
+        var fabWrap = document.getElementById('fabWrap');
+        if (fabWrap) fabWrap.addEventListener('click', function () {
+            closeFab();
             var ta = document.getElementById('js');
             var hl = document.getElementById('highlightLayer');
             if (!ta) return;
             var wrapped = ta.classList.toggle('wrap');
             if (hl) hl.classList.toggle('wrap', wrapped);
-            floatWrap.classList.toggle('active', wrapped);
+            fabWrap.classList.toggle('active', wrapped);
         });
 
-        var floatZoom = document.getElementById('floatZoom');
-        if (floatZoom) floatZoom.addEventListener('click', function () {
-            var fs = document.getElementById('fsBtn');
-            if (fs) fs.click();
-        });
+        var fabZoomIn = document.getElementById('fabZoomIn');
+        if (fabZoomIn) fabZoomIn.addEventListener('click', function () { closeFab(); var b = document.getElementById('zoomInBtn'); if (b) b.click(); });
 
-        setTimeout(function () { if (window.__renderFileSidebar) window.__renderFileSidebar(); }, 1200);
+        var fabZoomOut = document.getElementById('fabZoomOut');
+        if (fabZoomOut) fabZoomOut.addEventListener('click', function () { closeFab(); var b = document.getElementById('zoomOutBtn'); if (b) b.click(); });
+
+        var fabZoomReset = document.getElementById('fabZoomReset');
+        if (fabZoomReset) fabZoomReset.addEventListener('click', function () { closeFab(); var b = document.getElementById('zoomDisplay'); if (b) b.click(); });
+
+        var fabFullscreen = document.getElementById('fabFullscreen');
+        if (fabFullscreen) fabFullscreen.addEventListener('click', function () { closeFab(); var b = document.getElementById('fsBtn'); if (b) b.click(); });
+
+        var fabPalette = document.getElementById('fabPalette');
+        if (fabPalette) fabPalette.addEventListener('click', function () { closeFab(); if (window.openPalette) window.openPalette(); });
+
+        setTimeout(function () { if (window.__renderFileSidebar) window.__renderFileSidebar(); }, 800);
     })();
     </script>
 
@@ -2178,7 +2494,7 @@ function update(dt) {
         if (!textarea || !highlight || !gutter) return;
 
         var KEYWORDS = { 'const':1,'let':1,'var':1,'function':1,'return':1,'if':1,'else':1,'for':1,'while':1,'do':1,'break':1,'continue':1,'new':1,'this':1,'class':1,'extends':1,'super':1,'try':1,'catch':1,'finally':1,'throw':1,'switch':1,'case':1,'default':1,'typeof':1,'instanceof':1,'in':1,'of':1,'delete':1,'void':1,'yield':1,'await':1,'async':1,'static':1,'get':1,'set':1,'import':1,'export':1,'from':1,'as':1 };
-        var BUILTINS = { 'Display':1,'Component':1,'Tctxt':1,'Camera':1,'Sprite':1,'AnimatedSprite':1,'Tile':1,'TileMap':1,'Particle':1,'ParticleSystem':1,'Sound':1,'SoundManager':1,'Math':1,'JSON':1,'Object':1,'Array':1,'String':1,'Number':1,'Boolean':1,'Date':1,'Set':1,'Map':1,'Promise':1,'Error':1,'console':1,'window':1,'document':1,'display':1,'fake':1,'move':1,'state':1,'mouse':1,'comm':1,'TCJSgameGameArea':1 };
+        var BUILTINS = { 'Display':1,'Component':1,'Tctxt':1,'Camera':1,'Sprite':1,'AnimatedSprite':1,'Tile':1,'TileMap':1,'Particle':1,'ParticleSystem':1,'Sound':1,'SoundManager':1,'Math':1,'JSON':1,'Object':1,'Array':1,'String':1,'Number':1,'Boolean':1,'Date':1,'Set':1,'Map':1,'Promise':1,'Error':1,'console':1,'window':1,'document':1,'display':1,'mouse':1 };
         var LITERALS = { 'true':1,'false':1,'null':1,'undefined':1,'NaN':1,'Infinity':1 };
 
         function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -2347,47 +2663,42 @@ function update(dt) {
 
         var pendingErrorAnalysis = null;
 
-        /* ---------- Editor render — throttled & incremental ---------- */
+        var _lastLineCount = 0;
+        var _renderQueued = false;
 
-var _lastLineCount = 0;
-var _renderQueued = false;
+        function renderNow() {
+            _renderQueued = false;
 
-function renderNow() {
-    _renderQueued = false;
+            var code = textarea.value;
+            var html = tokenize(code);
+            if (code.endsWith('\n')) html += ' ';
+            highlight.innerHTML = html;
 
-    var code = textarea.value;
-    var html = tokenize(code);
-    if (code.endsWith('\n')) html += ' ';
-    highlight.innerHTML = html;
+            var lineCount = code.split('\n').length;
 
-    var lineCount = code.split('\n').length;
+            if (lineCount !== _lastLineCount) {
+                var g = '';
+                for (var i = 1; i <= lineCount; i++) {
+                    g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
+                }
+                gutter.innerHTML = g;
+                _lastLineCount = lineCount;
+                renderMinimap();
+            }
 
-    // Only rebuild the gutter when the number of lines changed.
-    // This is the common case during typing — you're usually on
-    // one line, so lineCount stays the same and we skip the rebuild.
-    if (lineCount !== _lastLineCount) {
-        var g = '';
-        for (var i = 1; i <= lineCount; i++) {
-            g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
+            if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
+            if (statusSize) statusSize.textContent = code.length + ' chars';
+
+            syncScroll();
+            updateActiveLine();
+            scheduleErrorAnalysis();
         }
-        gutter.innerHTML = g;
-        _lastLineCount = lineCount;
-        renderMinimap();          // minimap only depends on line count
-    }
 
-    if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
-    if (statusSize) statusSize.textContent = code.length + ' chars';
-
-    syncScroll();
-    updateActiveLine();
-    scheduleErrorAnalysis();
-}
-
-function render() {
-    if (_renderQueued) return;
-    _renderQueued = true;
-    requestAnimationFrame(renderNow);
-}
+        function render() {
+            if (_renderQueued) return;
+            _renderQueued = true;
+            requestAnimationFrame(renderNow);
+        }
 
         function scheduleErrorAnalysis() {
             if (pendingErrorAnalysis) clearTimeout(pendingErrorAnalysis);
@@ -2404,9 +2715,12 @@ function render() {
         }
 
         function syncScroll() {
-            highlight.scrollTop = textarea.scrollTop;
-            highlight.scrollLeft = textarea.scrollLeft;
-            gutter.scrollTop = textarea.scrollTop;
+            var y = textarea.scrollTop;
+            var x = textarea.scrollLeft;
+            highlight.style.transform = 'translate(' + (-x) + 'px, ' + (-y) + 'px)';
+            highlight.style.paddingLeft = (24 + x) + 'px';
+            highlight.style.paddingTop = (18 + y) + 'px';
+            gutter.scrollTop = y;
             updateMinimapViewport();
         }
         textarea.addEventListener('scroll', syncScroll);
@@ -2608,10 +2922,10 @@ function render() {
         };
 
         textarea.addEventListener('input', function () {
-    updateActiveLine();
-    render();
-    markDirty();
-});
+            updateActiveLine();
+            render();
+            if (window.__markDirty) window.__markDirty();
+        });
         textarea.addEventListener('keyup', updateActiveLine);
         textarea.addEventListener('click', updateActiveLine);
         textarea.addEventListener('select', updateActiveLine);
@@ -2715,7 +3029,7 @@ function render() {
         render();
 
         var lastSavedCode = textarea.value;
-        function markDirty() {
+        window.__markDirty = function () {
             var state = textarea.value === lastSavedCode ? 'saved' : 'unsaved';
             if (stateDot) stateDot.className = 'dot' + (state === 'saved' ? ' saved' : ' unsaved');
             var s = document.getElementById('statusState');
@@ -2724,12 +3038,79 @@ function render() {
                 var b = s.querySelector('.badge');
                 if (b) b.textContent = state === 'saved' ? 'Saved' : 'Unsaved';
             }
-        }
+        };
         window.__markSaved = function () {
             lastSavedCode = textarea.value;
-            markDirty();
+            window.__markDirty();
         };
-        markDirty();
+        window.__markDirty();
+    })();
+    </script>
+
+    <script>
+    (function () {
+        var headField = document.getElementById('assetHead');
+        var cssField = document.getElementById('assetCss');
+        var scriptsField = document.getElementById('assetScripts');
+        var testBtn = document.getElementById('assetTest');
+        var clearBtn = document.getElementById('assetClear');
+
+        function ensureConfig() {
+            if (!window.currentConfig || typeof window.currentConfig !== 'object') {
+                window.currentConfig = {};
+            }
+            if (!window.currentConfig.assets || typeof window.currentConfig.assets !== 'object') {
+                window.currentConfig.assets = { head: '', css: '', scripts: '' };
+            }
+            return window.currentConfig.assets;
+        }
+
+        window.getCurrentAssets = function () {
+            var a = ensureConfig();
+            return {
+                head: (headField && headField.value) || a.head || '',
+                css: (cssField && cssField.value) || a.css || '',
+                scripts: (scriptsField && scriptsField.value) || a.scripts || ''
+            };
+        };
+
+        window.__applyAssetsToFields = function () {
+            var a = ensureConfig();
+            if (headField) headField.value = a.head || '';
+            if (cssField) cssField.value = a.css || '';
+            if (scriptsField) scriptsField.value = a.scripts || '';
+        };
+
+        function saveAssetsToConfig() {
+            var a = ensureConfig();
+            if (headField) a.head = headField.value;
+            if (cssField) a.css = cssField.value;
+            if (scriptsField) a.scripts = scriptsField.value;
+        }
+
+        if (headField) headField.addEventListener('input', saveAssetsToConfig);
+        if (cssField) cssField.addEventListener('input', saveAssetsToConfig);
+        if (scriptsField) scriptsField.addEventListener('input', saveAssetsToConfig);
+
+        if (testBtn) {
+            testBtn.addEventListener('click', function () {
+                saveAssetsToConfig();
+                if (typeof runn === 'function') runn();
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                if (!confirm('Clear all assets? This cannot be undone.')) return;
+                if (headField) headField.value = '';
+                if (cssField) cssField.value = '';
+                if (scriptsField) scriptsField.value = '';
+                saveAssetsToConfig();
+                if (window.toast) window.toast('Assets cleared', 'warning');
+            });
+        }
+
+        window.__applyAssetsToFields();
     })();
     </script>
 
@@ -2746,18 +3127,19 @@ function render() {
             { icon: '▶', label: 'Run game', shortcut: 'Ctrl+Enter', action: function () { if (typeof runn === 'function') runn(); } },
             { icon: '💾', label: 'Save file', shortcut: 'Ctrl+S', action: function () { if (typeof save === 'function') save(); } },
             { icon: '💾', label: 'Save as…', shortcut: 'Ctrl+Shift+S', action: function () { if (typeof saveAs === 'function') saveAs(); } },
-            { icon: '🔗', label: 'Share project', action: function () { if (typeof shareProject === 'function') shareProject(); } },
+            { icon: '🚀', label: 'Publish / Share', action: function () { if (typeof shareProject === 'function') shareProject(); } },
+            { icon: '⬇', label: 'Download HTML', action: function () { var h5 = document.getElementById('title'); var n = h5 ? h5.textContent.replace(/\.js$/i,'') : 'game'; if (window.down) window.down(n + '.js'); } },
             { icon: '🔍', label: 'Find & Replace', shortcut: 'Ctrl+F', action: function () { window.openFind(); } },
             { icon: '→', label: 'Go to line…', shortcut: 'Ctrl+G', action: function () { window.gotoLine(); } },
             { icon: '💬', label: 'Toggle comment', shortcut: 'Ctrl+/', action: function () { window.toggleComment(); } },
             { icon: '⤸', label: 'Format code', action: function () { var b = document.getElementById('formatCodeBtn'); if (b) b.click(); } },
-            { icon: '↩', label: 'Toggle word wrap', action: function () { var ta = document.getElementById('js'); var hl = document.getElementById('highlightLayer'); if (ta) { var w = ta.classList.toggle('wrap'); if (hl) hl.classList.toggle('wrap', w); } } },
-            { icon: '📁', label: 'Open file sidebar', action: function () { document.getElementById('openBtn').click(); } },
-            { icon: '📂', label: 'Open from device', action: function () { document.getElementById('sidebarOpenFile').click(); } },
+            { icon: '↩', label: 'Toggle word wrap', action: function () { var b = document.getElementById('fabWrap'); if (b) b.click(); } },
+            { icon: '📁', label: 'Open workspace sidebar', action: function () { document.getElementById('openBtn').click(); } },
+            { icon: '🔌', label: 'Switch to Assets tab', action: function () { document.querySelector('.tab[data-tab="assets"]').click(); } },
             { icon: '🎨', label: 'Switch to Build tab', action: function () { document.querySelector('.tab[data-tab="build"]').click(); } },
             { icon: '⌨️', label: 'Switch to Code tab', action: function () { document.querySelector('.tab[data-tab="code"]').click(); } },
+            { icon: '🖥', label: 'Toggle console', action: function () { var b = document.getElementById('fabConsole'); if (b) b.click(); } },
             { icon: '📋', label: 'Copy all code', action: function () { document.getElementById('copyCodeBtn').click(); } },
-            { icon: '⬇', label: 'Download current file', action: function () { var h5 = document.getElementById('title'); var name = h5 ? h5.textContent : 'game.js'; if (window.down) window.down(name); } },
             { icon: '🧹', label: 'Clear console', action: function () { var c = document.getElementById('editor-console-logs'); if (c) c.innerHTML = ''; } }
         ];
 
@@ -3153,46 +3535,38 @@ function render() {
     <script>
     (function () {
         var zoomLevel = 1;
+        var ZOOM_MIN = 0.3;
+        var ZOOM_MAX = 3;
 
-        function getFrame() {
-            return document.getElementById('gameFrame');
-        }
-
+        function getFrame() { return document.getElementById('gameFrame'); }
+        function getWrap() { return document.getElementById('dialogFrameWrap'); }
+        function getDisplay() { return document.getElementById('zoomDisplay'); }
 
         function applyZoom() {
-    var frame = getFrame();
-    if (!frame) return;
-
-    try {
-        var doc = frame.contentDocument;
-        if (doc && doc.body) {
+            var wrap = getWrap();
+            if (!wrap) return;
             if (zoomLevel === 1) {
-                doc.body.style.removeProperty('zoom');
+                wrap.style.transform = '';
             } else {
-                doc.body.style.zoom = zoomLevel;
+                wrap.style.transform = 'scale(' + zoomLevel + ')';
             }
-            return;
+            var d = getDisplay();
+            if (d) d.textContent = Math.round(zoomLevel * 100) + '%';
         }
-    } catch (e) {}
 
-    if (zoomLevel === 1) {
-        frame.style.removeProperty('zoom');
-    } else {
-        frame.style.zoom = zoomLevel;
-    }
-}
-
-        function setZoom(newLevel) {
-            zoomLevel = Math.max(0.3, Math.min(3, +newLevel.toFixed(2)));
+        function setZoom(level) {
+            zoomLevel = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, +level.toFixed(2)));
             applyZoom();
         }
 
         var zi = document.getElementById('zoomInBtn');
         var zo = document.getElementById('zoomOutBtn');
+        var zd = document.getElementById('zoomDisplay');
         var fs = document.getElementById('fsBtn');
 
         if (zi) zi.addEventListener('click', function () { setZoom(zoomLevel + 0.1); });
         if (zo) zo.addEventListener('click', function () { setZoom(zoomLevel - 0.1); });
+        if (zd) zd.addEventListener('click', function () { setZoom(1); });
 
         if (fs) fs.addEventListener('click', async function () {
             try {
@@ -3201,12 +3575,21 @@ function render() {
                     else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
                     return;
                 }
-                var dialog = document.getElementById('runDialog');
-                var target = dialog || document.documentElement;
-                var req = target.requestFullscreen || target.webkitRequestFullscreen || target.msRequestFullscreen;
+                var wrap = getWrap();
+                if (!wrap) return;
+                var req = wrap.requestFullscreen || wrap.webkitRequestFullscreen || wrap.msRequestFullscreen;
                 if (!req) { alert('Fullscreen not supported on this browser.'); return; }
-                await req.call(target);
-            } catch (err) { console.error('[fullscreen] failed:', err); }
+                await req.call(wrap);
+            } catch (err) {
+                console.error('[fullscreen] failed:', err);
+            }
+        });
+
+        document.addEventListener('fullscreenchange', function () {
+            var btn = document.getElementById('fsBtn');
+            if (!btn) return;
+            btn.textContent = document.fullscreenElement ? '⛶' : '⛶';
+            btn.title = document.fullscreenElement ? 'Exit fullscreen (F)' : 'Fullscreen (F)';
         });
 
         var frame = getFrame();
@@ -3230,7 +3613,7 @@ function render() {
             if (tag === 'input' || tag === 'textarea' || (t && t.isContentEditable)) return;
 
             var d = document.getElementById('runDialog');
-            var dialogOpen = d && (d.hasAttribute('open') || d.style.display === 'block');
+            var dialogOpen = d && d.hasAttribute('open');
             if (!dialogOpen) return;
 
             if (e.key === 'f' || e.key === 'F') { e.preventDefault(); if (fs) fs.click(); }
@@ -3238,6 +3621,12 @@ function render() {
             else if (e.key === '-' || e.key === '_') { e.preventDefault(); setZoom(zoomLevel - 0.1); }
             else if (e.key === '0') { e.preventDefault(); setZoom(1); }
         });
+
+        var dlg = document.getElementById('runDialog');
+        if (dlg) {
+            var closeBtn = document.getElementById('dialogClose');
+            if (closeBtn) closeBtn.addEventListener('click', function () { window.closeRunDialog(); });
+        }
     })();
     </script>
 
