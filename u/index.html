@@ -344,13 +344,66 @@
     display: inline-block;
     line-height: 1;
   }
-  .stat-btn.static {
-    cursor: default;
+
+  .follow-btn {
+    padding: 14px 30px;
+    border: 2px solid rgba(110,168,254,0.6);
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6ea8fe, #a371f7);
+    color: #fff;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    align-self: center;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 8px 24px rgba(110,168,254,0.4);
+    font-family: inherit;
+    position: relative;
+    overflow: hidden;
   }
-  .stat-btn.static:hover {
-    transform: none;
-    background: rgba(255,255,255,0.04);
-    border-color: var(--border);
+  .follow-btn::before {
+    content: "";
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg,
+      transparent, rgba(255,255,255,0.3), transparent);
+    animation: sweep 3s linear infinite;
+  }
+  .follow-btn:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 12px 32px rgba(110,168,254,0.6);
+  }
+  .follow-btn.following {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.2);
+    color: var(--text-1);
+    box-shadow: none;
+  }
+  .follow-btn.following::before { display: none; }
+  .follow-btn.following:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+    transform: translateY(-1px);
+  }
+
+  h2 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-2);
+    margin: 44px 0 18px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
   }
 
   .expand-region {
@@ -402,6 +455,23 @@
     font-size: 11.5px;
     color: var(--text-2);
     font-weight: 600;
+  }
+  .panel-header-action {
+    padding: 6px 12px;
+    border-radius: 9px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--text-1);
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .panel-header-action:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+    border-color: var(--border-2);
   }
 
   .panel-list {
@@ -546,29 +616,17 @@
     cursor: not-allowed;
   }
 
-  h2 {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--text-2);
-    margin: 44px 0 18px;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  h2::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, var(--border), transparent);
-  }
-
   .badges-dashboard {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 14px;
-    margin-bottom: 8px;
+    padding: 14px;
+    background: linear-gradient(180deg, rgba(21,21,42,0.85), rgba(16,16,30,0.85));
+    border: 1px solid var(--border);
+    border-top: 0;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    backdrop-filter: blur(10px);
   }
 
   .badge-card {
@@ -1182,6 +1240,7 @@
     .badges-dashboard {
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
+      padding: 10px;
     }
     .badge-card { padding: 14px 12px 12px; gap: 8px; border-radius: 14px; }
     .badge-icon-wrap { width: 48px; height: 48px; font-size: 24px; border-radius: 14px; }
@@ -1200,6 +1259,9 @@
     .badge-modal-name { font-size: 20px; }
     .badge-modal-body { padding: 18px 18px 20px; }
 
+    .panel-header { padding: 10px 14px; }
+    .panel-header-title { font-size: 12px; }
+    .panel-header-action { padding: 5px 10px; font-size: 11px; }
     .panel-row { padding: 10px 10px; gap: 10px; }
     .panel-avatar { width: 36px; height: 36px; }
     .panel-avatar-fallback { font-size: 14px; }
@@ -1268,12 +1330,13 @@
     <div class="expand-panel" id="expandBadges">
       <div class="expand-panel-inner">
         <div class="panel-header">
-          <div class="panel-header-title"><span class="icon">🏅</span> All Badges</div>
-          <div class="panel-header-sub" id="badgesPanelSub">10 total</div>
+          <div class="panel-header-title"><span class="icon">🏅</span> Badges</div>
+          <button type="button" class="panel-header-action" id="badgesSeeAll">See all →</button>
         </div>
-        <div class="badges-dashboard" id="badgesDashboard" style="padding:14px;background:linear-gradient(180deg,rgba(21,21,42,0.85),rgba(16,16,30,0.85));border:1px solid var(--border);border-top:0;border-bottom-left-radius:14px;border-bottom-right-radius:14px;backdrop-filter:blur(10px);">
+        <div class="badges-dashboard" id="badgesPreview">
           <div class="badges-empty">Loading badges...</div>
         </div>
+        <div class="badges-dashboard" id="badgesAll" style="display:none;border-top:1px solid var(--border);"></div>
       </div>
     </div>
 
@@ -1300,11 +1363,6 @@
         </div>
       </div>
     </div>
-  </div>
-
-  <h2 id="badgesHeading">Badges</h2>
-  <div class="badges-dashboard" id="badgesPreview">
-    <div class="badges-empty">Loading badges...</div>
   </div>
 
   <h2 id="gamesHeading">Games</h2>
@@ -1350,8 +1408,9 @@ const username = (params.get('u') || '').toLowerCase().replace(/^@/, '');
 
 const gridEl = document.getElementById('grid');
 const followBtn = document.getElementById('followBtn');
-const badgesDashboard = document.getElementById('badgesDashboard');
 const badgesPreview = document.getElementById('badgesPreview');
+const badgesAll = document.getElementById('badgesAll');
+const badgesSeeAll = document.getElementById('badgesSeeAll');
 const badgeModal = document.getElementById('badgeModal');
 const badgeModalBackdrop = document.getElementById('badgeModalBackdrop');
 const badgeModalCard = document.getElementById('badgeModalCard');
@@ -1371,120 +1430,36 @@ const RARITY_MIN_USERS = 5;
 const PANEL_PAGE_SIZE = 20;
 
 const BADGE_DEFS = {
-  newcomer: {
-    id: 'newcomer',
-    icon: '🌱',
-    name: 'Newcomer',
-    tagline: 'Fresh face on the Arcade',
+  newcomer: { id: 'newcomer', icon: '🌱', name: 'Newcomer', tagline: 'Fresh face on the Arcade',
     desc: 'Awarded to creators who joined Limn within the last 14 days. A welcome gift that stays with you as you settle in.',
-    hint: 'Welcome to Limn',
-    color: 'newcomer',
-    type: 'boolean'
-  },
-  firstgame: {
-    id: 'firstgame',
-    icon: '🎮',
-    name: 'First Game',
-    tagline: 'The beginning of something',
+    hint: 'Welcome to Limn', color: 'newcomer' },
+  firstgame: { id: 'firstgame', icon: '🎮', name: 'First Game', tagline: 'The beginning of something',
     desc: 'Awarded when you publish your very first game on Limn Arcade. Everything starts here.',
-    hint: 'Publish your first game',
-    color: 'firstgame',
-    type: 'count',
-    target: 1,
-    unit: 'game'
-  },
-  streak: {
-    id: 'streak',
-    icon: '🔥',
-    name: 'On a Streak',
-    tagline: 'Consistency is a superpower',
+    hint: 'Publish your first game', color: 'firstgame' },
+  streak: { id: 'streak', icon: '🔥', name: 'On a Streak', tagline: 'Consistency is a superpower',
     desc: 'Awarded to creators who publish at least one game for 3 or more consecutive weeks. It doesn\'t matter how big the game is — just that you show up.',
-    hint: 'Publish 3 weeks in a row',
-    color: 'streak',
-    type: 'count',
-    target: 3,
-    unit: 'weeks'
-  },
-  loved: {
-    id: 'loved',
-    icon: '❤️',
-    name: 'Loved',
-    tagline: 'The community is watching',
-    desc: 'Awarded when the community gives your games 50 or more likes. Every like is a small signal that someone played and enjoyed your work.',
-    hint: 'Collect 50 total likes',
-    color: 'loved',
-    type: 'count',
-    target: 50,
-    unit: 'likes'
-  },
-  winner: {
-    id: 'winner',
-    icon: '🏆',
-    name: 'Winner',
-    tagline: 'Top of the week',
-    desc: 'Awarded when one of your games wins Game of the Week on the Arcade leaderboard. The rarest badge on Limn.',
-    hint: 'Win Game of the Week',
-    color: 'winner',
-    type: 'boolean'
-  },
-  rising: {
-    id: 'rising',
-    icon: '⭐',
-    name: 'Rising Creator',
-    tagline: 'Building momentum',
-    desc: 'Awarded when you publish 5 or more games on Limn Arcade. You\'re finding your voice as a creator.',
-    hint: 'Publish 5 games',
-    color: 'rising',
-    type: 'count',
-    target: 5,
-    unit: 'games'
-  },
-  prolific: {
-    id: 'prolific',
-    icon: '🎯',
-    name: 'Prolific',
-    tagline: 'A true maker',
-    desc: 'Awarded when you publish 10 or more games on Limn Arcade. You don\'t just make games — you ship them.',
-    hint: 'Publish 10 games',
-    color: 'prolific',
-    type: 'count',
-    target: 10,
-    unit: 'games'
-  },
-  voice: {
-    id: 'voice',
-    icon: '💬',
-    name: 'Conversationalist',
-    tagline: 'Spark conversation',
-    desc: 'Awarded when your games have received 20 or more comments from the community. Your games make people want to talk.',
-    hint: 'Get 20 comments',
-    color: 'voice',
-    type: 'count',
-    target: 20,
-    unit: 'comments'
-  },
-  veteran: {
-    id: 'veteran',
-    icon: '👑',
-    name: 'Veteran',
-    tagline: 'Been here a while',
-    desc: 'Awarded to creators whose accounts are at least 6 months old. A long-term member of the Limn community.',
-    hint: 'Account 6+ months old',
-    color: 'veteran',
-    type: 'boolean'
-  },
-  legend: {
-    id: 'legend',
-    icon: '💎',
-    name: 'Legend',
-    tagline: 'A community icon',
-    desc: 'Awarded when your games have collected 200 or more likes in total. Only a handful of creators ever reach this.',
-    hint: 'Collect 200 total likes',
-    color: 'legend',
-    type: 'count',
-    target: 200,
-    unit: 'likes'
-  }
+    hint: 'Publish 3 weeks in a row', color: 'streak' },
+  loved: { id: 'loved', icon: '❤️', name: 'Loved', tagline: 'The community is watching',
+    desc: 'Awarded when the community gives your games 50 or more likes.',
+    hint: 'Collect 50 total likes', color: 'loved' },
+  winner: { id: 'winner', icon: '🏆', name: 'Winner', tagline: 'Top of the week',
+    desc: 'Awarded when one of your games wins Game of the Week on the Arcade leaderboard.',
+    hint: 'Win Game of the Week', color: 'winner' },
+  rising: { id: 'rising', icon: '⭐', name: 'Rising Creator', tagline: 'Building momentum',
+    desc: 'Awarded when you publish 5 or more games on Limn Arcade.',
+    hint: 'Publish 5 games', color: 'rising' },
+  prolific: { id: 'prolific', icon: '🎯', name: 'Prolific', tagline: 'A true maker',
+    desc: 'Awarded when you publish 10 or more games on Limn Arcade.',
+    hint: 'Publish 10 games', color: 'prolific' },
+  voice: { id: 'voice', icon: '💬', name: 'Conversationalist', tagline: 'Spark conversation',
+    desc: 'Awarded when your games have received 20 or more comments from the community.',
+    hint: 'Get 20 comments', color: 'voice' },
+  veteran: { id: 'veteran', icon: '👑', name: 'Veteran', tagline: 'Been here a while',
+    desc: 'Awarded to creators whose accounts are at least 6 months old.',
+    hint: 'Account 6+ months old', color: 'veteran' },
+  legend: { id: 'legend', icon: '💎', name: 'Legend', tagline: 'A community icon',
+    desc: 'Awarded when your games have collected 200 or more likes in total.',
+    hint: 'Collect 200 total likes', color: 'legend' }
 };
 
 const BADGE_ORDER = ['newcomer', 'firstgame', 'streak', 'loved', 'winner', 'rising', 'prolific', 'voice', 'veteran', 'legend'];
@@ -1581,17 +1556,14 @@ async function getAccountAgeDays(userId) {
 
 async function computeBadgesForUser(userId, gameList, totalLikes, totalComments) {
   const badges = [];
-
   const accountAgeDays = await getAccountAgeDays(userId);
 
   const isNewcomer = accountAgeDays !== null && accountAgeDays < 14 && gameList.length <= 3;
   const firstGame = gameList.length >= 1;
-
   const gameDates = gameList.map(g => g.created_at).filter(Boolean);
   const bestStreak = computeBestStreak(gameDates);
   const currentStreak = computeCurrentStreak(gameDates);
   const streakEarned = bestStreak >= 3;
-
   const lovedEarned = totalLikes >= 50;
   const legendEarned = totalLikes >= 200;
   const risingEarned = gameList.length >= 5;
@@ -1621,8 +1593,7 @@ async function computeBadgesForUser(userId, gameList, totalLikes, totalComments)
     progressTarget: 1,
     progressLabel: isNewcomer
       ? 'Active · day ' + Math.max(1, Math.floor(accountAgeDays || 0)) + ' of 14'
-      : 'Welcome period ended',
-    hint: BADGE_DEFS.newcomer.hint
+      : 'Welcome period ended'
   });
 
   badges.push({
@@ -1630,8 +1601,7 @@ async function computeBadgesForUser(userId, gameList, totalLikes, totalComments)
     earned: firstGame,
     progress: Math.min(gameList.length, 1),
     progressTarget: 1,
-    progressLabel: gameList.length + ' / 1 game published',
-    hint: BADGE_DEFS.firstgame.hint
+    progressLabel: gameList.length + ' / 1 game published'
   });
 
   badges.push({
@@ -1640,8 +1610,7 @@ async function computeBadgesForUser(userId, gameList, totalLikes, totalComments)
     progress: Math.min(currentStreak, 3),
     progressTarget: 3,
     progressLabel: currentStreak + ' / 3 consecutive weeks' +
-      (bestStreak > currentStreak ? ' · best: ' + bestStreak : ''),
-    hint: BADGE_DEFS.streak.hint
+      (bestStreak > currentStreak ? ' · best: ' + bestStreak : '')
   });
 
   badges.push({
@@ -1649,8 +1618,7 @@ async function computeBadgesForUser(userId, gameList, totalLikes, totalComments)
     earned: lovedEarned,
     progress: Math.min(totalLikes, 50),
     progressTarget: 50,
-    progressLabel: totalLikes + ' / 50 likes',
-    hint: BADGE_DEFS.loved.hint
+    progressLabel: totalLikes + ' / 50 likes'
   });
 
   badges.push({
@@ -1660,8 +1628,7 @@ async function computeBadgesForUser(userId, gameList, totalLikes, totalComments)
     progressTarget: 1,
     progressLabel: winnerEarned
       ? 'Won with "' + (winnerGameTitle || 'a game') + '"'
-      : 'Not yet — win a week to earn',
-    hint: BADGE_DEFS.winner.hint
+      : 'Not yet — win a week to earn'
   });
 
   badges.push({
@@ -1669,8 +1636,7 @@ async function computeBadgesForUser(userId, gameList, totalLikes, totalComments)
     earned: risingEarned,
     progress: Math.min(gameList.length, 5),
     progressTarget: 5,
-    progressLabel: gameList.length + ' / 5 games published',
-    hint: BADGE_DEFS.rising.hint
+    progressLabel: gameList.length + ' / 5 games published'
   });
 
   badges.push({
@@ -1678,8 +1644,7 @@ async function computeBadgesForUser(userId, gameList, totalLikes, totalComments)
     earned: prolificEarned,
     progress: Math.min(gameList.length, 10),
     progressTarget: 10,
-    progressLabel: gameList.length + ' / 10 games published',
-    hint: BADGE_DEFS.prolific.hint
+    progressLabel: gameList.length + ' / 10 games published'
   });
 
   badges.push({
@@ -1687,19 +1652,17 @@ async function computeBadgesForUser(userId, gameList, totalLikes, totalComments)
     earned: voiceEarned,
     progress: Math.min(totalComments, 20),
     progressTarget: 20,
-    progressLabel: totalComments + ' / 20 comments received',
-    hint: BADGE_DEFS.voice.hint
+    progressLabel: totalComments + ' / 20 comments received'
   });
 
   badges.push({
     def: BADGE_DEFS.veteran,
     earned: veteranEarned,
-    progress: veteranEarned ? 1 : (accountAgeDays !== null ? Math.min(Math.floor(accountAgeDays / 180 * 100), 99) / 100 : 0),
-    progressTarget: 1,
+    progress: accountAgeDays !== null ? Math.min(Math.floor(accountAgeDays), 180) : 0,
+    progressTarget: 180,
     progressLabel: accountAgeDays !== null
-      ? Math.floor(accountAgeDays) + ' days old' + (veteranEarned ? '' : ' · 180 needed')
-      : 'Unknown account age',
-    hint: BADGE_DEFS.veteran.hint
+      ? Math.floor(accountAgeDays) + ' / 180 days old'
+      : 'Unknown account age'
   });
 
   badges.push({
@@ -1707,8 +1670,7 @@ async function computeBadgesForUser(userId, gameList, totalLikes, totalComments)
     earned: legendEarned,
     progress: Math.min(totalLikes, 200),
     progressTarget: 200,
-    progressLabel: totalLikes + ' / 200 likes',
-    hint: BADGE_DEFS.legend.hint
+    progressLabel: totalLikes + ' / 200 likes'
   });
 
   return badges;
@@ -1725,7 +1687,6 @@ async function computeRarity() {
   const { data: allGames } = await supabase
     .from('games')
     .select('id, author_id, created_at');
-
   if (!allGames || allGames.length === 0) return null;
 
   const gamesByUser = {};
@@ -1741,13 +1702,10 @@ async function computeRarity() {
   if (totalUsers < RARITY_MIN_USERS) return null;
 
   const allGameIds = allGames.map(g => g.id);
-
   let allLikes = [];
   if (allGameIds.length > 0) {
     const { data: likesData } = await supabase
-      .from('likes')
-      .select('game_id')
-      .in('game_id', allGameIds);
+      .from('likes').select('game_id').in('game_id', allGameIds);
     allLikes = likesData || [];
   }
 
@@ -1761,9 +1719,7 @@ async function computeRarity() {
   const commentsByUser = {};
   try {
     const { data: allComments } = await supabase
-      .from('comments')
-      .select('game_id')
-      .in('game_id', allGameIds);
+      .from('comments').select('game_id').in('game_id', allGameIds);
     if (allComments) {
       for (const c of allComments) {
         const author = gameToAuthor[c.game_id];
@@ -1775,19 +1731,13 @@ async function computeRarity() {
 
   const winnerUsers = new Set();
   try {
-    const { data: winners } = await supabase
-      .from('weekly_winners')
-      .select('user_id');
+    const { data: winners } = await supabase.from('weekly_winners').select('user_id');
     if (winners) for (const w of winners) winnerUsers.add(w.user_id);
   } catch (e) {}
 
   const profileCreatedAt = {};
-  const { data: profilesAll } = await supabase
-    .from('profiles')
-    .select('user_id, created_at');
-  if (profilesAll) {
-    for (const p of profilesAll) profileCreatedAt[p.user_id] = p.created_at;
-  }
+  const { data: profilesAll } = await supabase.from('profiles').select('user_id, created_at');
+  if (profilesAll) for (const p of profilesAll) profileCreatedAt[p.user_id] = p.created_at;
 
   const counts = {
     newcomer: 0, firstgame: 0, streak: 0, loved: 0, winner: 0,
@@ -1796,7 +1746,6 @@ async function computeRarity() {
 
   for (const userId of Object.keys(gamesByUser)) {
     const games = gamesByUser[userId];
-
     counts.firstgame++;
     if (games.length >= 5) counts.rising++;
     if (games.length >= 10) counts.prolific++;
@@ -1815,23 +1764,18 @@ async function computeRarity() {
     if (likes >= 50) counts.loved++;
     if (likes >= 200) counts.legend++;
 
-    const comments = commentsByUser[userId] || 0;
-    if (comments >= 20) counts.voice++;
-
+    if ((commentsByUser[userId] || 0) >= 20) counts.voice++;
     if (winnerUsers.has(userId)) counts.winner++;
   }
 
   const rarity = {};
   for (const id of Object.keys(counts)) {
-    rarity[id] = totalUsers > 0
-      ? Math.round((counts[id] / totalUsers) * 1000) / 10
-      : 0;
+    rarity[id] = totalUsers > 0 ? Math.round((counts[id] / totalUsers) * 1000) / 10 : 0;
   }
 
   try {
     localStorage.setItem(RARITY_CACHE_KEY, JSON.stringify({
-      timestamp: Date.now(),
-      data: rarity
+      timestamp: Date.now(), data: rarity
     }));
   } catch (e) {}
 
@@ -1843,7 +1787,7 @@ function badgeProgressRatio(b) {
   return b.progress / b.progressTarget;
 }
 
-function pickTopBadges(badges, count) {
+function pickVisibleBadges(badges) {
   const sorted = [...badges].sort((a, b) => {
     if (a.earned !== b.earned) return a.earned ? -1 : 1;
     const ra = badgeProgressRatio(a);
@@ -1851,27 +1795,26 @@ function pickTopBadges(badges, count) {
     if (rb !== ra) return rb - ra;
     return BADGE_ORDER.indexOf(a.def.id) - BADGE_ORDER.indexOf(b.def.id);
   });
-  return sorted.slice(0, count);
+
+  const earnedCount = sorted.filter(b => b.earned).length;
+
+  if (earnedCount === 0) return sorted.slice(0, 2);
+  if (earnedCount <= 3) return sorted.slice(0, earnedCount + 1);
+  return sorted.slice(0, Math.min(earnedCount, 4));
 }
 
 function badgeCardHtml(b, idx) {
   const def = b.def;
-
   let miniBar = '';
   if (!b.earned && b.progress !== null && b.progressTarget && b.progressTarget > 1) {
     const pctFill = Math.min(100, Math.round((b.progress / b.progressTarget) * 100));
-    miniBar =
-      '<div class="badge-progress-mini">' +
-        '<div class="badge-progress-mini-fill" style="width:' + pctFill + '%"></div>' +
-      '</div>';
+    miniBar = '<div class="badge-progress-mini">' +
+      '<div class="badge-progress-mini-fill" style="width:' + pctFill + '%"></div></div>';
   }
-
   return '<button type="button" class="badge-card ' + def.color +
     (b.earned ? ' is-earned' : ' is-locked') + '" ' +
     'data-badge-id="' + def.id + '" style="animation-delay:' + (idx * 0.03) + 's">' +
-    '<span class="badge-status-chip">' +
-      (b.earned ? '✓ Earned' : 'Locked') +
-    '</span>' +
+    '<span class="badge-status-chip">' + (b.earned ? '✓ Earned' : 'Locked') + '</span>' +
     '<div class="badge-icon-wrap">' + def.icon + '</div>' +
     '<h3 class="badge-name">' + esc(def.name) + '</h3>' +
     '<p class="badge-hint">' + esc(def.hint) + '</p>' +
@@ -1889,30 +1832,53 @@ function wireBadgeCards(container, badges, rarity) {
   });
 }
 
+let badgesExpanded = false;
+let badgesEarnedTotal = 0;
+let badgesOrdered = [];
+let badgesRarity = null;
+
 function renderBadges(badges, rarity) {
+  badgesRarity = rarity;
+
   if (!badges || badges.length === 0) {
     badgesPreview.innerHTML = '<div class="badges-empty">No badges yet.</div>';
-    badgesDashboard.innerHTML = '<div class="badges-empty">No badges yet.</div>';
+    badgesAll.innerHTML = '';
+    badgesAll.style.display = 'none';
     document.getElementById('badgeCount').textContent = '0';
-    document.getElementById('badgesPanelSub').textContent = '0 total';
+    badgesEarnedTotal = 0;
+    badgesSeeAll.textContent = 'See all →';
     return;
   }
 
-  const ordered = BADGE_ORDER
+  badgesOrdered = BADGE_ORDER
     .map(id => badges.find(b => b.def.id === id))
     .filter(Boolean);
 
-  const earnedCount = ordered.filter(b => b.earned).length;
-  document.getElementById('badgeCount').textContent = earnedCount;
-  document.getElementById('badgesPanelSub').textContent = ordered.length + ' total';
+  badgesEarnedTotal = badgesOrdered.filter(b => b.earned).length;
+  document.getElementById('badgeCount').textContent = badgesEarnedTotal;
 
-  const top = pickTopBadges(ordered, 2);
-  badgesPreview.innerHTML = top.map((b, idx) => badgeCardHtml(b, idx)).join('');
-  wireBadgeCards(badgesPreview, ordered, rarity);
+  const visible = pickVisibleBadges(badgesOrdered);
 
-  badgesDashboard.innerHTML = ordered.map((b, idx) => badgeCardHtml(b, idx)).join('');
-  wireBadgeCards(badgesDashboard, ordered, rarity);
+  badgesPreview.innerHTML = visible.map((b, i) => badgeCardHtml(b, i)).join('');
+  wireBadgeCards(badgesPreview, badgesOrdered, rarity);
+
+  badgesAll.innerHTML = badgesOrdered.map((b, i) => badgeCardHtml(b, i)).join('');
+  wireBadgeCards(badgesAll, badgesOrdered, rarity);
+
+  badgesAll.style.display = badgesExpanded ? 'grid' : 'none';
+  badgesSeeAll.textContent = badgesExpanded
+    ? '↑ See less'
+    : (badgesEarnedTotal > 0 ? 'See all ' + badgesEarnedTotal + ' →' : 'See all →');
 }
+
+badgesSeeAll.addEventListener('click', (e) => {
+  e.stopPropagation();
+  badgesExpanded = !badgesExpanded;
+  badgesAll.style.display = badgesExpanded ? 'grid' : 'none';
+  badgesSeeAll.textContent = badgesExpanded
+    ? '↑ See less'
+    : (badgesEarnedTotal > 0 ? 'See all ' + badgesEarnedTotal + ' →' : 'See all →');
+});
 
 let lastFocusedEl = null;
 
@@ -1939,7 +1905,7 @@ function openBadgeModal(badge, rarity) {
           '</div>' +
           '<div class="badge-modal-rarity-text">' +
             '<p class="badge-modal-rarity-title">' + pct + '% ' + esc(rarityNote) + '</p>' +
-            '<p class="badge-modal-rarity-sub">Calculated across all creators with at least one published game. Cached for 24 hours.</p>' +
+            '<p class="badge-modal-rarity-sub">Across all creators with at least one published game. Cached 24h.</p>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -1950,8 +1916,7 @@ function openBadgeModal(badge, rarity) {
         '<div class="badge-modal-rarity">' +
           '<div class="badge-modal-rarity-text">' +
             '<p class="badge-modal-rarity-title">Not enough data yet</p>' +
-            '<p class="badge-modal-rarity-sub">Rarity percentages unlock once there are at least ' +
-              RARITY_MIN_USERS + ' creators with published games.</p>' +
+            '<p class="badge-modal-rarity-sub">Rarity unlocks at ' + RARITY_MIN_USERS + '+ creators with published games.</p>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -2225,8 +2190,6 @@ function appendShowMore(container, loader) {
 
 let followersLoaded = false;
 let likesLoaded = false;
-let followerState = null;
-let likesState = null;
 
 async function loadFollowersPanel(me) {
   if (followersLoaded) return;
@@ -2286,8 +2249,8 @@ async function loadFollowersPanel(me) {
   if (subEl) subEl.textContent = allRows.length + ' follower' + (allRows.length === 1 ? '' : 's');
   wireFollowBackButtons(listEl, myFollowingSet);
 
-  followerState = {
-    addPage: async () => {
+  if (allRows.length === PANEL_PAGE_SIZE) {
+    appendShowMore(listEl, async () => {
       page++;
       const { data, error } = await fetchPage();
       if (error || !data || data.length === 0) return false;
@@ -2302,11 +2265,7 @@ async function loadFollowersPanel(me) {
       if (subEl) subEl.textContent = allRows.length + ' followers';
       wireFollowBackButtons(listEl, myFollowingSet);
       return data.length === PANEL_PAGE_SIZE;
-    }
-  };
-
-  if (allRows.length === PANEL_PAGE_SIZE) {
-    appendShowMore(listEl, () => followerState.addPage());
+    });
   }
 }
 
@@ -2366,8 +2325,8 @@ async function loadLikesPanel(me, gameList) {
   listEl.innerHTML = buildLikesRows(allRows, profilesMap, gamesMap);
   if (subEl) subEl.textContent = allRows.length + ' like' + (allRows.length === 1 ? '' : 's');
 
-  likesState = {
-    addPage: async () => {
+  if (allRows.length === PANEL_PAGE_SIZE) {
+    appendShowMore(listEl, async () => {
       page++;
       const { data, error } = await fetchPage();
       if (error || !data || data.length === 0) return false;
@@ -2379,11 +2338,7 @@ async function loadLikesPanel(me, gameList) {
       listEl.insertAdjacentHTML('beforeend', buildLikesRows(data, profilesMap, gamesMap));
       if (subEl) subEl.textContent = allRows.length + ' likes';
       return data.length === PANEL_PAGE_SIZE;
-    }
-  };
-
-  if (allRows.length === PANEL_PAGE_SIZE) {
-    appendShowMore(listEl, () => likesState.addPage());
+    });
   }
 }
 
@@ -2431,7 +2386,7 @@ async function run() {
     document.getElementById('username').textContent = 'No user specified.';
     gridEl.innerHTML = '';
     badgesPreview.innerHTML = '<div class="badges-empty">No user.</div>';
-    badgesDashboard.innerHTML = '<div class="badges-empty">No user.</div>';
+    badgesAll.innerHTML = '';
     return;
   }
 
@@ -2447,7 +2402,7 @@ async function run() {
     document.getElementById('username').textContent = 'User not found.';
     gridEl.innerHTML = '';
     badgesPreview.innerHTML = '<div class="badges-empty">User not found.</div>';
-    badgesDashboard.innerHTML = '<div class="badges-empty">User not found.</div>';
+    badgesAll.innerHTML = '';
     return;
   }
 
@@ -2581,11 +2536,10 @@ async function run() {
   } catch (e) {
     console.log('Badge computation failed:', e && e.message);
     badgesPreview.innerHTML = '<div class="badges-empty">Could not load badges.</div>';
-    badgesDashboard.innerHTML = '<div class="badges-empty">Could not load badges.</div>';
+    badgesAll.innerHTML = '';
   }
 
   const { data: { user } } = await supabase.auth.getUser();
-
   const isOwner = user && user.id === profile.user_id;
 
   if (isOwner) {
