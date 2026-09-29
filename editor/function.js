@@ -1,25 +1,45 @@
 let v2t = "", v3t = "", v4t = "";
 let enginesLoaded = 0;
 
-function loadScript(url, callback) {
-    let xhr = new XMLHttpRequest();
-    xhr.open("get", url);
-    xhr.onload = () => {
+window.__v2t = "";
+window.__v3t = "";
+window.__v4t = "";
+window.__enginesReady = false;
+
+function loadScript(url, key, onDone) {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.onload = function () {
         if (xhr.status === 200) {
-            callback(xhr.responseText);
+            const text = xhr.responseText;
+            if (key === 'v2') { v2t = text; window.__v2t = text; }
+            else if (key === 'v3') { v3t = text; window.__v3t = text; }
+            else if (key === 'v4') { v4t = text; window.__v4t = text; }
             enginesLoaded++;
-            if (enginesLoaded === 3) window.__enginesReady = true;
+            if (enginesLoaded === 3) {
+                window.__enginesReady = true;
+                try {
+                    window.dispatchEvent(new Event('enginesready'));
+                } catch (e) {}
+            }
+            if (typeof onDone === 'function') onDone(null, text);
         } else {
-            console.error("Failed to load " + url + " status " + xhr.status);
+            const err = new Error('Failed to load ' + url + ' — status ' + xhr.status);
+            console.error(err);
+            if (typeof onDone === 'function') onDone(err);
         }
     };
-    xhr.onerror = () => console.error("Network error " + url);
+    xhr.onerror = function () {
+        const err = new Error('Network error loading ' + url);
+        console.error(err);
+        if (typeof onDone === 'function') onDone(err);
+    };
     xhr.send();
 }
 
-loadScript("tcjsgame-v2.js", (t) => v2t = t);
-loadScript("tcjsgame-v3.js", (t) => v3t = t);
-loadScript("epic.js", (t) => v4t = t);
+loadScript("tcjsgame-v2.js", 'v2');
+loadScript("tcjsgame-v3.js", 'v3');
+loadScript("epic.js", 'v4');
 
 function buildConsoleForwarder() {
     return '<script>\n' +
@@ -75,62 +95,115 @@ function buildErrorOverlay() {
     '<\/script>\n';
 }
 
-function runn() {
+function normalizeAssets(assets) {
+    var a = assets && typeof assets === 'object' ? assets : {};
+    var head = typeof a.head === 'string' ? a.head : '';
+    var css = typeof a.css === 'string' ? a.css : '';
+    var scriptsRaw = typeof a.scripts === 'string' ? a.scripts : '';
+    var scriptList = scriptsRaw
+        .split(/\r?\n/)
+        .map(function (s) { return s.trim(); })
+        .filter(function (s) { return s.length > 0; });
+    return { head: head, css: css, scripts: scriptList };
+}
+
+function buildAssetsHeadHtml(assets) {
+    var parts = [];
+    var norm = normalizeAssets(assets);
+
+    if (norm.head.trim()) {
+        parts.push(norm.head.trim());
+    }
+
+    for (var i = 0; i < norm.scripts.length; i++) {
+        var url = norm.scripts[i].replace(/"/g, '&quot;');
+        parts.push('<script src="' + url + '"><\/script>');
+    }
+
+    if (norm.css.trim()) {
+        parts.push('<style>\n' + norm.css + '\n</style>');
+    }
+
+    return parts.length ? parts.join('\n') + '\n' : '';
+}
+
+window.buildGameHTML = function (engineCode, userCode, assets) {
+    var safeUserCode = String(userCode || '').replace(/<\/script>/gi, '<\\/script>');
+    var safeEngine = String(engineCode || '');
+    var assetsHead = buildAssetsHeadHtml(assets);
+
+    return '<!DOCTYPE html>\n' +
+        '<html lang="en">\n' +
+        '<head>\n' +
+        '<meta charset="UTF-8">\n' +
+        '<meta name="viewport" content="width=device-width,initial-scale=1">\n' +
+        assetsHead +
+        '<style>\n' +
+        'html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%;}\n' +
+        'canvas{display:block;margin:0 auto;}\n' +
+        '</style>\n' +
+        '<script>' + safeEngine + '<\/script>\n' +
+        buildConsoleForwarder() +
+        buildErrorOverlay() +
+        '</head>\n' +
+        '<body>\n' +
+        '<script>\n' +
+        safeUserCode + '\n' +
+        '<\/script>\n' +
+        '</body>\n' +
+        '</html>';
+};
+
+window.runn = function () {
     if (!window.__enginesReady) {
         alert("Engine still loading. Wait 2 seconds and tap Run again.");
         return;
     }
 
-    if (window.jQuery) window.jQuery('dialog').fadeIn(300);
-    else { var d = document.querySelector('dialog'); if (d) d.setAttribute('open', ''); }
+    var dialog = document.getElementById('runDialog');
+    if (!dialog) return;
 
-    let iframe = document.querySelector('iframe');
-    if (iframe) {
-        iframe.style.width = "100%";
-        iframe.style.height = "70vh";
-        iframe.style.border = "none";
-        iframe.style.display = "block";
+    if (typeof dialog.showModal === 'function') {
+        if (!dialog.hasAttribute('open')) {
+            try { dialog.showModal(); } catch (e) {
+                dialog.setAttribute('open', '');
+            }
+        }
+    } else {
+        dialog.setAttribute('open', '');
     }
 
-    let mainTextarea = document.getElementById('js');
+    var iframe = document.getElementById('gameFrame');
+    if (!iframe) return;
+
+    var mainTextarea = document.getElementById('js');
     if (!mainTextarea) return;
 
-    let userEditorCode = mainTextarea.value;
+    var userEditorCode = mainTextarea.value;
     if (!userEditorCode || !userEditorCode.trim()) {
         alert("Nothing to run. Write or generate some code first.");
         return;
     }
 
-    let engineScriptFile = v4t;
-    let versionDropdown = document.getElementById('version');
+    var engineCode = window.__v4t;
+    var versionDropdown = document.getElementById('version');
     if (versionDropdown) {
-        let v = versionDropdown.value.toLowerCase();
-        if (v.includes('v2')) engineScriptFile = v2t;
-        else if (v.includes('v3')) engineScriptFile = v3t;
-        else if (v.includes('v4')) engineScriptFile = v4t;
+        var v = versionDropdown.value.toLowerCase();
+        if (v.indexOf('v2') !== -1) engineCode = window.__v2t;
+        else if (v.indexOf('v3') !== -1) engineCode = window.__v3t;
+        else if (v.indexOf('v4') !== -1) engineCode = window.__v4t;
     }
 
-    if (!engineScriptFile || !engineScriptFile.trim()) {
+    if (!engineCode || !engineCode.trim()) {
         alert("Engine failed to load. Check that epic.js is in /editor/.");
         return;
     }
 
-    let safeUserCode = userEditorCode.replace(/<\/script>/gi, '<\\/script>');
+    var assets = (typeof window.getCurrentAssets === 'function')
+        ? window.getCurrentAssets()
+        : { head: '', css: '', scripts: '' };
 
-    let code = '<!DOCTYPE html>\n' +
-'<html lang="en">\n' +
-'<head>\n' +
-'<meta charset="UTF-8">\n' +
-'<script>' + engineScriptFile + '<\/script>\n' +
-buildConsoleForwarder() +
-buildErrorOverlay() +
-'</head>\n' +
-'<body>\n' +
-'<script>\n' +
-safeUserCode + '\n' +
-'<\/script>\n' +
-'</body>\n' +
-'</html>';
+    var html = window.buildGameHTML(engineCode, userEditorCode, assets);
 
-    if (iframe) iframe.srcdoc = code;
-}
+    iframe.srcdoc = html;
+};
