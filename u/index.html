@@ -301,13 +301,13 @@
   .display { font-size: 15px; color: var(--text-1); margin: 0 0 8px; }
 
   .stats {
-    display: flex; gap: 20px;
+    display: flex; gap: 12px;
     margin-top: 14px;
     font-size: 14px;
     color: var(--text-1);
     flex-wrap: wrap;
   }
-  .stats span {
+  .stat-btn {
     padding: 8px 16px;
     background: rgba(255,255,255,0.04);
     border: 1px solid var(--border);
@@ -316,55 +316,234 @@
     align-items: center;
     gap: 8px;
     transition: all 0.2s;
+    font-family: inherit;
+    color: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    appearance: none;
   }
-  .stats span:hover {
+  .stat-btn:hover {
     border-color: var(--border-2);
     background: rgba(255,255,255,0.07);
     transform: translateY(-1px);
   }
-  .stats span b { color: var(--warning); font-weight: 800; font-size: 15px; }
+  .stat-btn b { color: var(--warning); font-weight: 800; font-size: 15px; }
+  .stat-btn.active {
+    border-color: rgba(110,168,254,0.55);
+    background: linear-gradient(135deg, rgba(110,168,254,0.12), rgba(163,113,247,0.12));
+    box-shadow: 0 0 20px rgba(110,168,254,0.15);
+  }
+  .stat-btn.active b { color: #fff; }
+  .stat-btn.active .stat-chev {
+    transform: rotate(90deg);
+  }
+  .stat-chev {
+    font-size: 11px;
+    color: var(--text-2);
+    transition: transform 0.25s;
+    display: inline-block;
+    line-height: 1;
+  }
+  .stat-btn.static {
+    cursor: default;
+  }
+  .stat-btn.static:hover {
+    transform: none;
+    background: rgba(255,255,255,0.04);
+    border-color: var(--border);
+  }
 
-  .follow-btn {
-    padding: 14px 30px;
-    border: 2px solid rgba(110,168,254,0.6);
-    border-radius: 12px;
-    background: linear-gradient(135deg, #6ea8fe, #a371f7);
-    color: #fff;
-    font-weight: 800;
-    font-size: 15px;
-    cursor: pointer;
-    align-self: center;
-    margin-bottom: 8px;
-    transition: all 0.2s;
-    box-shadow: 0 8px 24px rgba(110,168,254,0.4);
-    font-family: inherit;
-    position: relative;
+  .expand-region {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .expand-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.34s ease, margin 0.34s ease;
     overflow: hidden;
+    margin-top: 0;
   }
-  .follow-btn::before {
-    content: "";
-    position: absolute;
-    top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg,
-      transparent, rgba(255,255,255,0.3), transparent);
-    animation: sweep 3s linear infinite;
+  .expand-panel.open {
+    grid-template-rows: 1fr;
+    margin-top: 14px;
   }
-  .follow-btn:hover {
-    transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 12px 32px rgba(110,168,254,0.6);
+  .expand-panel-inner {
+    overflow: hidden;
+    min-height: 0;
   }
-  .follow-btn.following {
-    background: rgba(255,255,255,0.06);
-    border-color: rgba(255,255,255,0.2);
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+  }
+  .panel-header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: 0.3px;
+  }
+  .panel-header-title .icon {
+    font-size: 16px;
+  }
+  .panel-header-sub {
+    font-size: 11.5px;
+    color: var(--text-2);
+    font-weight: 600;
+  }
+
+  .panel-list {
+    background: linear-gradient(180deg, rgba(21,21,42,0.85), rgba(16,16,30,0.85));
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    padding: 6px;
+    backdrop-filter: blur(10px);
+  }
+  .panel-loading,
+  .panel-empty,
+  .panel-error {
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--text-2);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .panel-error { color: #f87171; }
+
+  .panel-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    transition: background 0.18s;
+  }
+  .panel-row:hover { background: rgba(255,255,255,0.045); }
+  .panel-row + .panel-row { border-top: 1px solid rgba(255,255,255,0.045); }
+
+  .panel-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #202040;
+    border: 2px solid rgba(255,255,255,0.08);
+  }
+  .panel-avatar-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    color: #fff;
+    font-size: 16px;
+    background: linear-gradient(135deg, #6ea8fe, #a371f7);
+  }
+
+  .panel-row-content { flex: 1; min-width: 0; }
+  .panel-row-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .panel-row-title a {
+    color: var(--warning);
+    text-decoration: none;
+  }
+  .panel-row-title a:hover { text-decoration: underline; }
+  .panel-row-meta {
+    font-size: 11.5px;
+    color: var(--text-2);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .panel-row-meta a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .panel-row-meta a:hover { text-decoration: underline; }
+
+  .panel-row-action {
+    flex-shrink: 0;
+  }
+  .panel-follow-btn {
+    padding: 6px 14px;
+    border-radius: 9px;
+    font-size: 11.5px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s;
+    white-space: nowrap;
+    background: rgba(110,168,254,0.12);
+    border: 1px solid rgba(110,168,254,0.4);
+    color: var(--accent);
+  }
+  .panel-follow-btn:hover:not(:disabled) {
+    background: rgba(110,168,254,0.22);
+    border-color: rgba(110,168,254,0.7);
+    transform: translateY(-1px);
+  }
+  .panel-follow-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .panel-follow-btn.following {
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(255,255,255,0.15);
+    color: var(--text-2);
+  }
+  .panel-follow-btn.following:hover {
+    background: rgba(248,113,113,0.1);
+    border-color: rgba(248,113,113,0.4);
+    color: #f87171;
+  }
+
+  .panel-show-more {
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+  }
+  .panel-show-more button {
+    padding: 9px 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border-2);
+    border-radius: 10px;
     color: var(--text-1);
-    box-shadow: none;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s;
   }
-  .follow-btn.following::before { display: none; }
-  .follow-btn.following:hover {
-    background: rgba(255,255,255,0.1);
+  .panel-show-more button:hover:not(:disabled) {
+    background: rgba(255,255,255,0.08);
     color: var(--text);
     transform: translateY(-1px);
+  }
+  .panel-show-more button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   h2 {
@@ -444,6 +623,11 @@
   .badge-card.streak    { --badge-accent: #fb923c; }
   .badge-card.loved     { --badge-accent: #ec4899; }
   .badge-card.winner    { --badge-accent: #fbbf24; }
+  .badge-card.rising    { --badge-accent: #a371f7; }
+  .badge-card.veteran   { --badge-accent: #22d3ee; }
+  .badge-card.legend    { --badge-accent: #f472b6; }
+  .badge-card.prolific  { --badge-accent: #4ade80; }
+  .badge-card.voice     { --badge-accent: #60a5fa; }
 
   .badge-icon-wrap {
     width: 60px;
@@ -589,6 +773,11 @@
   .badge-modal-card.streak    { --modal-accent: #fb923c; }
   .badge-modal-card.loved     { --modal-accent: #ec4899; }
   .badge-modal-card.winner    { --modal-accent: #fbbf24; }
+  .badge-modal-card.rising    { --modal-accent: #a371f7; }
+  .badge-modal-card.veteran   { --modal-accent: #22d3ee; }
+  .badge-modal-card.legend    { --modal-accent: #f472b6; }
+  .badge-modal-card.prolific  { --modal-accent: #4ade80; }
+  .badge-modal-card.voice     { --modal-accent: #60a5fa; }
 
   .badge-modal-hero {
     position: relative;
@@ -911,230 +1100,6 @@
   }
   .empty a:hover { background: rgba(110,168,254,0.2); }
 
-  .panel-wrap {
-    margin-top: 8px;
-  }
-  .panel-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 14px 18px;
-    background: linear-gradient(135deg, rgba(110,168,254,0.06), rgba(163,113,247,0.06));
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    cursor: pointer;
-    transition: all 0.22s;
-    user-select: none;
-    font-family: inherit;
-    color: inherit;
-    width: 100%;
-    text-align: left;
-    appearance: none;
-  }
-  .panel-toggle:hover {
-    border-color: var(--border-2);
-    transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(110,168,254,0.1);
-  }
-  .panel-toggle-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-  }
-  .panel-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-    background: linear-gradient(135deg, rgba(110,168,254,0.3), rgba(163,113,247,0.3));
-    border: 1px solid rgba(110,168,254,0.4);
-    box-shadow: 0 4px 14px rgba(110,168,254,0.25);
-  }
-  .panel-icon.followers {
-    background: linear-gradient(135deg, rgba(110,168,254,0.35), rgba(34,211,238,0.35));
-    border-color: rgba(110,168,254,0.5);
-  }
-  .panel-icon.likes {
-    background: linear-gradient(135deg, rgba(255,84,112,0.35), rgba(236,72,153,0.35));
-    border-color: rgba(255,84,112,0.5);
-  }
-  .panel-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  .panel-text strong {
-    font-size: 14px;
-    font-weight: 800;
-    color: var(--text);
-    letter-spacing: 0.2px;
-  }
-  .panel-text span {
-    font-size: 11.5px;
-    color: var(--text-2);
-  }
-  .panel-arrow {
-    font-size: 20px;
-    color: var(--accent);
-    transition: transform 0.28s;
-    font-weight: 700;
-    line-height: 1;
-    flex-shrink: 0;
-  }
-  .panel-wrap.open .panel-arrow { transform: rotate(90deg); }
-
-  .panel-body {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.34s ease;
-    overflow: hidden;
-  }
-  .panel-wrap.open .panel-body { grid-template-rows: 1fr; }
-  .panel-body-inner { overflow: hidden; min-height: 0; }
-  .panel-list {
-    margin-top: 12px;
-    background: linear-gradient(180deg, rgba(21,21,42,0.85), rgba(16,16,30,0.85));
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 6px;
-    backdrop-filter: blur(10px);
-  }
-  .panel-loading,
-  .panel-empty,
-  .panel-error {
-    padding: 24px 16px;
-    text-align: center;
-    color: var(--text-2);
-    font-size: 13px;
-    line-height: 1.5;
-  }
-  .panel-error { color: #f87171; }
-
-  .panel-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 11px 12px;
-    border-radius: 10px;
-    transition: background 0.18s;
-  }
-  .panel-row:hover { background: rgba(255,255,255,0.045); }
-  .panel-row + .panel-row { border-top: 1px solid rgba(255,255,255,0.045); }
-
-  .panel-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-    background: #202040;
-    border: 2px solid rgba(255,255,255,0.08);
-  }
-  .panel-avatar-fallback {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    color: #fff;
-    font-size: 16px;
-    background: linear-gradient(135deg, #6ea8fe, #a371f7);
-  }
-
-  .panel-row-content { flex: 1; min-width: 0; }
-  .panel-row-title {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: var(--text);
-    margin: 0 0 3px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .panel-row-title a {
-    color: var(--warning);
-    text-decoration: none;
-  }
-  .panel-row-title a:hover { text-decoration: underline; }
-  .panel-row-meta {
-    font-size: 11.5px;
-    color: var(--text-2);
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .panel-row-meta a {
-    color: var(--accent);
-    text-decoration: none;
-    font-weight: 600;
-  }
-  .panel-row-meta a:hover { text-decoration: underline; }
-
-  .panel-row-action {
-    flex-shrink: 0;
-  }
-  .panel-follow-btn {
-    padding: 6px 14px;
-    border-radius: 9px;
-    font-size: 11.5px;
-    font-weight: 800;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.18s;
-    white-space: nowrap;
-    background: rgba(110,168,254,0.12);
-    border: 1px solid rgba(110,168,254,0.4);
-    color: var(--accent);
-  }
-  .panel-follow-btn:hover:not(:disabled) {
-    background: rgba(110,168,254,0.22);
-    border-color: rgba(110,168,254,0.7);
-    transform: translateY(-1px);
-  }
-  .panel-follow-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  .panel-follow-btn.following {
-    background: rgba(255,255,255,0.04);
-    border-color: rgba(255,255,255,0.15);
-    color: var(--text-2);
-  }
-  .panel-follow-btn.following:hover {
-    background: rgba(248,113,113,0.1);
-    border-color: rgba(248,113,113,0.4);
-    color: #f87171;
-  }
-
-  .panel-show-more {
-    display: flex;
-    justify-content: center;
-    padding: 12px;
-  }
-  .panel-show-more button {
-    padding: 9px 20px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border-2);
-    border-radius: 10px;
-    color: var(--text-1);
-    font-size: 12.5px;
-    font-weight: 700;
-    cursor: pointer;
-    font-family: inherit;
-    transition: all 0.18s;
-  }
-  .panel-show-more button:hover:not(:disabled) {
-    background: rgba(255,255,255,0.08);
-    color: var(--text);
-    transform: translateY(-1px);
-  }
-  .panel-show-more button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
   footer {
     margin-top: 40px;
     padding: 30px 24px 40px;
@@ -1195,6 +1160,7 @@
 
     .banner { height: 150px; }
     .container { padding: 0 16px; }
+    .expand-region { padding: 0 16px; }
     .profile-head {
       margin-top: -55px;
       gap: 18px;
@@ -1206,8 +1172,10 @@
     .username { font-size: 22px; }
     .display { font-size: 13.5px; }
     .follow-btn { width: 100%; margin-bottom: 0; }
-    .stats span { padding: 7px 12px; font-size: 12.5px; }
-    .stats span b { font-size: 13.5px; }
+    .stats { gap: 8px; }
+    .stat-btn { padding: 7px 12px; font-size: 12.5px; }
+    .stat-btn b { font-size: 13.5px; }
+    .stat-chev { font-size: 10px; }
 
     h2 { margin: 30px 0 14px; font-size: 11px; }
 
@@ -1232,10 +1200,6 @@
     .badge-modal-name { font-size: 20px; }
     .badge-modal-body { padding: 18px 18px 20px; }
 
-    .panel-toggle { padding: 12px 14px; }
-    .panel-icon { width: 34px; height: 34px; font-size: 17px; }
-    .panel-text strong { font-size: 13px; }
-    .panel-text span { font-size: 11px; }
     .panel-row { padding: 10px 10px; gap: 10px; }
     .panel-avatar { width: 36px; height: 36px; }
     .panel-avatar-fallback { font-size: 14px; }
@@ -1283,24 +1247,68 @@
       <h1 class="username" id="username">Loading...</h1>
       <p class="display" id="display"></p>
       <div class="stats">
-        <span><b id="gameCount">0</b> games</span>
-        <span><b id="likeCount">0</b> likes</span>
-        <span><b id="followerCount">0</b> followers</span>
-        <span><b id="badgeCount">0</b> badges</span>
+        <button class="stat-btn" type="button" id="statGames">
+          <b id="gameCount">0</b> games <span class="stat-chev">›</span>
+        </button>
+        <button class="stat-btn" type="button" id="statLikes" style="display:none">
+          <b id="likeCount">0</b> likes <span class="stat-chev">›</span>
+        </button>
+        <button class="stat-btn" type="button" id="statFollowers" style="display:none">
+          <b id="followerCount">0</b> followers <span class="stat-chev">›</span>
+        </button>
+        <button class="stat-btn" type="button" id="statBadges">
+          <b id="badgeCount">0</b> badges <span class="stat-chev">›</span>
+        </button>
       </div>
     </div>
     <button class="follow-btn" id="followBtn" style="display:none">Follow</button>
   </div>
 
-  <h2>Badges</h2>
-  <div class="badges-dashboard" id="badgesDashboard">
+  <div class="expand-region">
+    <div class="expand-panel" id="expandBadges">
+      <div class="expand-panel-inner">
+        <div class="panel-header">
+          <div class="panel-header-title"><span class="icon">🏅</span> All Badges</div>
+          <div class="panel-header-sub" id="badgesPanelSub">10 total</div>
+        </div>
+        <div class="badges-dashboard" id="badgesDashboard" style="padding:14px;background:linear-gradient(180deg,rgba(21,21,42,0.85),rgba(16,16,30,0.85));border:1px solid var(--border);border-top:0;border-bottom-left-radius:14px;border-bottom-right-radius:14px;backdrop-filter:blur(10px);">
+          <div class="badges-empty">Loading badges...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="expand-panel" id="expandFollowers">
+      <div class="expand-panel-inner">
+        <div class="panel-header">
+          <div class="panel-header-title"><span class="icon">👥</span> Followers</div>
+          <div class="panel-header-sub" id="followersPanelSub">Loading…</div>
+        </div>
+        <div class="panel-list" id="followersList">
+          <div class="panel-loading">Loading followers…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="expand-panel" id="expandLikes">
+      <div class="expand-panel-inner">
+        <div class="panel-header">
+          <div class="panel-header-title"><span class="icon">❤️</span> Recent Likes</div>
+          <div class="panel-header-sub" id="likesPanelSub">Loading…</div>
+        </div>
+        <div class="panel-list" id="likesList">
+          <div class="panel-loading">Loading likes…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 id="badgesHeading">Badges</h2>
+  <div class="badges-dashboard" id="badgesPreview">
     <div class="badges-empty">Loading badges...</div>
   </div>
 
-  <h2>Games</h2>
+  <h2 id="gamesHeading">Games</h2>
   <div class="grid" id="grid"><div class="empty">Loading...</div></div>
-
-  <div id="ownerPanels"></div>
 </div>
 
 <footer>
@@ -1343,10 +1351,19 @@ const username = (params.get('u') || '').toLowerCase().replace(/^@/, '');
 const gridEl = document.getElementById('grid');
 const followBtn = document.getElementById('followBtn');
 const badgesDashboard = document.getElementById('badgesDashboard');
+const badgesPreview = document.getElementById('badgesPreview');
 const badgeModal = document.getElementById('badgeModal');
 const badgeModalBackdrop = document.getElementById('badgeModalBackdrop');
 const badgeModalCard = document.getElementById('badgeModalCard');
-const ownerPanelsEl = document.getElementById('ownerPanels');
+
+const statGames = document.getElementById('statGames');
+const statLikes = document.getElementById('statLikes');
+const statFollowers = document.getElementById('statFollowers');
+const statBadges = document.getElementById('statBadges');
+
+const expandBadges = document.getElementById('expandBadges');
+const expandFollowers = document.getElementById('expandFollowers');
+const expandLikes = document.getElementById('expandLikes');
 
 const RARITY_CACHE_KEY = 'limn_badge_rarity_cache_v2';
 const RARITY_CACHE_TTL = 24 * 60 * 60 * 1000;
@@ -1359,9 +1376,10 @@ const BADGE_DEFS = {
     icon: '🌱',
     name: 'Newcomer',
     tagline: 'Fresh face on the Arcade',
-    desc: 'Awarded to creators who joined Limn within the last 14 days. It\'s a welcome gift that stays with you as you settle in.',
+    desc: 'Awarded to creators who joined Limn within the last 14 days. A welcome gift that stays with you as you settle in.',
     hint: 'Welcome to Limn',
-    color: 'newcomer'
+    color: 'newcomer',
+    type: 'boolean'
   },
   firstgame: {
     id: 'firstgame',
@@ -1370,7 +1388,10 @@ const BADGE_DEFS = {
     tagline: 'The beginning of something',
     desc: 'Awarded when you publish your very first game on Limn Arcade. Everything starts here.',
     hint: 'Publish your first game',
-    color: 'firstgame'
+    color: 'firstgame',
+    type: 'count',
+    target: 1,
+    unit: 'game'
   },
   streak: {
     id: 'streak',
@@ -1379,7 +1400,10 @@ const BADGE_DEFS = {
     tagline: 'Consistency is a superpower',
     desc: 'Awarded to creators who publish at least one game for 3 or more consecutive weeks. It doesn\'t matter how big the game is — just that you show up.',
     hint: 'Publish 3 weeks in a row',
-    color: 'streak'
+    color: 'streak',
+    type: 'count',
+    target: 3,
+    unit: 'weeks'
   },
   loved: {
     id: 'loved',
@@ -1388,7 +1412,10 @@ const BADGE_DEFS = {
     tagline: 'The community is watching',
     desc: 'Awarded when the community gives your games 50 or more likes. Every like is a small signal that someone played and enjoyed your work.',
     hint: 'Collect 50 total likes',
-    color: 'loved'
+    color: 'loved',
+    type: 'count',
+    target: 50,
+    unit: 'likes'
   },
   winner: {
     id: 'winner',
@@ -1397,11 +1424,70 @@ const BADGE_DEFS = {
     tagline: 'Top of the week',
     desc: 'Awarded when one of your games wins Game of the Week on the Arcade leaderboard. The rarest badge on Limn.',
     hint: 'Win Game of the Week',
-    color: 'winner'
+    color: 'winner',
+    type: 'boolean'
+  },
+  rising: {
+    id: 'rising',
+    icon: '⭐',
+    name: 'Rising Creator',
+    tagline: 'Building momentum',
+    desc: 'Awarded when you publish 5 or more games on Limn Arcade. You\'re finding your voice as a creator.',
+    hint: 'Publish 5 games',
+    color: 'rising',
+    type: 'count',
+    target: 5,
+    unit: 'games'
+  },
+  prolific: {
+    id: 'prolific',
+    icon: '🎯',
+    name: 'Prolific',
+    tagline: 'A true maker',
+    desc: 'Awarded when you publish 10 or more games on Limn Arcade. You don\'t just make games — you ship them.',
+    hint: 'Publish 10 games',
+    color: 'prolific',
+    type: 'count',
+    target: 10,
+    unit: 'games'
+  },
+  voice: {
+    id: 'voice',
+    icon: '💬',
+    name: 'Conversationalist',
+    tagline: 'Spark conversation',
+    desc: 'Awarded when your games have received 20 or more comments from the community. Your games make people want to talk.',
+    hint: 'Get 20 comments',
+    color: 'voice',
+    type: 'count',
+    target: 20,
+    unit: 'comments'
+  },
+  veteran: {
+    id: 'veteran',
+    icon: '👑',
+    name: 'Veteran',
+    tagline: 'Been here a while',
+    desc: 'Awarded to creators whose accounts are at least 6 months old. A long-term member of the Limn community.',
+    hint: 'Account 6+ months old',
+    color: 'veteran',
+    type: 'boolean'
+  },
+  legend: {
+    id: 'legend',
+    icon: '💎',
+    name: 'Legend',
+    tagline: 'A community icon',
+    desc: 'Awarded when your games have collected 200 or more likes in total. Only a handful of creators ever reach this.',
+    hint: 'Collect 200 total likes',
+    color: 'legend',
+    type: 'count',
+    target: 200,
+    unit: 'likes'
   }
 };
 
-const BADGE_ORDER = ['newcomer', 'firstgame', 'streak', 'loved', 'winner'];
+const BADGE_ORDER = ['newcomer', 'firstgame', 'streak', 'loved', 'winner', 'rising', 'prolific', 'voice', 'veteran', 'legend'];
 
 function getWeekStart(date) {
   const d = new Date(date);
@@ -1474,28 +1560,29 @@ function timeAgo(iso) {
   return Math.floor(s / 31536000) + 'y ago';
 }
 
-async function computeBadgesForUser(userId, gameList, totalLikes) {
-  const badges = [];
-
-  let accountAgeDays = null;
-
+async function getAccountAgeDays(userId) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (user && user.id === userId && user.created_at) {
-      accountAgeDays = (Date.now() - new Date(user.created_at).getTime()) / 86400000;
+      return (Date.now() - new Date(user.created_at).getTime()) / 86400000;
     }
   } catch (e) {}
 
-  if (accountAgeDays === null) {
-    const { data: profileRow } = await supabase
-      .from('profiles')
-      .select('created_at')
-      .eq('user_id', userId)
-      .maybeSingle();
-    if (profileRow && profileRow.created_at) {
-      accountAgeDays = (Date.now() - new Date(profileRow.created_at).getTime()) / 86400000;
-    }
+  const { data: profileRow } = await supabase
+    .from('profiles')
+    .select('created_at')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (profileRow && profileRow.created_at) {
+    return (Date.now() - new Date(profileRow.created_at).getTime()) / 86400000;
   }
+  return null;
+}
+
+async function computeBadgesForUser(userId, gameList, totalLikes, totalComments) {
+  const badges = [];
+
+  const accountAgeDays = await getAccountAgeDays(userId);
 
   const isNewcomer = accountAgeDays !== null && accountAgeDays < 14 && gameList.length <= 3;
   const firstGame = gameList.length >= 1;
@@ -1506,6 +1593,11 @@ async function computeBadgesForUser(userId, gameList, totalLikes) {
   const streakEarned = bestStreak >= 3;
 
   const lovedEarned = totalLikes >= 50;
+  const legendEarned = totalLikes >= 200;
+  const risingEarned = gameList.length >= 5;
+  const prolificEarned = gameList.length >= 10;
+  const voiceEarned = totalComments >= 20;
+  const veteranEarned = accountAgeDays !== null && accountAgeDays >= 180;
 
   let winnerEarned = false;
   let winnerGameTitle = null;
@@ -1572,6 +1664,53 @@ async function computeBadgesForUser(userId, gameList, totalLikes) {
     hint: BADGE_DEFS.winner.hint
   });
 
+  badges.push({
+    def: BADGE_DEFS.rising,
+    earned: risingEarned,
+    progress: Math.min(gameList.length, 5),
+    progressTarget: 5,
+    progressLabel: gameList.length + ' / 5 games published',
+    hint: BADGE_DEFS.rising.hint
+  });
+
+  badges.push({
+    def: BADGE_DEFS.prolific,
+    earned: prolificEarned,
+    progress: Math.min(gameList.length, 10),
+    progressTarget: 10,
+    progressLabel: gameList.length + ' / 10 games published',
+    hint: BADGE_DEFS.prolific.hint
+  });
+
+  badges.push({
+    def: BADGE_DEFS.voice,
+    earned: voiceEarned,
+    progress: Math.min(totalComments, 20),
+    progressTarget: 20,
+    progressLabel: totalComments + ' / 20 comments received',
+    hint: BADGE_DEFS.voice.hint
+  });
+
+  badges.push({
+    def: BADGE_DEFS.veteran,
+    earned: veteranEarned,
+    progress: veteranEarned ? 1 : (accountAgeDays !== null ? Math.min(Math.floor(accountAgeDays / 180 * 100), 99) / 100 : 0),
+    progressTarget: 1,
+    progressLabel: accountAgeDays !== null
+      ? Math.floor(accountAgeDays) + ' days old' + (veteranEarned ? '' : ' · 180 needed')
+      : 'Unknown account age',
+    hint: BADGE_DEFS.veteran.hint
+  });
+
+  badges.push({
+    def: BADGE_DEFS.legend,
+    earned: legendEarned,
+    progress: Math.min(totalLikes, 200),
+    progressTarget: 200,
+    progressLabel: totalLikes + ' / 200 likes',
+    hint: BADGE_DEFS.legend.hint
+  });
+
   return badges;
 }
 
@@ -1619,6 +1758,21 @@ async function computeRarity() {
     likesByUser[author] = (likesByUser[author] || 0) + 1;
   }
 
+  const commentsByUser = {};
+  try {
+    const { data: allComments } = await supabase
+      .from('comments')
+      .select('game_id')
+      .in('game_id', allGameIds);
+    if (allComments) {
+      for (const c of allComments) {
+        const author = gameToAuthor[c.game_id];
+        if (!author) continue;
+        commentsByUser[author] = (commentsByUser[author] || 0) + 1;
+      }
+    }
+  } catch (e) {}
+
   const winnerUsers = new Set();
   try {
     const { data: winners } = await supabase
@@ -1635,22 +1789,34 @@ async function computeRarity() {
     for (const p of profilesAll) profileCreatedAt[p.user_id] = p.created_at;
   }
 
-  const counts = { newcomer: 0, firstgame: 0, streak: 0, loved: 0, winner: 0 };
+  const counts = {
+    newcomer: 0, firstgame: 0, streak: 0, loved: 0, winner: 0,
+    rising: 0, prolific: 0, voice: 0, veteran: 0, legend: 0
+  };
 
   for (const userId of Object.keys(gamesByUser)) {
     const games = gamesByUser[userId];
-    if (games.length >= 1) counts.firstgame++;
+
+    counts.firstgame++;
+    if (games.length >= 5) counts.rising++;
+    if (games.length >= 10) counts.prolific++;
 
     const created = profileCreatedAt[userId];
     if (created) {
       const ageDays = (Date.now() - new Date(created).getTime()) / 86400000;
       if (ageDays < 14 && games.length <= 3) counts.newcomer++;
+      if (ageDays >= 180) counts.veteran++;
     }
 
     const gameDates = games.map(g => g.created_at).filter(Boolean);
     if (computeBestStreak(gameDates) >= 3) counts.streak++;
 
-    if ((likesByUser[userId] || 0) >= 50) counts.loved++;
+    const likes = likesByUser[userId] || 0;
+    if (likes >= 50) counts.loved++;
+    if (likes >= 200) counts.legend++;
+
+    const comments = commentsByUser[userId] || 0;
+    if (comments >= 20) counts.voice++;
 
     if (winnerUsers.has(userId)) counts.winner++;
   }
@@ -1672,9 +1838,63 @@ async function computeRarity() {
   return rarity;
 }
 
-function renderBadgesDashboard(badges, rarity) {
+function badgeProgressRatio(b) {
+  if (b.progress === null || !b.progressTarget || b.progressTarget === 0) return 0;
+  return b.progress / b.progressTarget;
+}
+
+function pickTopBadges(badges, count) {
+  const sorted = [...badges].sort((a, b) => {
+    if (a.earned !== b.earned) return a.earned ? -1 : 1;
+    const ra = badgeProgressRatio(a);
+    const rb = badgeProgressRatio(b);
+    if (rb !== ra) return rb - ra;
+    return BADGE_ORDER.indexOf(a.def.id) - BADGE_ORDER.indexOf(b.def.id);
+  });
+  return sorted.slice(0, count);
+}
+
+function badgeCardHtml(b, idx) {
+  const def = b.def;
+
+  let miniBar = '';
+  if (!b.earned && b.progress !== null && b.progressTarget && b.progressTarget > 1) {
+    const pctFill = Math.min(100, Math.round((b.progress / b.progressTarget) * 100));
+    miniBar =
+      '<div class="badge-progress-mini">' +
+        '<div class="badge-progress-mini-fill" style="width:' + pctFill + '%"></div>' +
+      '</div>';
+  }
+
+  return '<button type="button" class="badge-card ' + def.color +
+    (b.earned ? ' is-earned' : ' is-locked') + '" ' +
+    'data-badge-id="' + def.id + '" style="animation-delay:' + (idx * 0.03) + 's">' +
+    '<span class="badge-status-chip">' +
+      (b.earned ? '✓ Earned' : 'Locked') +
+    '</span>' +
+    '<div class="badge-icon-wrap">' + def.icon + '</div>' +
+    '<h3 class="badge-name">' + esc(def.name) + '</h3>' +
+    '<p class="badge-hint">' + esc(def.hint) + '</p>' +
+    miniBar +
+  '</button>';
+}
+
+function wireBadgeCards(container, badges, rarity) {
+  container.querySelectorAll('.badge-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.dataset.badgeId;
+      const badge = badges.find(b => b.def.id === id);
+      if (badge) openBadgeModal(badge, rarity);
+    });
+  });
+}
+
+function renderBadges(badges, rarity) {
   if (!badges || badges.length === 0) {
+    badgesPreview.innerHTML = '<div class="badges-empty">No badges yet.</div>';
     badgesDashboard.innerHTML = '<div class="badges-empty">No badges yet.</div>';
+    document.getElementById('badgeCount').textContent = '0';
+    document.getElementById('badgesPanelSub').textContent = '0 total';
     return;
   }
 
@@ -1684,39 +1904,14 @@ function renderBadgesDashboard(badges, rarity) {
 
   const earnedCount = ordered.filter(b => b.earned).length;
   document.getElementById('badgeCount').textContent = earnedCount;
+  document.getElementById('badgesPanelSub').textContent = ordered.length + ' total';
 
-  badgesDashboard.innerHTML = ordered.map((b, idx) => {
-    const def = b.def;
+  const top = pickTopBadges(ordered, 2);
+  badgesPreview.innerHTML = top.map((b, idx) => badgeCardHtml(b, idx)).join('');
+  wireBadgeCards(badgesPreview, ordered, rarity);
 
-    let miniBar = '';
-    if (!b.earned && b.progress !== null && b.progressTarget && b.progressTarget > 1) {
-      const pctFill = Math.min(100, Math.round((b.progress / b.progressTarget) * 100));
-      miniBar =
-        '<div class="badge-progress-mini">' +
-          '<div class="badge-progress-mini-fill" style="width:' + pctFill + '%"></div>' +
-        '</div>';
-    }
-
-    return '<button type="button" class="badge-card ' + def.color +
-      (b.earned ? ' is-earned' : ' is-locked') + '" ' +
-      'data-badge-id="' + def.id + '" style="animation-delay:' + (idx * 0.05) + 's">' +
-      '<span class="badge-status-chip">' +
-        (b.earned ? '✓ Earned' : 'Locked') +
-      '</span>' +
-      '<div class="badge-icon-wrap">' + def.icon + '</div>' +
-      '<h3 class="badge-name">' + esc(def.name) + '</h3>' +
-      '<p class="badge-hint">' + esc(def.hint) + '</p>' +
-      miniBar +
-    '</button>';
-  }).join('');
-
-  badgesDashboard.querySelectorAll('.badge-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const id = card.dataset.badgeId;
-      const badge = ordered.find(b => b.def.id === id);
-      if (badge) openBadgeModal(badge, rarity);
-    });
-  });
+  badgesDashboard.innerHTML = ordered.map((b, idx) => badgeCardHtml(b, idx)).join('');
+  wireBadgeCards(badgesDashboard, ordered, rarity);
 }
 
 let lastFocusedEl = null;
@@ -1874,20 +2069,21 @@ function displayNameFor(profileRow) {
   return 'anonymous';
 }
 
-function renderAvatarHtml(profileRow, size) {
-  const cls = 'panel-avatar' + (profileRow && profileRow.avatar_url ? '' : ' panel-avatar-fallback');
-  if (profileRow && profileRow.avatar_url) {
-    return '<img class="' + cls + '" src="' + esc(profileRow.avatar_url) + '" alt="" onerror="this.classList.add(\'panel-avatar-fallback\');this.removeAttribute(\'src\');this.textContent=\'' + esc(initialFor(profileRow)) + '\'">';
-  }
-  return '<div class="' + cls + '">' + esc(initialFor(profileRow)) + '</div>';
-}
-
 function initialFor(profileRow) {
   let name = '';
   if (profileRow && profileRow.username) name = profileRow.username;
   else if (profileRow && profileRow.display_name) name = profileRow.display_name;
   else name = '?';
   return (name || '?').replace(/^@/, '').trim().charAt(0).toUpperCase() || '?';
+}
+
+function renderAvatarHtml(profileRow) {
+  if (profileRow && profileRow.avatar_url) {
+    return '<img class="panel-avatar" src="' + esc(profileRow.avatar_url) +
+      '" alt="" onerror="this.classList.add(\'panel-avatar-fallback\');this.removeAttribute(\'src\');this.textContent=\'' +
+      esc(initialFor(profileRow)) + '\'">';
+  }
+  return '<div class="panel-avatar panel-avatar-fallback">' + esc(initialFor(profileRow)) + '</div>';
 }
 
 async function fetchProfilesByIds(userIds) {
@@ -1918,10 +2114,8 @@ async function fetchFollowerCounts(userIds) {
   return map;
 }
 
-function buildFollowersPanel(followRows, profilesMap, followerCounts, myFollowingSet) {
-  if (!followRows || followRows.length === 0) {
-    return '<div class="panel-empty">No followers yet. Publish more games to get noticed.</div>';
-  }
+function buildFollowersRows(followRows, profilesMap, followerCounts, myFollowingSet) {
+  if (!followRows || followRows.length === 0) return '';
   return followRows.map(row => {
     const p = profilesMap[row.follower_id] || null;
     const name = displayNameFor(p);
@@ -1948,10 +2142,8 @@ function buildFollowersPanel(followRows, profilesMap, followerCounts, myFollowin
   }).join('');
 }
 
-function buildLikesPanel(likeRows, profilesMap, gamesMap) {
-  if (!likeRows || likeRows.length === 0) {
-    return '<div class="panel-empty">No likes yet.</div>';
-  }
+function buildLikesRows(likeRows, profilesMap, gamesMap) {
+  if (!likeRows || likeRows.length === 0) return '';
   return likeRows.map(row => {
     const p = profilesMap[row.user_id] || null;
     const g = gamesMap[row.game_id] || null;
@@ -1975,146 +2167,6 @@ function buildLikesPanel(likeRows, profilesMap, gamesMap) {
       '</div>' +
     '</div>';
   }).join('');
-}
-
-async function renderOwnerPanels(profile, gameList) {
-  ownerPanelsEl.innerHTML = '';
-
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.id !== profile.user_id) return;
-
-  ownerPanelsEl.innerHTML =
-    '<h2>Followers</h2>' +
-    '<div class="panel-wrap" id="followersPanel">' +
-      '<button class="panel-toggle" type="button" id="followersToggle">' +
-        '<div class="panel-toggle-left">' +
-          '<div class="panel-icon followers">👥</div>' +
-          '<div class="panel-text">' +
-            '<strong>Followers</strong>' +
-            '<span id="followersSub">Loading…</span>' +
-          '</div>' +
-        '</div>' +
-        '<div class="panel-arrow">›</div>' +
-      '</button>' +
-      '<div class="panel-body">' +
-        '<div class="panel-body-inner">' +
-          '<div class="panel-list" id="followersList">' +
-            '<div class="panel-loading">Loading followers…</div>' +
-          '</div>' +
-        '</div>' +
-      '</div>' +
-    '</div>' +
-    '<h2>Recent Likes</h2>' +
-    '<div class="panel-wrap" id="likesPanel">' +
-      '<button class="panel-toggle" type="button" id="likesToggle">' +
-        '<div class="panel-toggle-left">' +
-          '<div class="panel-icon likes">❤️</div>' +
-          '<div class="panel-text">' +
-            '<strong>Recent Likes</strong>' +
-            '<span id="likesSub">Loading…</span>' +
-          '</div>' +
-        '</div>' +
-        '<div class="panel-arrow">›</div>' +
-      '</button>' +
-      '<div class="panel-body">' +
-        '<div class="panel-body-inner">' +
-          '<div class="panel-list" id="likesList">' +
-            '<div class="panel-loading">Loading likes…</div>' +
-          '</div>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-
-  const followersToggle = document.getElementById('followersToggle');
-  const likesToggle = document.getElementById('likesToggle');
-  const followersPanel = document.getElementById('followersPanel');
-  const likesPanel = document.getElementById('likesPanel');
-
-  followersToggle.addEventListener('click', () => {
-    followersPanel.classList.toggle('open');
-  });
-  likesToggle.addEventListener('click', () => {
-    likesPanel.classList.toggle('open');
-  });
-
-  loadFollowersPanel(user).catch(() => {});
-  loadLikesPanel(user, gameList).catch(() => {});
-}
-
-async function loadFollowersPanel(me) {
-  const listEl = document.getElementById('followersList');
-  const subEl = document.getElementById('followersSub');
-  if (!listEl) return;
-
-  let page = 0;
-  let allRows = [];
-  let profilesMap = {};
-  let followerCounts = {};
-  let myFollowingSet = new Set();
-
-  async function fetchPage() {
-    const from = page * PANEL_PAGE_SIZE;
-    const to = from + PANEL_PAGE_SIZE - 1;
-    return supabase
-      .from('follows')
-      .select('follower_id, created_at')
-      .eq('creator_id', me.id)
-      .order('created_at', { ascending: false })
-      .range(from, to);
-  }
-
-  try {
-    const { data, error } = await fetchPage();
-    if (error) throw error;
-    allRows = data || [];
-  } catch (e) {
-    listEl.innerHTML = '<div class="panel-error">Could not load followers.</div>';
-    if (subEl) subEl.textContent = 'Could not load';
-    return;
-  }
-
-  if (allRows.length === 0) {
-    listEl.innerHTML = '<div class="panel-empty">No followers yet. Publish more games to get noticed.</div>';
-    if (subEl) subEl.textContent = '0 followers';
-    return;
-  }
-
-  const followerIds = allRows.map(r => r.follower_id).filter(Boolean);
-  profilesMap = await fetchProfilesByIds(followerIds);
-  followerCounts = await fetchFollowerCounts(followerIds);
-
-  try {
-    const { data: myFollows } = await supabase
-      .from('follows')
-      .select('creator_id')
-      .eq('follower_id', me.id)
-      .in('creator_id', followerIds);
-    if (myFollows) for (const f of myFollows) myFollowingSet.add(f.creator_id);
-  } catch (e) {}
-
-  listEl.innerHTML = buildFollowersPanel(allRows, profilesMap, followerCounts, myFollowingSet);
-  if (subEl) subEl.textContent = allRows.length + ' follower' + (allRows.length === 1 ? '' : 's') + ' so far';
-
-  wireFollowBackButtons(listEl, myFollowingSet);
-
-  if (allRows.length === PANEL_PAGE_SIZE) {
-    appendShowMore(listEl, async () => {
-      page++;
-      const { data, error } = await fetchPage();
-      if (error || !data || data.length === 0) return false;
-      const newIds = data.map(r => r.follower_id).filter(Boolean);
-      const newProfiles = await fetchProfilesByIds(newIds);
-      const newCounts = await fetchFollowerCounts(newIds);
-      Object.assign(profilesMap, newProfiles);
-      Object.assign(followerCounts, newCounts);
-      allRows = allRows.concat(data);
-      listEl.querySelector('.panel-show-more')?.remove();
-      listEl.insertAdjacentHTML('beforeend', buildFollowersPanel(data, profilesMap, followerCounts, myFollowingSet));
-      if (subEl) subEl.textContent = allRows.length + ' followers so far';
-      wireFollowBackButtons(listEl, myFollowingSet);
-      return data.length === PANEL_PAGE_SIZE;
-    });
-  }
 }
 
 function wireFollowBackButtons(container, myFollowingSet) {
@@ -2171,9 +2223,99 @@ function appendShowMore(container, loader) {
   container.appendChild(wrap);
 }
 
+let followersLoaded = false;
+let likesLoaded = false;
+let followerState = null;
+let likesState = null;
+
+async function loadFollowersPanel(me) {
+  if (followersLoaded) return;
+  followersLoaded = true;
+
+  const listEl = document.getElementById('followersList');
+  const subEl = document.getElementById('followersPanelSub');
+  if (!listEl) return;
+
+  let page = 0;
+  let allRows = [];
+  let profilesMap = {};
+  let followerCounts = {};
+  const myFollowingSet = new Set();
+
+  async function fetchPage() {
+    const from = page * PANEL_PAGE_SIZE;
+    const to = from + PANEL_PAGE_SIZE - 1;
+    return supabase
+      .from('follows')
+      .select('follower_id, created_at')
+      .eq('creator_id', me.id)
+      .order('created_at', { ascending: false })
+      .range(from, to);
+  }
+
+  try {
+    const { data, error } = await fetchPage();
+    if (error) throw error;
+    allRows = data || [];
+  } catch (e) {
+    listEl.innerHTML = '<div class="panel-error">Could not load followers.</div>';
+    if (subEl) subEl.textContent = 'Could not load';
+    return;
+  }
+
+  if (allRows.length === 0) {
+    listEl.innerHTML = '<div class="panel-empty">No followers yet. Publish more games to get noticed.</div>';
+    if (subEl) subEl.textContent = '0 followers';
+    return;
+  }
+
+  const followerIds = allRows.map(r => r.follower_id).filter(Boolean);
+  profilesMap = await fetchProfilesByIds(followerIds);
+  followerCounts = await fetchFollowerCounts(followerIds);
+
+  try {
+    const { data: myFollows } = await supabase
+      .from('follows')
+      .select('creator_id')
+      .eq('follower_id', me.id)
+      .in('creator_id', followerIds);
+    if (myFollows) for (const f of myFollows) myFollowingSet.add(f.creator_id);
+  } catch (e) {}
+
+  listEl.innerHTML = buildFollowersRows(allRows, profilesMap, followerCounts, myFollowingSet);
+  if (subEl) subEl.textContent = allRows.length + ' follower' + (allRows.length === 1 ? '' : 's');
+  wireFollowBackButtons(listEl, myFollowingSet);
+
+  followerState = {
+    addPage: async () => {
+      page++;
+      const { data, error } = await fetchPage();
+      if (error || !data || data.length === 0) return false;
+      const newIds = data.map(r => r.follower_id).filter(Boolean);
+      const newProfiles = await fetchProfilesByIds(newIds);
+      const newCounts = await fetchFollowerCounts(newIds);
+      Object.assign(profilesMap, newProfiles);
+      Object.assign(followerCounts, newCounts);
+      allRows = allRows.concat(data);
+      listEl.querySelector('.panel-show-more')?.remove();
+      listEl.insertAdjacentHTML('beforeend', buildFollowersRows(data, profilesMap, followerCounts, myFollowingSet));
+      if (subEl) subEl.textContent = allRows.length + ' followers';
+      wireFollowBackButtons(listEl, myFollowingSet);
+      return data.length === PANEL_PAGE_SIZE;
+    }
+  };
+
+  if (allRows.length === PANEL_PAGE_SIZE) {
+    appendShowMore(listEl, () => followerState.addPage());
+  }
+}
+
 async function loadLikesPanel(me, gameList) {
+  if (likesLoaded) return;
+  likesLoaded = true;
+
   const listEl = document.getElementById('likesList');
-  const subEl = document.getElementById('likesSub');
+  const subEl = document.getElementById('likesPanelSub');
   if (!listEl) return;
 
   const gameIds = (gameList || []).map(g => g.id);
@@ -2221,11 +2363,11 @@ async function loadLikesPanel(me, gameList) {
   const userIds = [...new Set(allRows.map(r => r.user_id).filter(Boolean))];
   profilesMap = await fetchProfilesByIds(userIds);
 
-  listEl.innerHTML = buildLikesPanel(allRows, profilesMap, gamesMap);
-  if (subEl) subEl.textContent = allRows.length + ' like' + (allRows.length === 1 ? '' : 's') + ' so far';
+  listEl.innerHTML = buildLikesRows(allRows, profilesMap, gamesMap);
+  if (subEl) subEl.textContent = allRows.length + ' like' + (allRows.length === 1 ? '' : 's');
 
-  if (allRows.length === PANEL_PAGE_SIZE) {
-    appendShowMore(listEl, async () => {
+  likesState = {
+    addPage: async () => {
       page++;
       const { data, error } = await fetchPage();
       if (error || !data || data.length === 0) return false;
@@ -2234,17 +2376,61 @@ async function loadLikesPanel(me, gameList) {
       Object.assign(profilesMap, newProfiles);
       allRows = allRows.concat(data);
       listEl.querySelector('.panel-show-more')?.remove();
-      listEl.insertAdjacentHTML('beforeend', buildLikesPanel(data, profilesMap, gamesMap));
-      if (subEl) subEl.textContent = allRows.length + ' likes so far';
+      listEl.insertAdjacentHTML('beforeend', buildLikesRows(data, profilesMap, gamesMap));
+      if (subEl) subEl.textContent = allRows.length + ' likes';
       return data.length === PANEL_PAGE_SIZE;
-    });
+    }
+  };
+
+  if (allRows.length === PANEL_PAGE_SIZE) {
+    appendShowMore(listEl, () => likesState.addPage());
   }
 }
+
+let openPanelId = null;
+
+function closeAllPanels() {
+  expandBadges.classList.remove('open');
+  expandFollowers.classList.remove('open');
+  expandLikes.classList.remove('open');
+  statBadges.classList.remove('active');
+  statFollowers.classList.remove('active');
+  statLikes.classList.remove('active');
+  openPanelId = null;
+}
+
+function togglePanel(id) {
+  if (openPanelId === id) {
+    closeAllPanels();
+    return;
+  }
+  closeAllPanels();
+  openPanelId = id;
+
+  if (id === 'badges') {
+    expandBadges.classList.add('open');
+    statBadges.classList.add('active');
+  } else if (id === 'followers') {
+    expandFollowers.classList.add('open');
+    statFollowers.classList.add('active');
+  } else if (id === 'likes') {
+    expandLikes.classList.add('open');
+    statLikes.classList.add('active');
+  }
+}
+
+statBadges.addEventListener('click', () => togglePanel('badges'));
+
+statGames.addEventListener('click', () => {
+  const heading = document.getElementById('gamesHeading');
+  if (heading) heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 
 async function run() {
   if (!username) {
     document.getElementById('username').textContent = 'No user specified.';
     gridEl.innerHTML = '';
+    badgesPreview.innerHTML = '<div class="badges-empty">No user.</div>';
     badgesDashboard.innerHTML = '<div class="badges-empty">No user.</div>';
     return;
   }
@@ -2260,6 +2446,7 @@ async function run() {
   if (profileErr || !profile) {
     document.getElementById('username').textContent = 'User not found.';
     gridEl.innerHTML = '';
+    badgesPreview.innerHTML = '<div class="badges-empty">User not found.</div>';
     badgesDashboard.innerHTML = '<div class="badges-empty">User not found.</div>';
     return;
   }
@@ -2302,6 +2489,7 @@ async function run() {
   const gameIds = gameList.map(g => g.id);
   const winnerSet = new Set();
   let totalLikes = 0;
+  let totalComments = 0;
 
   if (gameIds.length > 0) {
     const { count: likeTotal } = await supabase
@@ -2310,6 +2498,14 @@ async function run() {
       .in('game_id', gameIds);
     totalLikes = likeTotal || 0;
     document.getElementById('likeCount').textContent = totalLikes;
+
+    try {
+      const { count: commentTotal } = await supabase
+        .from('comments')
+        .select('*', { count: 'exact', head: true })
+        .in('game_id', gameIds);
+      totalComments = commentTotal || 0;
+    } catch (e) {}
 
     const { data: wins } = await supabase
       .from('weekly_winners')
@@ -2378,22 +2574,30 @@ async function run() {
 
   try {
     const [badges, rarity] = await Promise.all([
-      computeBadgesForUser(profile.user_id, gameList, totalLikes),
+      computeBadgesForUser(profile.user_id, gameList, totalLikes, totalComments),
       computeRarity()
     ]);
-    renderBadgesDashboard(badges, rarity);
+    renderBadges(badges, rarity);
   } catch (e) {
     console.log('Badge computation failed:', e && e.message);
+    badgesPreview.innerHTML = '<div class="badges-empty">Could not load badges.</div>';
     badgesDashboard.innerHTML = '<div class="badges-empty">Could not load badges.</div>';
   }
 
-  try {
-    await renderOwnerPanels(profile, gameList);
-  } catch (e) {
-    console.log('Owner panels failed:', e && e.message);
-  }
-
   const { data: { user } } = await supabase.auth.getUser();
+
+  const isOwner = user && user.id === profile.user_id;
+
+  if (isOwner) {
+    statFollowers.style.display = 'inline-flex';
+    statLikes.style.display = 'inline-flex';
+
+    statFollowers.addEventListener('click', () => togglePanel('followers'));
+    statLikes.addEventListener('click', () => togglePanel('likes'));
+
+    loadFollowersPanel(user).catch(() => {});
+    loadLikesPanel(user, gameList).catch(() => {});
+  }
 
   if (user && user.id !== profile.user_id) {
     followBtn.style.display = 'inline-block';
