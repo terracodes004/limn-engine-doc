@@ -107,10 +107,6 @@
         0 0 90px rgba(236,72,153,0.4);
     }
   }
-  @keyframes badgeShine {
-    0% { background-position: -150% 50%; }
-    100% { background-position: 250% 50%; }
-  }
   @keyframes cardFloat {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-4px); }
@@ -118,10 +114,6 @@
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes popScale {
-    from { opacity: 0; transform: scale(0.94); }
-    to { opacity: 1; transform: scale(1); }
   }
 
   .app { position: relative; z-index: 1; }
@@ -919,6 +911,230 @@
   }
   .empty a:hover { background: rgba(110,168,254,0.2); }
 
+  .panel-wrap {
+    margin-top: 8px;
+  }
+  .panel-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, rgba(110,168,254,0.06), rgba(163,113,247,0.06));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.22s;
+    user-select: none;
+    font-family: inherit;
+    color: inherit;
+    width: 100%;
+    text-align: left;
+    appearance: none;
+  }
+  .panel-toggle:hover {
+    border-color: var(--border-2);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(110,168,254,0.1);
+  }
+  .panel-toggle-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .panel-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(110,168,254,0.3), rgba(163,113,247,0.3));
+    border: 1px solid rgba(110,168,254,0.4);
+    box-shadow: 0 4px 14px rgba(110,168,254,0.25);
+  }
+  .panel-icon.followers {
+    background: linear-gradient(135deg, rgba(110,168,254,0.35), rgba(34,211,238,0.35));
+    border-color: rgba(110,168,254,0.5);
+  }
+  .panel-icon.likes {
+    background: linear-gradient(135deg, rgba(255,84,112,0.35), rgba(236,72,153,0.35));
+    border-color: rgba(255,84,112,0.5);
+  }
+  .panel-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .panel-text strong {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: 0.2px;
+  }
+  .panel-text span {
+    font-size: 11.5px;
+    color: var(--text-2);
+  }
+  .panel-arrow {
+    font-size: 20px;
+    color: var(--accent);
+    transition: transform 0.28s;
+    font-weight: 700;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .panel-wrap.open .panel-arrow { transform: rotate(90deg); }
+
+  .panel-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.34s ease;
+    overflow: hidden;
+  }
+  .panel-wrap.open .panel-body { grid-template-rows: 1fr; }
+  .panel-body-inner { overflow: hidden; min-height: 0; }
+  .panel-list {
+    margin-top: 12px;
+    background: linear-gradient(180deg, rgba(21,21,42,0.85), rgba(16,16,30,0.85));
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px;
+    backdrop-filter: blur(10px);
+  }
+  .panel-loading,
+  .panel-empty,
+  .panel-error {
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--text-2);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .panel-error { color: #f87171; }
+
+  .panel-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    transition: background 0.18s;
+  }
+  .panel-row:hover { background: rgba(255,255,255,0.045); }
+  .panel-row + .panel-row { border-top: 1px solid rgba(255,255,255,0.045); }
+
+  .panel-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #202040;
+    border: 2px solid rgba(255,255,255,0.08);
+  }
+  .panel-avatar-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    color: #fff;
+    font-size: 16px;
+    background: linear-gradient(135deg, #6ea8fe, #a371f7);
+  }
+
+  .panel-row-content { flex: 1; min-width: 0; }
+  .panel-row-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .panel-row-title a {
+    color: var(--warning);
+    text-decoration: none;
+  }
+  .panel-row-title a:hover { text-decoration: underline; }
+  .panel-row-meta {
+    font-size: 11.5px;
+    color: var(--text-2);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .panel-row-meta a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .panel-row-meta a:hover { text-decoration: underline; }
+
+  .panel-row-action {
+    flex-shrink: 0;
+  }
+  .panel-follow-btn {
+    padding: 6px 14px;
+    border-radius: 9px;
+    font-size: 11.5px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s;
+    white-space: nowrap;
+    background: rgba(110,168,254,0.12);
+    border: 1px solid rgba(110,168,254,0.4);
+    color: var(--accent);
+  }
+  .panel-follow-btn:hover:not(:disabled) {
+    background: rgba(110,168,254,0.22);
+    border-color: rgba(110,168,254,0.7);
+    transform: translateY(-1px);
+  }
+  .panel-follow-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .panel-follow-btn.following {
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(255,255,255,0.15);
+    color: var(--text-2);
+  }
+  .panel-follow-btn.following:hover {
+    background: rgba(248,113,113,0.1);
+    border-color: rgba(248,113,113,0.4);
+    color: #f87171;
+  }
+
+  .panel-show-more {
+    display: flex;
+    justify-content: center;
+    padding: 12px;
+  }
+  .panel-show-more button {
+    padding: 9px 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border-2);
+    border-radius: 10px;
+    color: var(--text-1);
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s;
+  }
+  .panel-show-more button:hover:not(:disabled) {
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    transform: translateY(-1px);
+  }
+  .panel-show-more button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   footer {
     margin-top: 40px;
     padding: 30px 24px 40px;
@@ -1016,6 +1232,17 @@
     .badge-modal-name { font-size: 20px; }
     .badge-modal-body { padding: 18px 18px 20px; }
 
+    .panel-toggle { padding: 12px 14px; }
+    .panel-icon { width: 34px; height: 34px; font-size: 17px; }
+    .panel-text strong { font-size: 13px; }
+    .panel-text span { font-size: 11px; }
+    .panel-row { padding: 10px 10px; gap: 10px; }
+    .panel-avatar { width: 36px; height: 36px; }
+    .panel-avatar-fallback { font-size: 14px; }
+    .panel-row-title { font-size: 12.5px; }
+    .panel-row-meta { font-size: 11px; }
+    .panel-follow-btn { padding: 5px 10px; font-size: 10.5px; }
+
     footer { padding: 24px 16px 30px; }
     .footer-logo-wrap { width: 44px; height: 44px; }
     .footer-logo-wrap img { width: 38px; height: 38px; }
@@ -1072,6 +1299,8 @@
 
   <h2>Games</h2>
   <div class="grid" id="grid"><div class="empty">Loading...</div></div>
+
+  <div id="ownerPanels"></div>
 </div>
 
 <footer>
@@ -1117,10 +1346,12 @@ const badgesDashboard = document.getElementById('badgesDashboard');
 const badgeModal = document.getElementById('badgeModal');
 const badgeModalBackdrop = document.getElementById('badgeModalBackdrop');
 const badgeModalCard = document.getElementById('badgeModalCard');
+const ownerPanelsEl = document.getElementById('ownerPanels');
 
 const RARITY_CACHE_KEY = 'limn_badge_rarity_cache_v2';
 const RARITY_CACHE_TTL = 24 * 60 * 60 * 1000;
 const RARITY_MIN_USERS = 5;
+const PANEL_PAGE_SIZE = 20;
 
 const BADGE_DEFS = {
   newcomer: {
@@ -1231,6 +1462,18 @@ function computeCurrentStreak(gameDates) {
   return streak;
 }
 
+function timeAgo(iso) {
+  if (!iso) return '';
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s / 60) + 'm ago';
+  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+  if (s < 604800) return Math.floor(s / 86400) + 'd ago';
+  if (s < 2592000) return Math.floor(s / 604800) + 'w ago';
+  if (s < 31536000) return Math.floor(s / 2592000) + 'mo ago';
+  return Math.floor(s / 31536000) + 'y ago';
+}
+
 async function computeBadgesForUser(userId, gameList, totalLikes) {
   const badges = [];
 
@@ -1265,9 +1508,7 @@ async function computeBadgesForUser(userId, gameList, totalLikes) {
   const lovedEarned = totalLikes >= 50;
 
   let winnerEarned = false;
-  let winnerWeek = null;
   let winnerGameTitle = null;
-  let winnerGameSlug = null;
   try {
     const { data: wins } = await supabase
       .from('weekly_winners')
@@ -1277,9 +1518,7 @@ async function computeBadgesForUser(userId, gameList, totalLikes) {
       .limit(1);
     if (wins && wins.length > 0) {
       winnerEarned = true;
-      winnerWeek = wins[0].week_start;
       winnerGameTitle = wins[0].games && wins[0].games.title;
-      winnerGameSlug = wins[0].games && wins[0].games.slug;
     }
   } catch (e) {}
 
@@ -1448,7 +1687,6 @@ function renderBadgesDashboard(badges, rarity) {
 
   badgesDashboard.innerHTML = ordered.map((b, idx) => {
     const def = b.def;
-    const pct = rarity ? (rarity[def.id] || 0) : null;
 
     let miniBar = '';
     if (!b.earned && b.progress !== null && b.progressTarget && b.progressTarget > 1) {
@@ -1517,7 +1755,8 @@ function openBadgeModal(badge, rarity) {
         '<div class="badge-modal-rarity">' +
           '<div class="badge-modal-rarity-text">' +
             '<p class="badge-modal-rarity-title">Not enough data yet</p>' +
-            '<p class="badge-modal-rarity-sub">Rarity percentages unlock once there are at least ' + RARITY_MIN_USERS + ' creators with published games.</p>' +
+            '<p class="badge-modal-rarity-sub">Rarity percentages unlock once there are at least ' +
+              RARITY_MIN_USERS + ' creators with published games.</p>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -1586,7 +1825,14 @@ function closeBadgeModal() {
 }
 
 badgeModalBackdrop.addEventListener('click', closeBadgeModal);
+
 badgeModal.addEventListener('click', (e) => {
+  if (e.target.closest('#badgeModalClose')) {
+    e.preventDefault();
+    e.stopPropagation();
+    closeBadgeModal();
+    return;
+  }
   if (e.target === badgeModal) closeBadgeModal();
 });
 
@@ -1613,6 +1859,388 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+function profileLinkFor(profileRow) {
+  if (!profileRow) return null;
+  if (profileRow.username) {
+    return '/u/?u=' + encodeURIComponent(profileRow.username);
+  }
+  return null;
+}
+
+function displayNameFor(profileRow) {
+  if (!profileRow) return 'anonymous';
+  if (profileRow.username) return '@' + profileRow.username;
+  if (profileRow.display_name) return profileRow.display_name;
+  return 'anonymous';
+}
+
+function renderAvatarHtml(profileRow, size) {
+  const cls = 'panel-avatar' + (profileRow && profileRow.avatar_url ? '' : ' panel-avatar-fallback');
+  if (profileRow && profileRow.avatar_url) {
+    return '<img class="' + cls + '" src="' + esc(profileRow.avatar_url) + '" alt="" onerror="this.classList.add(\'panel-avatar-fallback\');this.removeAttribute(\'src\');this.textContent=\'' + esc(initialFor(profileRow)) + '\'">';
+  }
+  return '<div class="' + cls + '">' + esc(initialFor(profileRow)) + '</div>';
+}
+
+function initialFor(profileRow) {
+  let name = '';
+  if (profileRow && profileRow.username) name = profileRow.username;
+  else if (profileRow && profileRow.display_name) name = profileRow.display_name;
+  else name = '?';
+  return (name || '?').replace(/^@/, '').trim().charAt(0).toUpperCase() || '?';
+}
+
+async function fetchProfilesByIds(userIds) {
+  const map = {};
+  if (!userIds || userIds.length === 0) return map;
+  try {
+    const { data } = await supabase
+      .from('profiles')
+      .select('user_id, username, display_name, avatar_url')
+      .in('user_id', userIds);
+    if (data) for (const p of data) map[p.user_id] = p;
+  } catch (e) {}
+  return map;
+}
+
+async function fetchFollowerCounts(userIds) {
+  const map = {};
+  if (!userIds || userIds.length === 0) return map;
+  try {
+    const { data } = await supabase
+      .from('follows')
+      .select('creator_id')
+      .in('creator_id', userIds);
+    if (data) for (const row of data) {
+      map[row.creator_id] = (map[row.creator_id] || 0) + 1;
+    }
+  } catch (e) {}
+  return map;
+}
+
+function buildFollowersPanel(followRows, profilesMap, followerCounts, myFollowingSet) {
+  if (!followRows || followRows.length === 0) {
+    return '<div class="panel-empty">No followers yet. Publish more games to get noticed.</div>';
+  }
+  return followRows.map(row => {
+    const p = profilesMap[row.follower_id] || null;
+    const name = displayNameFor(p);
+    const link = profileLinkFor(p);
+    const nameHtml = link
+      ? '<a href="' + link + '">' + esc(name) + '</a>'
+      : esc(name);
+    const count = followerCounts[row.follower_id] || 0;
+    const isFollowing = myFollowingSet.has(row.follower_id);
+    return '<div class="panel-row">' +
+      renderAvatarHtml(p) +
+      '<div class="panel-row-content">' +
+        '<div class="panel-row-title">' + nameHtml + '</div>' +
+        '<div class="panel-row-meta">' + count + ' follower' + (count === 1 ? '' : 's') +
+          ' · followed ' + esc(timeAgo(row.created_at)) + '</div>' +
+      '</div>' +
+      '<div class="panel-row-action">' +
+        '<button class="panel-follow-btn' + (isFollowing ? ' following' : '') +
+          '" data-follow-back="' + esc(row.follower_id) + '" type="button">' +
+          (isFollowing ? '✓ Following' : 'Follow back') +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function buildLikesPanel(likeRows, profilesMap, gamesMap) {
+  if (!likeRows || likeRows.length === 0) {
+    return '<div class="panel-empty">No likes yet.</div>';
+  }
+  return likeRows.map(row => {
+    const p = profilesMap[row.user_id] || null;
+    const g = gamesMap[row.game_id] || null;
+    const name = displayNameFor(p);
+    const link = profileLinkFor(p);
+    const nameHtml = link
+      ? '<a href="' + link + '">' + esc(name) + '</a>'
+      : esc(name);
+    const gameTitle = g ? g.title : 'a game';
+    const gameLink = g && g.slug
+      ? '/arcade/game.html?slug=' + encodeURIComponent(g.slug)
+      : null;
+    const gameHtml = gameLink
+      ? '<a href="' + gameLink + '">' + esc(gameTitle) + '</a>'
+      : esc(gameTitle);
+    return '<div class="panel-row">' +
+      renderAvatarHtml(p) +
+      '<div class="panel-row-content">' +
+        '<div class="panel-row-title">' + nameHtml + ' liked ' + gameHtml + '</div>' +
+        '<div class="panel-row-meta">' + esc(timeAgo(row.created_at)) + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function renderOwnerPanels(profile, gameList) {
+  ownerPanelsEl.innerHTML = '';
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || user.id !== profile.user_id) return;
+
+  ownerPanelsEl.innerHTML =
+    '<h2>Followers</h2>' +
+    '<div class="panel-wrap" id="followersPanel">' +
+      '<button class="panel-toggle" type="button" id="followersToggle">' +
+        '<div class="panel-toggle-left">' +
+          '<div class="panel-icon followers">👥</div>' +
+          '<div class="panel-text">' +
+            '<strong>Followers</strong>' +
+            '<span id="followersSub">Loading…</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="panel-arrow">›</div>' +
+      '</button>' +
+      '<div class="panel-body">' +
+        '<div class="panel-body-inner">' +
+          '<div class="panel-list" id="followersList">' +
+            '<div class="panel-loading">Loading followers…</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<h2>Recent Likes</h2>' +
+    '<div class="panel-wrap" id="likesPanel">' +
+      '<button class="panel-toggle" type="button" id="likesToggle">' +
+        '<div class="panel-toggle-left">' +
+          '<div class="panel-icon likes">❤️</div>' +
+          '<div class="panel-text">' +
+            '<strong>Recent Likes</strong>' +
+            '<span id="likesSub">Loading…</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="panel-arrow">›</div>' +
+      '</button>' +
+      '<div class="panel-body">' +
+        '<div class="panel-body-inner">' +
+          '<div class="panel-list" id="likesList">' +
+            '<div class="panel-loading">Loading likes…</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  const followersToggle = document.getElementById('followersToggle');
+  const likesToggle = document.getElementById('likesToggle');
+  const followersPanel = document.getElementById('followersPanel');
+  const likesPanel = document.getElementById('likesPanel');
+
+  followersToggle.addEventListener('click', () => {
+    followersPanel.classList.toggle('open');
+  });
+  likesToggle.addEventListener('click', () => {
+    likesPanel.classList.toggle('open');
+  });
+
+  loadFollowersPanel(user).catch(() => {});
+  loadLikesPanel(user, gameList).catch(() => {});
+}
+
+async function loadFollowersPanel(me) {
+  const listEl = document.getElementById('followersList');
+  const subEl = document.getElementById('followersSub');
+  if (!listEl) return;
+
+  let page = 0;
+  let allRows = [];
+  let profilesMap = {};
+  let followerCounts = {};
+  let myFollowingSet = new Set();
+
+  async function fetchPage() {
+    const from = page * PANEL_PAGE_SIZE;
+    const to = from + PANEL_PAGE_SIZE - 1;
+    return supabase
+      .from('follows')
+      .select('follower_id, created_at')
+      .eq('creator_id', me.id)
+      .order('created_at', { ascending: false })
+      .range(from, to);
+  }
+
+  try {
+    const { data, error } = await fetchPage();
+    if (error) throw error;
+    allRows = data || [];
+  } catch (e) {
+    listEl.innerHTML = '<div class="panel-error">Could not load followers.</div>';
+    if (subEl) subEl.textContent = 'Could not load';
+    return;
+  }
+
+  if (allRows.length === 0) {
+    listEl.innerHTML = '<div class="panel-empty">No followers yet. Publish more games to get noticed.</div>';
+    if (subEl) subEl.textContent = '0 followers';
+    return;
+  }
+
+  const followerIds = allRows.map(r => r.follower_id).filter(Boolean);
+  profilesMap = await fetchProfilesByIds(followerIds);
+  followerCounts = await fetchFollowerCounts(followerIds);
+
+  try {
+    const { data: myFollows } = await supabase
+      .from('follows')
+      .select('creator_id')
+      .eq('follower_id', me.id)
+      .in('creator_id', followerIds);
+    if (myFollows) for (const f of myFollows) myFollowingSet.add(f.creator_id);
+  } catch (e) {}
+
+  listEl.innerHTML = buildFollowersPanel(allRows, profilesMap, followerCounts, myFollowingSet);
+  if (subEl) subEl.textContent = allRows.length + ' follower' + (allRows.length === 1 ? '' : 's') + ' so far';
+
+  wireFollowBackButtons(listEl, myFollowingSet);
+
+  if (allRows.length === PANEL_PAGE_SIZE) {
+    appendShowMore(listEl, async () => {
+      page++;
+      const { data, error } = await fetchPage();
+      if (error || !data || data.length === 0) return false;
+      const newIds = data.map(r => r.follower_id).filter(Boolean);
+      const newProfiles = await fetchProfilesByIds(newIds);
+      const newCounts = await fetchFollowerCounts(newIds);
+      Object.assign(profilesMap, newProfiles);
+      Object.assign(followerCounts, newCounts);
+      allRows = allRows.concat(data);
+      listEl.querySelector('.panel-show-more')?.remove();
+      listEl.insertAdjacentHTML('beforeend', buildFollowersPanel(data, profilesMap, followerCounts, myFollowingSet));
+      if (subEl) subEl.textContent = allRows.length + ' followers so far';
+      wireFollowBackButtons(listEl, myFollowingSet);
+      return data.length === PANEL_PAGE_SIZE;
+    });
+  }
+}
+
+function wireFollowBackButtons(container, myFollowingSet) {
+  container.querySelectorAll('[data-follow-back]').forEach(btn => {
+    if (btn.dataset.wired === '1') return;
+    btn.dataset.wired = '1';
+    btn.addEventListener('click', async () => {
+      const targetId = btn.dataset.followBack;
+      if (!targetId) return;
+      const isFollowing = myFollowingSet.has(targetId);
+      btn.disabled = true;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { btn.disabled = false; return; }
+        if (isFollowing) {
+          await supabase.from('follows')
+            .delete()
+            .eq('follower_id', user.id)
+            .eq('creator_id', targetId);
+          myFollowingSet.delete(targetId);
+          btn.textContent = 'Follow back';
+          btn.classList.remove('following');
+        } else {
+          await supabase.from('follows')
+            .insert({ follower_id: user.id, creator_id: targetId });
+          myFollowingSet.add(targetId);
+          btn.textContent = '✓ Following';
+          btn.classList.add('following');
+        }
+      } catch (e) {}
+      btn.disabled = false;
+    });
+  });
+}
+
+function appendShowMore(container, loader) {
+  if (container.querySelector('.panel-show-more')) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'panel-show-more';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = 'Show more';
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = 'Loading…';
+    const hasMore = await loader();
+    if (!hasMore) wrap.remove();
+    else {
+      btn.disabled = false;
+      btn.textContent = 'Show more';
+    }
+  });
+  wrap.appendChild(btn);
+  container.appendChild(wrap);
+}
+
+async function loadLikesPanel(me, gameList) {
+  const listEl = document.getElementById('likesList');
+  const subEl = document.getElementById('likesSub');
+  if (!listEl) return;
+
+  const gameIds = (gameList || []).map(g => g.id);
+  if (gameIds.length === 0) {
+    listEl.innerHTML = '<div class="panel-empty">No likes yet.</div>';
+    if (subEl) subEl.textContent = 'No likes yet';
+    return;
+  }
+
+  const gamesMap = {};
+  for (const g of gameList) gamesMap[g.id] = g;
+
+  let page = 0;
+  let allRows = [];
+  let profilesMap = {};
+
+  async function fetchPage() {
+    const from = page * PANEL_PAGE_SIZE;
+    const to = from + PANEL_PAGE_SIZE - 1;
+    return supabase
+      .from('likes')
+      .select('id, user_id, game_id, created_at')
+      .in('game_id', gameIds)
+      .not('user_id', 'is', null)
+      .order('created_at', { ascending: false })
+      .range(from, to);
+  }
+
+  try {
+    const { data, error } = await fetchPage();
+    if (error) throw error;
+    allRows = data || [];
+  } catch (e) {
+    listEl.innerHTML = '<div class="panel-error">Could not load likes.</div>';
+    if (subEl) subEl.textContent = 'Could not load';
+    return;
+  }
+
+  if (allRows.length === 0) {
+    listEl.innerHTML = '<div class="panel-empty">No likes yet.</div>';
+    if (subEl) subEl.textContent = 'No likes yet';
+    return;
+  }
+
+  const userIds = [...new Set(allRows.map(r => r.user_id).filter(Boolean))];
+  profilesMap = await fetchProfilesByIds(userIds);
+
+  listEl.innerHTML = buildLikesPanel(allRows, profilesMap, gamesMap);
+  if (subEl) subEl.textContent = allRows.length + ' like' + (allRows.length === 1 ? '' : 's') + ' so far';
+
+  if (allRows.length === PANEL_PAGE_SIZE) {
+    appendShowMore(listEl, async () => {
+      page++;
+      const { data, error } = await fetchPage();
+      if (error || !data || data.length === 0) return false;
+      const newIds = [...new Set(data.map(r => r.user_id).filter(Boolean))];
+      const newProfiles = await fetchProfilesByIds(newIds);
+      Object.assign(profilesMap, newProfiles);
+      allRows = allRows.concat(data);
+      listEl.querySelector('.panel-show-more')?.remove();
+      listEl.insertAdjacentHTML('beforeend', buildLikesPanel(data, profilesMap, gamesMap));
+      if (subEl) subEl.textContent = allRows.length + ' likes so far';
+      return data.length === PANEL_PAGE_SIZE;
+    });
+  }
+}
+
 async function run() {
   if (!username) {
     document.getElementById('username').textContent = 'No user specified.';
@@ -1625,7 +2253,7 @@ async function run() {
 
   const { data: profile, error: profileErr } = await supabase
     .from('profiles')
-    .select('user_id, username, display_name, avatar_url')
+    .select('user_id, username, display_name, avatar_url, created_at')
     .eq('username', username)
     .maybeSingle();
 
@@ -1757,6 +2385,12 @@ async function run() {
   } catch (e) {
     console.log('Badge computation failed:', e && e.message);
     badgesDashboard.innerHTML = '<div class="badges-empty">Could not load badges.</div>';
+  }
+
+  try {
+    await renderOwnerPanels(profile, gameList);
+  } catch (e) {
+    console.log('Owner panels failed:', e && e.message);
   }
 
   const { data: { user } } = await supabase.auth.getUser();
