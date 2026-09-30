@@ -4,7 +4,13 @@
     <base href="/editor/">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Limn Studio — Clean Editor</title>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-K5KW1W2ZXR');
+    </script>
+    <title>Limn Studio</title>
     <style>
         :root {
             --bg-0: #08090d;
@@ -21,7 +27,10 @@
             --text-3: #4a5163;
             --accent: #6ea8fe;
             --accent-2: #a371f7;
+            --accent-3: #ec4899;
             --success: #4ade80;
+            --success-2: #22c55e;
+            --warning: #fbbf24;
             --danger: #f87171;
             --radius: 10px;
             --radius-lg: 14px;
@@ -36,6 +45,7 @@
             font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
             font-size: 14px;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
             min-height: 100vh;
         }
         body::before {
@@ -47,10 +57,124 @@
             pointer-events: none;
             z-index: 0;
         }
+        body::after {
+            content: "";
+            position: fixed;
+            bottom: -30vh; right: -10vw;
+            width: 60vw; height: 60vh;
+            background: radial-gradient(circle, rgba(163,113,247,0.06), transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes logo-hue {
+            0%   { filter: hue-rotate(0deg) brightness(1.1); }
+            50%  { filter: hue-rotate(90deg) brightness(1.35); }
+            100% { filter: hue-rotate(0deg) brightness(1.1); }
+        }
+        @keyframes logo-spin {
+            0%   { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes logo-ring {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        dialog {
+            width: 100vw; height: 100vh;
+            max-width: 100vw; max-height: 100vh;
+            padding: 0; margin: 0; border: 0;
+            background: #000;
+            color: #fff;
+            position: fixed;
+            inset: 0;
+            z-index: 9000;
+            overflow: hidden;
+        }
+        dialog::backdrop { background: #000; }
+        dialog > button.dialog-close {
+            position: absolute; top: 16px; left: 16px; z-index: 9500;
+            width: 40px; height: 40px; padding: 0;
+            background: rgba(24,27,38,0.95);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 17px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        dialog > button.dialog-close:hover { background: rgba(255,255,255,0.16); }
+
+        .dialog-stage {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #000;
+        }
+        .dialog-frame-wrap {
+            width: 100%;
+            height: 100%;
+            transform-origin: center center;
+            transition: transform 0.15s ease;
+            will-change: transform;
+        }
+        .dialog-frame-wrap iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+            background: #000;
+        }
+
+        .dialog-controls {
+            position: absolute;
+            bottom: 24px; right: 24px;
+            display: flex; gap: 10px;
+            z-index: 9500;
+            align-items: center;
+        }
+        .dialog-zoom-display {
+            padding: 0 14px;
+            height: 44px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(24,27,38,0.95);
+            color: var(--text-0);
+            border: 1px solid var(--border-2);
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: "JetBrains Mono", monospace;
+            min-width: 76px;
+            cursor: pointer;
+        }
+        .dialog-zoom-display:hover { background: var(--bg-4); }
+        .dialog-controls button {
+            width: 44px; height: 44px; padding: 0;
+            background: rgba(24,27,38,0.95);
+            color: var(--text-0);
+            border: 1px solid var(--border-2);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 20px; font-weight: 600; line-height: 1;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .dialog-controls button:hover { background: var(--bg-4); border-color: var(--border-3); }
+        .dialog-controls button:active { transform: scale(0.94); }
+        .dialog-controls button#fsBtn {
+            background: linear-gradient(135deg, #7c3aed, #a371f7);
+            border-color: #a371f7;
+            width: 68px;
+        }
+        .dialog-controls button#fsBtn:hover { background: linear-gradient(135deg, #8b5cf6, #b491ff); }
 
         .app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
 
-        /* Topbar */
         .topbar {
             display: flex;
             align-items: center;
@@ -64,21 +188,61 @@
             z-index: 100;
         }
         .brand {
-            display: flex; align-items: center; gap: 14px;
-            font-weight: 700; font-size: 15px; letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-weight: 700;
+            font-size: 15px;
+            letter-spacing: 1.5px;
+            color: var(--text-0);
         }
         .brand-mark {
-            width: 42px; height: 42px; border-radius: 12px;
-            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            width: 46px; height: 46px;
+            position: relative;
             display: flex; align-items: center; justify-content: center;
-            font-size: 20px; font-weight: 700;
-            box-shadow: 0 0 20px rgba(110,168,254,0.4);
+            flex-shrink: 0;
+        }
+        .brand-mark::before {
+            content: "";
+            position: absolute;
+            inset: -6px;
+            border-radius: 16px;
+            background: conic-gradient(from 0deg, #6ea8fe, #a371f7, #ec4899, #fbbf24, #4ade80, #6ea8fe);
+            animation: logo-spin 6s linear infinite;
+            filter: blur(8px);
+            opacity: 0.85;
+            z-index: 0;
+        }
+        .brand-mark::after {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #6ea8fe, #a371f7, #ec4899);
+            background-size: 200% 200%;
+            animation: logo-ring 4s ease infinite;
+            z-index: 1;
+            box-shadow:
+                0 0 20px rgba(110,168,254,0.7),
+                0 0 40px rgba(163,113,247,0.5),
+                0 0 60px rgba(236,72,153,0.35);
+        }
+        .brand-mark img {
+            position: relative;
+            z-index: 2;
+            width: 42px; height: 42px;
+            object-fit: contain;
+            border-radius: 10px;
+            background: var(--bg-0);
+            padding: 4px;
+            animation: logo-hue 8s ease-in-out infinite;
         }
         .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
         .brand-name { font-size: 15px; font-weight: 700; letter-spacing: 1.5px; }
         .brand-sub { font-size: 10px; font-weight: 500; letter-spacing: 2px; color: var(--text-2); margin-top: 2px; }
 
-        .topbar-actions { display: flex; gap: 8px; align-items: center; margin-left: 12px; }
+        .topbar-actions { display: flex; gap: 8px; align-items: center; }
+
         .btn {
             display: inline-flex; align-items: center; gap: 8px;
             padding: 9px 16px;
@@ -87,21 +251,30 @@
             background: var(--bg-2);
             color: var(--text-0);
             cursor: pointer;
-            font-size: 13px; font-weight: 500; font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: inherit;
+            transition: background 0.15s, border-color 0.15s, transform 0.1s;
             white-space: nowrap;
         }
         .btn:hover { background: var(--bg-3); border-color: var(--border-3); }
+        .btn:active { transform: scale(0.97); }
         .btn-primary {
-            background: linear-gradient(135deg, #22c55e, #4ade80);
-            border-color: #4ade80; color: #04140a; font-weight: 700;
+            background: linear-gradient(135deg, var(--success-2), var(--success));
+            border-color: var(--success);
+            color: #04140a;
+            font-weight: 700;
             box-shadow: 0 4px 16px rgba(34,197,94,0.3);
         }
-        .btn-primary:hover { background: linear-gradient(135deg, #4ade80, #86efac); }
+        .btn-primary:hover { background: linear-gradient(135deg, var(--success), #4ade80); border-color: #4ade80; }
 
         .topbar-title {
             margin-left: auto;
-            display: flex; align-items: center; gap: 10px;
-            font-size: 13px; color: var(--text-1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text-1);
             padding: 8px 14px;
             background: var(--bg-1);
             border: 1px solid var(--border);
@@ -109,22 +282,70 @@
         }
         .topbar-title .dot {
             width: 8px; height: 8px; border-radius: 50%;
-            background: var(--success);
-            box-shadow: 0 0 8px rgba(34,197,94,0.6);
+            background: var(--warning);
+            box-shadow: 0 0 8px rgba(251,191,36,0.6);
         }
+        .topbar-title .dot.saved { background: var(--success); box-shadow: 0 0 8px rgba(34,197,94,0.6); }
+        .topbar-title .dot.unsaved { background: var(--danger); box-shadow: 0 0 8px rgba(248,113,113,0.6); }
 
-        /* Main */
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0; top: calc(100% + 8px);
+            background: var(--bg-2);
+            min-width: 260px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+            z-index: 1000;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-2);
+            overflow: hidden;
+            padding: 6px;
+            backdrop-filter: blur(20px);
+        }
+        .dropdown-content button,
+        .dropdown-content a {
+            color: var(--text-0);
+            padding: 10px 14px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            width: 100%;
+            text-align: left;
+            background: none; border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+        .dropdown-content button:hover,
+        .dropdown-content a:hover { background: var(--bg-3); }
+        .dropdown-content .shortcut {
+            font-size: 11px;
+            color: var(--text-2);
+            font-family: "JetBrains Mono", monospace;
+            padding: 2px 6px;
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+        .dropdown-divider { height: 1px; background: var(--border); margin: 6px 4px; }
+        .dropdown:hover .dropdown-content { display: block; }
+
         .main {
             flex: 1;
             max-width: 1560px;
             width: 100%;
             margin: 0 auto;
-            padding: 24px 24px 100px;
+            padding: 24px 24px 160px;
         }
 
-        /* Tabs */
         .tabs {
-            display: flex; gap: 4px; padding: 6px;
+            display: flex;
+            gap: 4px;
+            padding: 6px;
             background: var(--bg-1);
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
@@ -137,18 +358,320 @@
             padding: 9px 22px;
             border-radius: 9px;
             cursor: pointer;
-            font-size: 13px; font-weight: 600; font-family: inherit;
+            font-size: 13px; font-weight: 600;
+            font-family: inherit;
             display: flex; align-items: center; gap: 8px;
         }
         .tab:hover { color: var(--text-0); }
-        .tab.active { background: var(--bg-3); color: #fff; }
+        .tab.active { background: var(--bg-3); color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
 
-        /* Editor shell */
+        .build-panel {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 20px;
+            min-height: 520px;
+        }
+        .panel {
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+        }
+        .build-right {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center; gap: 16px;
+            background:
+                radial-gradient(ellipse at top, rgba(110,168,254,0.08), transparent 60%),
+                var(--bg-1);
+            position: relative; overflow: hidden;
+        }
+        .build-right::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: 0.4;
+        }
+        .hero-icon {
+            width: 88px; height: 88px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(110,168,254,0.18), rgba(163,113,247,0.18));
+            border: 1px solid rgba(110,168,254,0.3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 40px; margin-bottom: 8px;
+            box-shadow: 0 0 40px rgba(110,168,254,0.15);
+        }
+        .build-right h3 { margin: 0; font-size: 20px; color: var(--text-0); font-weight: 700; }
+        .build-right p { margin: 0; color: var(--text-1); font-size: 13.5px; line-height: 1.7; max-width: 420px; }
+        .build-right .kbd {
+            display: inline-block; padding: 3px 10px;
+            background: var(--bg-3);
+            border: 1px solid var(--border-2);
+            border-radius: 6px;
+            font-family: "JetBrains Mono", ui-monospace, monospace;
+            font-size: 11.5px; color: var(--text-0); margin: 0 2px;
+        }
+        .feature-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+        .feature-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 12px;
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 11.5px; color: var(--text-1); font-weight: 500;
+        }
+
+        .assets-panel { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .asset-card {
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px 24px;
+        }
+        .asset-card-head {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 6px;
+        }
+        .asset-card-icon {
+            width: 38px; height: 38px;
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, rgba(110,168,254,0.2), rgba(163,113,247,0.2));
+            border: 1px solid rgba(110,168,254,0.3);
+        }
+        .asset-card-icon.css {
+            background: linear-gradient(135deg, rgba(34,211,238,0.2), rgba(110,168,254,0.2));
+            border-color: rgba(34,211,238,0.3);
+        }
+        .asset-card-icon.scripts {
+            background: linear-gradient(135deg, rgba(251,191,36,0.2), rgba(236,72,153,0.2));
+            border-color: rgba(251,191,36,0.3);
+        }
+        .asset-card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-0);
+            margin: 0;
+        }
+        .asset-card-desc {
+            font-size: 12px;
+            color: var(--text-2);
+            margin: 4px 0 14px 50px;
+            line-height: 1.55;
+        }
+        .asset-card textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-0);
+            border: 1px solid var(--border-2);
+            border-radius: var(--radius);
+            color: var(--text-0);
+            font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+            font-size: 12.5px;
+            line-height: 1.6;
+            resize: vertical;
+            min-height: 100px;
+            outline: none;
+        }
+        .asset-card textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(110,168,254,0.15);
+        }
+        .asset-card textarea::placeholder { color: var(--text-3); }
+        .asset-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+        .asset-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 11.5px;
+            color: var(--text-2);
+            line-height: 1.5;
+        }
+        .asset-hint code {
+            background: var(--bg-3);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1px 6px;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 11px;
+            color: var(--text-1);
+        }
+
+        .section-title {
+            font-size: 11px;
+            color: var(--text-1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            margin: 0 0 16px 0;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-title::after {
+            content: ""; flex: 1; height: 1px;
+            background: linear-gradient(90deg, var(--border), transparent);
+        }
+
+        .field { margin-bottom: 18px; }
+        .field label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-1);
+            margin-bottom: 7px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+        }
+
+        .custom-select { position: relative; width: 100%; }
+        .custom-select-trigger {
+            width: 100%;
+            padding: 13px 44px 13px 16px;
+            background: linear-gradient(180deg, #1a1f2b, var(--bg-0));
+            border: 1px solid var(--border-2);
+            border-radius: var(--radius);
+            color: var(--text-0);
+            font-size: 14px;
+            font-family: inherit; font-weight: 500;
+            cursor: pointer; text-align: left; position: relative;
+            line-height: 1.4;
+        }
+        .custom-select-trigger:hover { border-color: var(--border-3); }
+        .custom-select-trigger::after {
+            content: "";
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            width: 8px; height: 8px;
+            border-right: 2px solid var(--text-1);
+            border-bottom: 2px solid var(--text-1);
+            transform: translateY(-65%) rotate(45deg);
+            transform-origin: center center;
+            transition: transform 0.2s;
+        }
+        .custom-select.open .custom-select-trigger::after {
+            transform: translateY(-35%) rotate(-135deg);
+        }
+        .custom-select.open .custom-select-trigger {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(110,168,254,0.15);
+        }
+        .custom-select-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0; right: 0;
+            background: var(--bg-2);
+            border: 1px solid var(--border-2);
+            border-radius: var(--radius);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+            padding: 8px;
+            z-index: 500;
+            max-height: 340px;
+            overflow-y: auto;
+            display: none;
+            backdrop-filter: blur(20px);
+        }
+        .custom-select.open .custom-select-menu { display: block; }
+        .custom-select-option {
+            display: flex; align-items: center; gap: 10px;
+            width: 100%; padding: 11px 14px;
+            background: none; border: none;
+            color: var(--text-0); text-align: left;
+            font-size: 13.5px; font-family: inherit;
+            border-radius: 8px; cursor: pointer;
+            line-height: 1.4;
+        }
+        .custom-select-option:hover { background: var(--bg-3); }
+        .custom-select-option.selected {
+            background: linear-gradient(90deg, rgba(110,168,254,0.15), transparent);
+            color: #fff; font-weight: 600;
+        }
+
+        .field input[type="text"],
+        .field input[type="number"],
+        .field textarea {
+            width: 100%; padding: 12px 14px;
+            background: var(--bg-0);
+            border: 1px solid var(--border-2);
+            border-radius: var(--radius);
+            color: var(--text-0);
+            font-size: 13.5px; font-family: inherit;
+        }
+        .field textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
+        .field input:focus, .field textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(110,168,254,0.15);
+        }
+        .field input::placeholder, .field textarea::placeholder { color: var(--text-3); }
+
+        .swatch-field {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px;
+            background: var(--bg-0);
+            border: 1px solid var(--border-2);
+            border-radius: var(--radius);
+        }
+        .swatch-field:hover { border-color: var(--border-3); }
+        .swatch-field:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(110,168,254,0.15);
+        }
+        .swatch-input {
+            appearance: none; -webkit-appearance: none;
+            width: 48px; height: 48px;
+            padding: 0; border: none;
+            border-radius: 10px; cursor: pointer;
+            background: transparent; flex-shrink: 0; overflow: hidden;
+        }
+        .swatch-input::-webkit-color-swatch-wrapper { padding: 0; }
+        .swatch-input::-webkit-color-swatch { border: none; border-radius: 10px; }
+        .swatch-input::-moz-color-swatch { border: none; border-radius: 10px; }
+        .swatch-hex {
+            flex: 1;
+            font-family: "JetBrains Mono", ui-monospace, monospace;
+            font-size: 13px; font-weight: 500;
+            color: var(--text-0);
+            background: transparent; border: none; outline: none;
+            letter-spacing: 0.5px; text-transform: uppercase; min-width: 0;
+        }
+        .swatch-copy {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-2);
+            cursor: pointer;
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .swatch-copy:hover { color: var(--text-0); background: var(--bg-3); }
+
+        .reset-btn {
+            margin-top: 20px; padding: 12px 18px;
+            background: var(--bg-3); color: var(--text-0);
+            border: 1px solid var(--border-2);
+            border-radius: var(--radius);
+            cursor: pointer; font-size: 13px; font-weight: 500;
+            font-family: inherit; width: 100%;
+        }
+        .reset-btn:hover { background: var(--bg-4); border-color: var(--border-3); }
+
         .code-shell {
             background: var(--bg-1);
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
             overflow: hidden;
+            font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+            font-size: var(--code-font-size);
+            line-height: var(--code-line-height);
             display: flex; flex-direction: column;
             box-shadow: 0 4px 16px rgba(0,0,0,0.5);
         }
@@ -157,6 +680,7 @@
             padding: 10px 14px;
             background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
             border-bottom: 1px solid var(--border);
+            font-family: system-ui, -apple-system, sans-serif;
             font-size: 12px; color: var(--text-1);
             gap: 12px; flex-wrap: wrap;
         }
@@ -170,12 +694,13 @@
             display: inline-flex; align-items: center; gap: 8px;
             padding: 5px 12px; color: var(--text-0);
             font-weight: 500; font-size: 12.5px;
-            font-family: "JetBrains Mono", monospace;
+            font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
             background: var(--bg-1);
             border: 1px solid var(--border);
             border-radius: 6px;
         }
-        .code-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+        .code-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--warning); box-shadow: 0 0 8px rgba(251,191,36,0.6); }
+        #codeStats { color: var(--text-2); font-variant-numeric: tabular-nums; padding: 4px 10px; background: var(--bg-1); border: 1px solid var(--border); border-radius: 6px; }
         .code-header-right { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         .code-btn {
             display: inline-flex; align-items: center; gap: 6px;
@@ -184,23 +709,50 @@
             color: var(--text-0);
             border: 1px solid var(--border-2);
             border-radius: 8px;
-            font-size: 12px; font-weight: 500; font-family: inherit;
-            cursor: pointer;
+            font-size: 12px; font-weight: 500;
+            font-family: inherit; cursor: pointer;
+            transition: background 0.12s, border-color 0.12s;
         }
         .code-btn:hover { background: var(--bg-4); border-color: var(--border-3); }
-        .code-btn.copied { background: var(--success); border-color: var(--success); color: #04140a; }
+        .code-btn.copied { background: linear-gradient(135deg, var(--success-2), var(--success)); border-color: var(--success); color: #04140a; }
+        .code-btn.icon-only { padding: 7px 9px; }
+        .code-select {
+            padding: 7px 12px;
+            background: var(--bg-3);
+            color: var(--text-0);
+            border: 1px solid var(--border-2);
+            border-radius: 8px;
+            font-size: 12px; cursor: pointer; font-family: inherit;
+        }
+        .code-select:focus { outline: none; border-color: var(--accent); }
 
-        /* Editor body — LARGE and wide */
+        .breadcrumb {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 20px;
+            background: var(--bg-1);
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-2);
+            font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        .breadcrumb::-webkit-scrollbar { height: 0; }
+        .breadcrumb span.crumb { color: var(--text-1); padding: 2px 6px; border-radius: 4px; }
+        .breadcrumb span.crumb.static { cursor: default; }
+        .breadcrumb .sep { color: var(--text-3); }
+        .breadcrumb .active-crumb { color: var(--text-0); font-weight: 500; }
+
         .editor-body {
             display: flex;
-            height: 72vh;
-            min-height: 500px;
+            height: 68vh;
+            min-height: 480px;
             overflow: hidden;
             background: var(--bg-1);
             position: relative;
         }
         .gutter {
-            flex: 0 0 64px;
+            flex: 0 0 66px;
             padding: 18px 0;
             background: var(--bg-1);
             color: var(--text-3);
@@ -220,6 +772,19 @@
             padding-left: 16px;
         }
         .gutter-line.active { color: var(--accent); }
+        .gutter-line.has-error { color: #ffb4b4; }
+        .gutter-line.has-error::before {
+            content: "";
+            position: absolute;
+            left: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #f87171;
+            box-shadow: 0 0 8px rgba(248,113,113,0.8);
+        }
 
         .editor-scroll { position: relative; flex: 1; overflow: hidden; }
 
@@ -230,9 +795,9 @@
             margin: 0;
             padding: 18px 24px;
             border: 0;
-            font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
-            font-size: var(--code-font-size);
-            line-height: var(--code-line-height);
+            font-family: inherit;
+            font-size: inherit;
+            line-height: inherit;
             white-space: pre;
             tab-size: 4;
             box-sizing: border-box;
@@ -264,6 +829,34 @@
         .code-input.wrap,
         .highlight-layer.wrap { white-space: pre-wrap; word-break: break-word; }
 
+        .minimap {
+            flex: 0 0 18px;
+            background: var(--bg-0);
+            border-left: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .minimap-line {
+            position: absolute;
+            left: 2px; right: 2px;
+            height: 2px;
+            background: var(--border-2);
+            border-radius: 1px;
+        }
+        .minimap-line.keyword { background: #ff7b72; }
+        .minimap-line.string { background: #a5d6ff; }
+        .minimap-line.function { background: #d2a8ff; }
+        .minimap-line.comment { background: #4a5163; }
+        .minimap-viewport {
+            position: absolute;
+            left: 0; right: 0;
+            background: rgba(110,168,254,0.15);
+            border-top: 1px solid rgba(110,168,254,0.5);
+            border-bottom: 1px solid rgba(110,168,254,0.5);
+            pointer-events: none;
+        }
+
         .tok-keyword   { color: #ff7b72; font-weight: 500; }
         .tok-string    { color: #a5d6ff; }
         .tok-number    { color: #79c0ff; }
@@ -276,7 +869,6 @@
         .tok-boolean   { color: #79c0ff; }
         .tok-property  { color: #79c0ff; }
 
-        /* Status bar */
         .status-bar {
             display: flex;
             align-items: center;
@@ -286,53 +878,149 @@
             border-top: 1px solid var(--border);
             font-size: 11.5px;
             color: var(--text-1);
-            font-family: "JetBrains Mono", monospace;
+            font-family: "JetBrains Mono", ui-monospace, monospace;
             gap: 12px;
             flex-wrap: wrap;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            margin-top: -1px;
         }
         .status-left, .status-right { display: flex; align-items: center; gap: 16px; }
         .status-item { display: inline-flex; align-items: center; gap: 6px; }
-        .badge {
+        .status-item .badge {
             padding: 2px 8px;
             background: var(--bg-3);
             border-radius: 4px;
             font-size: 11px;
             color: var(--text-0);
         }
+        .status-item.saving .badge { background: rgba(251,191,36,0.2); color: var(--warning); }
+        .status-item.saved .badge { background: rgba(34,197,94,0.2); color: var(--success); }
+        .status-item.unsaved .badge { background: rgba(248,113,113,0.2); color: var(--danger); }
 
-        /* Assets */
-        .assets-panel { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        .asset-card {
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: min(340px, 88vw);
+            height: 100vh;
             background: var(--bg-1);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 22px 24px;
+            border-right: 1px solid var(--border);
+            box-shadow: 12px 0 40px rgba(0,0,0,0.6);
+            transform: translateX(-100%);
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 6000;
+            display: flex;
+            flex-direction: column;
         }
-        .asset-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
-        .asset-card-icon {
-            width: 38px; height: 38px; border-radius: 11px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px; flex-shrink: 0;
-            background: linear-gradient(135deg, rgba(110,168,254,0.2), rgba(163,113,247,0.2));
-            border: 1px solid rgba(110,168,254,0.3);
+        .sidebar.open { transform: translateX(0); }
+        .sidebar-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
         }
-        .asset-card-title { font-size: 15px; font-weight: 700; margin: 0; }
-        .asset-card-desc { font-size: 12px; color: var(--text-2); margin: 4px 0 14px 50px; line-height: 1.55; }
-        .asset-card textarea {
-            width: 100%; padding: 12px 14px;
-            background: var(--bg-0);
+        .sidebar-header h2 {
+            margin: 0; font-size: 15px;
+            color: var(--text-0); font-weight: 700;
+            letter-spacing: 0.6px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .sidebar-header h2::before {
+            content: "";
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+        }
+        .sidebar-close {
+            background: transparent; border: none;
+            color: var(--text-1); font-size: 18px;
+            cursor: pointer; padding: 6px 10px;
+            border-radius: 8px;
+            min-width: 36px; min-height: 36px;
+            touch-action: manipulation;
+        }
+        .sidebar-close:hover { color: var(--text-0); background: var(--bg-3); }
+        .sidebar-body { flex: 1; overflow-y: auto; padding: 18px 20px; }
+        .sidebar-action {
+            display: flex; align-items: center; gap: 12px;
+            width: 100%; padding: 13px 16px;
+            background: var(--bg-2);
             border: 1px solid var(--border-2);
             border-radius: var(--radius);
             color: var(--text-0);
-            font-family: "JetBrains Mono", monospace;
-            font-size: 12.5px; line-height: 1.6;
-            resize: vertical; min-height: 100px;
-            outline: none;
+            font-size: 13.5px; font-family: inherit;
+            cursor: pointer; margin-bottom: 10px;
+            text-align: left; transition: all 0.15s;
+            min-height: 48px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
-        .asset-card textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(110,168,254,0.15); }
-        .asset-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; align-items: center; }
+        .sidebar-action:hover { background: var(--bg-3); border-color: var(--border-3); transform: translateX(2px); }
+        .sidebar-action .icon {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(110,168,254,0.2), rgba(163,113,247,0.2));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; flex-shrink: 0;
+        }
+        .sidebar-section {
+            font-size: 10.5px; color: var(--text-2);
+            text-transform: uppercase; letter-spacing: 1px;
+            font-weight: 700;
+            margin: 26px 0 12px 0;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .sidebar-section::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+        .sidebar-file {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+            overflow: hidden;
+            min-height: 52px;
+        }
+        .sidebar-file:hover { border-color: var(--border-2); background: var(--bg-3); }
+        .sidebar-file > button.file-open {
+            background: transparent; border: none;
+            color: var(--text-0); cursor: pointer;
+            font-size: 13px; font-family: inherit;
+            text-align: left; padding: 14px 16px; flex: 1;
+            display: flex; align-items: center; gap: 10px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            min-height: 52px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .sidebar-file > button.file-open:hover { color: var(--accent); background: rgba(110,168,254,0.06); }
+        .sidebar-file > button.file-open::before { content: "📄"; font-size: 14px; flex-shrink: 0; }
+        .sidebar-file-actions { display: flex; gap: 2px; padding-right: 6px; }
+        .sidebar-file-actions button {
+            background: transparent; border: none;
+            padding: 8px; color: var(--text-1);
+            cursor: pointer; border-radius: 6px; font-size: 15px;
+            min-width: 40px; min-height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .sidebar-file-actions button:hover { color: var(--text-0); background: var(--bg-4); }
+        .sidebar-empty {
+            color: var(--text-2); font-size: 13px;
+            padding: 24px 8px; text-align: center;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+        }
+        .sidebar-empty::before { content: "📁"; font-size: 32px; opacity: 0.5; }
 
-        /* Console */
+        .sidebar-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.28s ease;
+            z-index: 5999;
+            backdrop-filter: blur(4px);
+        }
+        .sidebar-backdrop.open { opacity: 1; pointer-events: auto; }
+
         .console-section { margin-top: 24px; }
         summary {
             cursor: pointer; color: var(--text-1);
@@ -346,16 +1034,21 @@
         }
         summary::before { content: "▸"; transition: transform 0.2s; display: inline-block; }
         details[open] summary::before { transform: rotate(90deg); }
+        summary:hover { color: var(--text-0); background: var(--bg-2); }
+
         .console-window {
             background: #000;
             border: 1px solid var(--border);
             border-top: 0;
             border-radius: 0 0 var(--radius) var(--radius);
-            display: flex; flex-direction: column;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
         }
         .console-toolbar {
-            display: flex; align-items: center; justify-content: space-between;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             padding: 6px 12px;
             background: #0a0a0a;
             border-bottom: 1px solid #1a1a1a;
@@ -363,19 +1056,29 @@
             font-family: "JetBrains Mono", monospace;
             color: #6e7589;
         }
+        .console-toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
         .console-toolbar-btn {
-            background: transparent; border: 1px solid #232936;
-            color: #6e7589; padding: 3px 10px; border-radius: 5px;
-            cursor: pointer; font-size: 11px;
+            background: transparent;
+            border: 1px solid #232936;
+            color: #6e7589;
+            padding: 3px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
             font-family: "JetBrains Mono", monospace;
         }
         .console-toolbar-btn:hover { color: #f0f3f8; border-color: #3d4459; background: #141821; }
         .console-toolbar-btn.active { color: #6ea8fe; border-color: rgba(110,168,254,0.5); background: rgba(110,168,254,0.08); }
+
         #editor-console-logs {
             background: #000;
-            font-family: "JetBrains Mono", monospace;
+            font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
             min-height: 140px;
-            max-height: 300px;
+            max-height: 340px;
             padding: 12px 16px;
             overflow-y: auto;
             white-space: pre-wrap;
@@ -384,104 +1087,296 @@
             color: #cbd5e1;
             flex: 1;
         }
-        .log-line { padding: 2px 0; border-left: 2px solid transparent; padding-left: 8px; margin-left: -8px; }
+        .log-line {
+            padding: 2px 0;
+            word-break: break-word;
+            border-left: 2px solid transparent;
+            padding-left: 8px;
+            margin-left: -8px;
+        }
         .log-line.log-info    { color: #94a3b8; border-left-color: #334155; }
         .log-line.log-log     { color: #cbd5e1; border-left-color: #475569; }
         .log-line.log-warn    { color: #fcd34d; border-left-color: #f59e0b; background: rgba(251,191,36,0.05); }
         .log-line.log-error   { color: #fca5a5; border-left-color: #dc2626; background: rgba(248,113,113,0.06); }
         .log-line.log-result  { color: #7dd3fc; border-left-color: #0ea5e9; }
         .log-line.log-input   { color: #a78bfa; border-left-color: #8b5cf6; }
-        .log-prefix { color: #64748b; margin-right: 6px; font-weight: 500; }
-        .log-time { color: #475569; margin-right: 8px; font-size: 11px; }
+        .log-line.log-success { color: #86efac; border-left-color: #16a34a; }
+
+        .log-prefix {
+            color: #64748b;
+            margin-right: 6px;
+            font-weight: 500;
+            user-select: none;
+        }
+        .log-time {
+            color: #475569;
+            margin-right: 8px;
+            font-size: 11px;
+            user-select: none;
+        }
+        .log-stack {
+            display: block;
+            color: #9ca3af;
+            font-size: 11.5px;
+            margin-top: 4px;
+            margin-left: 8px;
+            padding-left: 10px;
+            border-left: 1px solid #334155;
+            white-space: pre-wrap;
+        }
+
         .console-input-row {
-            display: flex; align-items: center; gap: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             padding: 8px 12px;
             background: #0a0a0a;
             border-top: 1px solid #1a1a1a;
         }
-        .console-chevron { color: #22c55e; font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; }
+        .console-chevron {
+            color: #22c55e;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 13px;
+            font-weight: 700;
+            user-select: none;
+        }
         #consoleReplInput {
-            flex: 1; background: transparent; border: none; outline: none;
-            color: #cbd5e1; font-family: "JetBrains Mono", monospace;
-            font-size: 12.5px; padding: 4px 0;
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #cbd5e1;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 12.5px;
+            padding: 4px 0;
         }
         #consoleReplInput::placeholder { color: #475569; }
 
-        /* Preview dialog (simple) */
-        #runDialog {
-            width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh;
-            padding: 0; margin: 0; border: 0; background: #000; color: #fff;
-            position: fixed; inset: 0; z-index: 9000; overflow: hidden;
+        .fab {
+            position: fixed;
+            bottom: 24px; left: 50%;
+            transform: translateX(-50%);
+            z-index: 8000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
-        #runDialog::backdrop { background: #000; }
-        .dialog-close {
-            position: absolute; top: 16px; left: 16px; z-index: 9500;
-            width: 40px; height: 40px; padding: 0;
-            background: rgba(24,27,38,0.95); color: #fff;
-            border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
-            cursor: pointer; font-size: 17px;
+        .fab-toggle {
+            width: 54px; height: 54px;
+            border-radius: 50%;
+            border: 1px solid var(--border-2);
+            background: linear-gradient(135deg, #7c3aed, #a371f7);
+            color: #fff;
+            font-size: 26px;
+            font-weight: 300;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(124,58,237,0.5);
+            transition: transform 0.2s;
             display: flex; align-items: center; justify-content: center;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
-        .dialog-close:hover { background: rgba(255,255,255,0.16); }
-        .dialog-stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #000; }
-        .dialog-frame-wrap { width: 100%; height: 100%; }
-        .dialog-frame-wrap iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
+        .fab-toggle:hover { transform: scale(1.05); }
+        .fab.open .fab-toggle { transform: rotate(45deg); }
 
-        /* Sidebar */
-        .sidebar-backdrop {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.7);
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.28s; z-index: 5999;
-            backdrop-filter: blur(4px);
+        .fab-menu {
+            position: absolute;
+            bottom: 68px;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px) scale(0.96);
+            width: 280px;
+            max-height: 70vh;
+            overflow-y: auto;
+            padding: 8px;
+            background: rgba(18,20,29,0.98);
+            border: 1px solid var(--border-2);
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
         }
-        .sidebar-backdrop.open { opacity: 1; pointer-events: auto; }
-        .sidebar {
-            position: fixed; top: 0; left: 0;
-            width: min(340px, 88vw); height: 100vh;
+        .fab.open .fab-menu {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0) scale(1);
+        }
+        .fab-menu-group-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--text-2);
+            padding: 10px 12px 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .fab-menu-group-label::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .fab-menu-group-label:first-child { padding-top: 4px; }
+        .fab-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 11px 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-0);
+            font-size: 13.5px;
+            font-family: inherit;
+            text-align: left;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.12s;
+            min-height: 44px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .fab-menu-item:hover { background: var(--bg-3); }
+        .fab-menu-item:active { transform: scale(0.98); }
+        .fab-menu-item .fi-icon {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            flex-shrink: 0;
+            border-radius: 7px;
+            background: rgba(110,168,254,0.1);
+        }
+        .fab-menu-item .fi-label { flex: 1; }
+        .fab-menu-item .fi-shortcut {
+            font-size: 10.5px;
+            color: var(--text-2);
+            font-family: "JetBrains Mono", monospace;
+            padding: 2px 6px;
             background: var(--bg-1);
-            border-right: 1px solid var(--border);
-            box-shadow: 12px 0 40px rgba(0,0,0,0.6);
-            transform: translateX(-100%);
-            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 6000;
-            display: flex; flex-direction: column;
+            border: 1px solid var(--border);
+            border-radius: 4px;
         }
-        .sidebar.open { transform: translateX(0); }
-        .sidebar-header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 20px 24px; border-bottom: 1px solid var(--border);
+        .fab-menu-item.active { background: rgba(110,168,254,0.15); color: var(--accent); }
+
+        .palette-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(6px);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 8100;
         }
-        .sidebar-header h2 {
-            margin: 0; font-size: 15px; font-weight: 700;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .sidebar-close {
-            background: transparent; border: none;
-            color: var(--text-1); font-size: 18px;
-            cursor: pointer; padding: 6px 10px; border-radius: 8px;
-        }
-        .sidebar-close:hover { color: var(--text-0); background: var(--bg-3); }
-        .sidebar-body { flex: 1; overflow-y: auto; padding: 18px 20px; }
-        .sidebar-action {
-            display: flex; align-items: center; gap: 12px;
-            width: 100%; padding: 13px 16px;
+        .palette-backdrop.open { opacity: 1; pointer-events: auto; }
+        .palette {
+            position: fixed;
+            top: 15vh; left: 50%;
+            transform: translateX(-50%) translateY(-20px) scale(0.98);
+            width: min(640px, 92vw);
             background: var(--bg-2);
             border: 1px solid var(--border-2);
-            border-radius: var(--radius);
-            color: var(--text-0);
-            font-size: 13.5px; font-family: inherit;
-            cursor: pointer; margin-bottom: 10px;
-            text-align: left;
+            border-radius: 16px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+            z-index: 8101;
+            overflow: hidden;
         }
-        .sidebar-action:hover { background: var(--bg-3); border-color: var(--border-3); }
-        .sidebar-action .icon { width: 32px; height: 32px; border-radius: 8px; background: rgba(110,168,254,0.15); display: flex; align-items: center; justify-content: center; font-size: 15px; }
+        .palette.open { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0) scale(1); }
+        .palette-input {
+            width: 100%;
+            padding: 20px 24px;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-0);
+            font-size: 16px;
+            font-family: inherit;
+            border-bottom: 1px solid var(--border);
+        }
+        .palette-input::placeholder { color: var(--text-3); }
+        .palette-list { max-height: 50vh; overflow-y: auto; padding: 8px; }
+        .palette-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-0);
+            font-size: 13.5px;
+        }
+        .palette-item .pi-left { display: flex; align-items: center; gap: 12px; }
+        .palette-item .pi-icon { font-size: 16px; width: 20px; text-align: center; }
+        .palette-item .pi-shortcut {
+            font-size: 11px;
+            color: var(--text-2);
+            font-family: "JetBrains Mono", monospace;
+            padding: 2px 6px;
+            background: var(--bg-1);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+        .palette-item:hover, .palette-item.focused {
+            background: linear-gradient(90deg, rgba(110,168,254,0.15), transparent);
+        }
+        .palette-empty { padding: 30px; text-align: center; color: var(--text-2); font-size: 13px; }
 
-        /* Toast */
+        .find-bar {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--bg-2);
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            flex-wrap: wrap;
+        }
+        .find-bar.open { display: flex; }
+        .find-bar input {
+            padding: 6px 12px;
+            background: var(--bg-0);
+            border: 1px solid var(--border-2);
+            border-radius: 6px;
+            color: var(--text-0);
+            font-size: 13px;
+            font-family: "JetBrains Mono", monospace;
+            outline: none;
+            min-width: 160px;
+        }
+        .find-bar input:focus { border-color: var(--accent); }
+        .find-bar .fcount {
+            color: var(--text-2);
+            font-family: "JetBrains Mono", monospace;
+            font-size: 12px;
+            min-width: 60px;
+        }
+        .find-bar button {
+            padding: 6px 10px;
+            background: var(--bg-3);
+            color: var(--text-0);
+            border: 1px solid var(--border-2);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            min-width: 36px;
+            min-height: 36px;
+            touch-action: manipulation;
+        }
+        .find-bar button:hover { background: var(--bg-4); }
+
         .toast-container {
-            position: fixed; bottom: 90px; right: 24px;
-            display: flex; flex-direction: column; gap: 10px;
-            z-index: 9000; pointer-events: none;
+            position: fixed;
+            bottom: 90px; right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 9000;
+            pointer-events: none;
         }
         .toast {
             padding: 12px 18px;
@@ -498,6 +1393,7 @@
         }
         .toast.success { border-left-color: var(--success); }
         .toast.error   { border-left-color: var(--danger); }
+        .toast.warning { border-left-color: var(--warning); }
         @keyframes toast-in {
             from { opacity: 0; transform: translateX(30px); }
             to   { opacity: 1; transform: translateX(0); }
@@ -513,79 +1409,223 @@
         }
         ::-webkit-scrollbar-thumb:hover { background: var(--border-3); background-clip: content-box; }
 
+        body.game-open .app,
+        body.game-open .app *,
+        body.game-open .app *::before,
+        body.game-open .app *::after {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        body.game-open .topbar {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            background: var(--bg-0) !important;
+        }
+
+        body.game-open .brand-mark::before,
+        body.game-open .brand-mark::after,
+        body.game-open .brand-mark img {
+            animation: none !important;
+            filter: none !important;
+        }
+
+        body.game-open::before,
+        body.game-open::after {
+            display: none !important;
+        }
+
         @media (max-width: 900px) {
-            .main { padding: 0 0 140px; }
+            .brand-mark::before { display: none; }
+            .brand-mark::after {
+                background: linear-gradient(135deg, #6ea8fe, #a371f7);
+                animation: none;
+                filter: none;
+                box-shadow: 0 0 12px rgba(110, 168, 254, 0.6);
+            }
+            .brand-mark img {
+                animation: none;
+                filter: none;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .main {
+                padding: 0 0 140px;
+                max-width: 100vw;
+            }
+            .tabs {
+                margin: 12px 16px;
+                width: calc(100% - 32px);
+                justify-content: center;
+            }
+            .code-shell {
+                margin: 12px 0;
+                border-radius: 0;
+                border-left: 0;
+                border-right: 0;
+            }
+            .panel {
+                border-radius: 0;
+                border-left: 0;
+                border-right: 0;
+                padding: 20px 16px;
+            }
+            .build-panel {
+                grid-template-columns: 1fr;
+                min-height: 0;
+                gap: 0;
+            }
+            .build-right { padding: 32px 20px; }
+            .hero-icon { width: 64px; height: 64px; font-size: 28px; border-radius: 18px; }
+            .build-right h3 { font-size: 17px; }
+            .build-right p { font-size: 12.5px; }
             .topbar-title { display: none; }
             .brand-sub { display: none; }
-            .editor-body { height: 60vh; min-height: 400px; }
-            .gutter { flex: 0 0 48px; }
-            .highlight-layer, .code-input { padding: 14px 14px; font-size: 12.5px; line-height: 20px; }
+            .minimap { display: none; }
+            .editor-body { height: 68vh; min-height: 400px; border-radius: 0; }
+            .code-header { padding: 8px 10px; gap: 8px; }
+            #fontDecBtn, #fontIncBtn, #formatCodeBtn { display: none; }
+            .breadcrumb { padding: 6px 14px; font-size: 11px; }
+            .status-bar { padding: 6px 12px; font-size: 10.5px; gap: 8px; border-radius: 0; }
+            .status-left, .status-right { gap: 10px; }
+            .gutter { flex: 0 0 52px; }
+            .gutter-line { padding-right: 12px; padding-left: 12px; font-size: 12px; }
+            .highlight-layer,
+            .code-input { padding: 14px 14px; font-size: 12.5px; line-height: 20px; }
             .gutter-line { height: 20px; line-height: 20px; }
-            .asset-card { border-radius: 0; border-left: 0; border-right: 0; }
+            .console-section { margin: 16px 0 0; }
+            .console-section details { margin: 0 16px; }
+            .palette { top: 5vh; max-height: 75vh; width: 94vw; }
+            .palette-list { max-height: 55vh; }
+            .dropdown-content { min-width: 220px; }
+            .toast-container { bottom: 160px; right: 12px; left: 12px; }
+            .toast { max-width: none; }
+            .asset-card { border-radius: 0; border-left: 0; border-right: 0; padding: 18px 16px; }
             .asset-card-desc { margin-left: 0; }
-            .code-shell { border-radius: 0; border-left: 0; border-right: 0; }
         }
+
         @media (max-width: 640px) {
             .topbar { padding: 12px 14px; gap: 10px; }
-            .brand-mark { width: 34px; height: 34px; font-size: 16px; border-radius: 9px; }
-            .brand-name { font-size: 12px; }
+            #runBrowserBtn {
+                font-size: 0;
+                padding: 8px 10px;
+            }
+            #runBrowserBtn::before {
+                content: "🌐";
+                font-size: 14px;
+            }
+            .brand-mark { width: 36px; height: 36px; }
+            .brand-mark::before { inset: -4px; border-radius: 13px; }
+            .brand-mark::after { inset: -1px; border-radius: 11px; }
+            .brand-mark img { width: 32px; height: 32px; border-radius: 8px; }
+            .brand-name { font-size: 13px; letter-spacing: 1px; }
+            .brand { gap: 10px; }
+            .btn { padding: 8px 12px; font-size: 12px; }
+            .btn-primary { padding: 8px 14px; }
+            .topbar-actions { gap: 6px; }
+            .dropdown-content { min-width: 200px; }
+            .field input[type="text"], .field input[type="number"], .field textarea { padding: 10px 12px; font-size: 13px; }
+            .custom-select-trigger { padding: 11px 40px 11px 14px; font-size: 13px; }
             .tab { padding: 8px 14px; font-size: 12px; }
-            .gutter { flex: 0 0 42px; }
+            .code-filename { font-size: 11.5px; padding: 4px 10px; }
+            #codeStats { display: none; }
+            .gutter { flex: 0 0 44px; }
             .gutter-line { padding-right: 8px; padding-left: 8px; font-size: 11.5px; }
-            .highlight-layer, .code-input { padding: 12px 12px; font-size: 12px; line-height: 19px; }
+            .highlight-layer,
+            .code-input { padding: 12px 12px; font-size: 12px; line-height: 19px; }
             .gutter-line { height: 19px; line-height: 19px; }
+            .toast { font-size: 12px; padding: 10px 14px; }
+            .fab-toggle { width: 48px; height: 48px; font-size: 22px; }
+            .fab-menu { width: 92vw; max-width: 360px; bottom: 60px; }
+            .sidebar-header { padding: 16px 18px; }
+            .sidebar-body { padding: 14px 16px; }
+            .sidebar-close { padding: 4px 8px; }
+            .find-bar { flex-wrap: wrap; }
+            .find-bar input { min-width: 0; flex: 1; }
+        }
+
+        @media (max-height: 600px) and (orientation: landscape) {
+            .editor-body { height: 55vh; min-height: 240px; }
+            .fab { bottom: 12px; }
         }
     </style>
 </head>
 <body>
-
-    <!-- Preview dialog -->
     <dialog id="runDialog">
         <button class="dialog-close" id="dialogClose" aria-label="Close preview">✕</button>
-        <div class="dialog-stage">
-            <div class="dialog-frame-wrap">
-                <iframe id="gameFrame" srcdoc="<center style='padding-top:20vh;color:#8b949e;font-family:system-ui'><h1>Ready</h1></center>"></iframe>
+        <div class="dialog-stage" id="dialogStage">
+            <div class="dialog-frame-wrap" id="dialogFrameWrap">
+                <iframe id="gameFrame" allowfullscreen srcdoc="<center style='padding-top:20vh;color:#8b949e;font-family:system-ui'><h1>Loading…</h1><progress></progress></center>"></iframe>
             </div>
+        </div>
+        <div class="dialog-controls" id="dialogControls">
+            <button id="zoomOutBtn" type="button" title="Zoom out" aria-label="Zoom out">−</button>
+            <button class="dialog-zoom-display" id="zoomDisplay" type="button" title="Reset zoom" aria-label="Reset zoom">100%</button>
+            <button id="zoomInBtn" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+            <button id="fsBtn" type="button" title="Fullscreen (F)" aria-label="Toggle fullscreen">⛶</button>
         </div>
     </dialog>
 
-    <!-- Sidebar backdrop -->
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-    <!-- Sidebar -->
     <aside class="sidebar" id="fileSidebar">
         <div class="sidebar-header">
             <h2>Workspace</h2>
-            <button class="sidebar-close" id="sidebarClose" aria-label="Close sidebar">✕</button>
+            <button class="sidebar-close" id="sidebarClose" aria-label="Close sidebar" type="button">✕</button>
         </div>
         <div class="sidebar-body">
-            <button class="sidebar-action" id="sidebarNew">
-                <span class="icon">🆕</span><span>New File</span>
+            <button class="sidebar-action" id="sidebarNew" type="button">
+                <span class="icon">🆕</span>
+                <span>New File</span>
             </button>
-            <button class="sidebar-action" id="sidebarOpenFile">
-                <span class="icon">📂</span><span>Open from device</span>
+            <button class="sidebar-action" id="sidebarOpenFile" type="button">
+                <span class="icon">📂</span>
+                <span>Open from device</span>
             </button>
-            <div style="font-size:10.5px;color:var(--text-2);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin:26px 0 12px;">Saved Files</div>
+            <div class="sidebar-section">Saved Files</div>
             <div id="fileList"></div>
         </div>
     </aside>
 
-    <!-- App -->
+    <div class="palette-backdrop" id="paletteBackdrop"></div>
+    <div class="palette" id="palette" role="dialog" aria-label="Command palette">
+        <input type="text" class="palette-input" id="paletteInput" placeholder="Type a command…" autocomplete="off" aria-label="Command search" />
+        <div class="palette-list" id="paletteList"></div>
+    </div>
+
     <div class="app">
         <div class="topbar">
             <div class="brand">
-                <div class="brand-mark">L</div>
+                <div class="brand-mark">
+                    <img src="logo.png" alt="Limn" />
+                </div>
                 <div class="brand-text">
                     <div class="brand-name">LIMN STUDIO</div>
                     <div class="brand-sub">GAME IDE</div>
                 </div>
             </div>
+
             <div class="topbar-actions">
-                <button id="run" class="btn btn-primary">▶ Run</button>
-                <button id="runBrowserBtn" class="btn">🌐 Open in tab</button>
-                <button id="openBtn" class="btn">📁 Open</button>
-                <button id="copyCodeBtn" class="btn">📋 Copy</button>
+                <button id="run" class="btn btn-primary" type="button">▶ Run</button>
+                <button id="runBrowserBtn" class="btn" type="button">🌐 Open in tab</button>
+                <button id="openBtn" class="btn" type="button">📁 Open</button>
+                <div class="dropdown">
+                    <button class="btn" type="button">Menu ▾</button>
+                    <div class="dropdown-content">
+                        <button onclick="save()" type="button">💾 Save<span class="shortcut">Ctrl+S</span></button>
+                        <button onclick="saveAs()" type="button">💾 Save As<span class="shortcut">Ctrl+Shift+S</span></button>
+                        <button onclick="shareProject()" type="button">🔗 Share / Publish</button>
+                        <div class="dropdown-divider"></div>
+                        <button onclick="openPalette()" type="button">⌘ Command Palette<span class="shortcut">Ctrl+K</span></button>
+                        <button onclick="openFind()" type="button">🔍 Find & Replace<span class="shortcut">Ctrl+F</span></button>
+                        <button onclick="gotoLine()" type="button">→ Go to Line<span class="shortcut">Ctrl+G</span></button>
+                        <div class="dropdown-divider"></div>
+                        <a href="/reference.html">📖 Docs</a>
+                    </div>
+                </div>
             </div>
+
             <div class="topbar-title">
                 <span class="dot" id="stateDot"></span>
                 <span id="title">*Untitled*</span>
@@ -594,36 +1634,121 @@
 
         <main class="main">
             <div class="tabs">
-                <button class="tab active" data-tab="code">⌨️ Code</button>
-                <button class="tab" data-tab="assets">🔌 Assets</button>
+                <button class="tab active" data-tab="build" type="button">⚙️ Build</button>
+                <button class="tab" data-tab="code" type="button">⌨️ Code</button>
+                <button class="tab" data-tab="assets" type="button">🔌 Assets</button>
             </div>
 
-            <!-- Code section (large) -->
-            <section id="codeSection">
+            <div id="buildPanel" class="build-panel">
+                <div class="panel">
+                    <p class="section-title">Game Template</p>
+
+                    <div class="field">
+                        <label id="templateLabel">Choose a game</label>
+                        <div class="custom-select" id="templateSelect">
+                            <button type="button" class="custom-select-trigger" id="templateSelectTrigger" aria-labelledby="templateLabel">
+                                <span id="templateSelectLabel">🎀 Dress-Up</span>
+                            </button>
+                            <div class="custom-select-menu" id="templateSelectMenu">
+                                <button type="button" class="custom-select-option selected" data-value="dressup">🎀 Dress-Up</button>
+                                <button type="button" class="custom-select-option" data-value="platformer">🏃 Platformer</button>
+                                <button type="button" class="custom-select-option" data-value="runner">💨 Runner</button>
+                                <button type="button" class="custom-select-option" data-value="shooter">🔫 Shooter</button>
+                                <button type="button" class="custom-select-option" data-value="clicker">👆 Clicker</button>
+                                <button type="button" class="custom-select-option" data-value="breakout">🧱 Breakout</button>
+                                <button type="button" class="custom-select-option" data-value="flappy">🐤 Flappy</button>
+                                <button type="button" class="custom-select-option" data-value="snake">🐍 Snake</button>
+                                <button type="button" class="custom-select-option" data-value="catch">🧺 Catch</button>
+                                <button type="button" class="custom-select-option" data-value="dodge">🌀 Dodge</button>
+                                <button type="button" class="custom-select-option" data-value="tank">💥 Tank Battle</button>
+                                <button type="button" class="custom-select-option" data-value="dungeon">🗡️ Dungeon Crawler</button>
+                                <button type="button" class="custom-select-option" data-value="soccer">⚽ Soccer</button>
+                                <button type="button" class="custom-select-option" data-value="race">🏎️ Car Race</button>
+                                <button type="button" class="custom-select-option" data-value="asteroids">☄️ Asteroids</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="templateFields"></div>
+
+                    <div class="field">
+                        <label for="gameDescription">Description (optional)</label>
+                        <textarea id="gameDescription" rows="3" placeholder="Tell people what your game is about..." maxlength="200"></textarea>
+                    </div>
+
+                    <button id="buildReset" class="reset-btn" type="button">↻ Reset to default</button>
+                </div>
+                <div class="panel build-right">
+                    <div class="hero-icon">🎮</div>
+                    <h3>Ready to build</h3>
+                    <p>Pick a template, customize the colors, then hit <span class="kbd">▶ Run</span> to launch your game.</p>
+                    <p>Switch to <span class="kbd">⌨️ Code</span> to edit or export the generated JavaScript.</p>
+                    <div class="feature-row">
+                        <span class="feature-pill">15 templates</span>
+                        <span class="feature-pill">Live preview</span>
+                        <span class="feature-pill">Cloud sync</span>
+                        <span class="feature-pill">Share links</span>
+                    </div>
+                </div>
+            </div>
+
+            <section id="codeSection" style="display:none">
                 <div class="code-shell">
                     <div class="code-header">
                         <div class="code-header-left">
-                            <div class="window-dots"><span></span><span></span><span></span></div>
+                            <div class="window-dots">
+                                <span></span><span></span><span></span>
+                            </div>
                             <div class="code-filename">
                                 <span class="code-dot"></span>
                                 <span>main.js</span>
                             </div>
-                            <span id="codeStats" style="color:var(--text-2);font-size:12px;">0 lines</span>
+                            <span id="codeStats">0 lines</span>
                         </div>
                         <div class="code-header-right">
-                            <button id="fontDecBtn" class="code-btn" title="Smaller font">A−</button>
-                            <button id="fontIncBtn" class="code-btn" title="Bigger font">A+</button>
-                            <button id="formatBtn" class="code-btn" title="Format code">⤸ Format</button>
-                            <button id="snippetBtn" class="code-btn" title="Insert snippet">📋 Snippet</button>
+                            <select id="version" class="code-select" aria-label="Engine version">
+                                <option value="v2">Limn v2</option>
+                                <option value="v3">Limn v3</option>
+                                <option value="v4" selected>Limn v4</option>
+                            </select>
+                            <button id="findBtn" class="code-btn icon-only" title="Find & Replace (Ctrl+F)" aria-label="Find and replace" type="button">🔍</button>
+                            <button id="fontDecBtn" class="code-btn icon-only" title="Smaller font" aria-label="Decrease font size" type="button">A−</button>
+                            <button id="fontIncBtn" class="code-btn icon-only" title="Bigger font" aria-label="Increase font size" type="button">A+</button>
+                            <button id="copyCodeBtn" class="code-btn" title="Copy code" aria-label="Copy code" type="button">
+                                <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/>
+                                    <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/>
+                                </svg>
+                                <span id="copyCodeLabel">Copy</span>
+                            </button>
+                            <button id="formatCodeBtn" class="code-btn" title="Format code" aria-label="Format code" type="button">⤸ Format</button>
                         </div>
                     </div>
 
-                    <!-- Large editor area -->
+                    <div class="breadcrumb" id="breadcrumb">
+                        <span class="crumb static">LIMN STUDIO</span>
+                        <span class="sep">›</span>
+                        <span class="crumb static">main.js</span>
+                        <span class="sep">›</span>
+                        <span class="active-crumb" id="breadcrumbFunc">top of file</span>
+                    </div>
+
+                    <div class="find-bar" id="findBar">
+                        <input type="text" id="findInput" placeholder="Find…" aria-label="Find" />
+                        <input type="text" id="replaceInput" placeholder="Replace…" aria-label="Replace" />
+                        <span class="fcount" id="findCount">0/0</span>
+                        <button type="button" id="findPrev" aria-label="Previous match">↑</button>
+                        <button type="button" id="findNext" aria-label="Next match">↓</button>
+                        <button type="button" id="replaceOne">Replace</button>
+                        <button type="button" id="replaceAll">All</button>
+                        <button type="button" id="findClose" aria-label="Close find">✕</button>
+                    </div>
+
                     <div class="editor-body">
                         <div class="gutter" id="gutter"></div>
                         <div class="editor-scroll">
                             <pre class="highlight-layer" id="highlightLayer" aria-hidden="true"></pre>
-                            <textarea id="js" class="code-input" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" aria-label="Code editor">const display = new Display();
+                            <textarea id="js" class="code-input" wrap="off" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" aria-label="Code editor">const display = new Display();
 display.perform();
 display.start(800, 600);
 display.backgroundColor("#0a0a0a");
@@ -652,6 +1777,7 @@ function update(dt) {
     hud.fixed();
 }</textarea>
                         </div>
+                        <div class="minimap" id="minimap" aria-hidden="true"></div>
                     </div>
 
                     <div class="status-bar">
@@ -661,15 +1787,15 @@ function update(dt) {
                             <span class="status-item"><span id="statusSelection">0</span> selected</span>
                         </div>
                         <div class="status-right">
-                            <span class="status-item"><span class="badge" id="statusStateBadge">Ready</span></span>
+                            <span class="status-item" id="statusState"><span class="badge">Ready</span></span>
                             <span class="status-item">UTF-8</span>
+                            <span class="status-item">Spaces: 4</span>
                             <span class="status-item" id="statusSize">0 B</span>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Assets section -->
             <section id="assetsSection" style="display:none">
                 <div class="assets-panel">
                     <div class="asset-card">
@@ -677,48 +1803,75 @@ function update(dt) {
                             <div class="asset-card-icon">📄</div>
                             <h3 class="asset-card-title">Head HTML</h3>
                         </div>
-                        <p class="asset-card-desc">Raw HTML injected inside &lt;head&gt;. Use for &lt;link&gt;, &lt;meta&gt;, or custom tags.</p>
-                        <textarea id="assetHead" placeholder="&lt;link rel=&quot;stylesheet&quot; href=&quot;...&quot;&gt;"></textarea>
+                        <p class="asset-card-desc">
+                            Raw HTML injected inside <code>&lt;head&gt;</code>. Use this for <code>&lt;link&gt;</code>, <code>&lt;meta&gt;</code>, or any custom tags. Works in preview, published games, and downloads.
+                        </p>
+                        <textarea id="assetHead" placeholder="&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Inter&quot;&gt;
+&lt;meta name=&quot;theme-color&quot; content=&quot;#0a0a0a&quot;&gt;"></textarea>
+                        <div class="asset-hint">
+                            <span>💡</span>
+                            <span>Paste tags exactly as you'd write them in an HTML <code>&lt;head&gt;</code>.</span>
+                        </div>
                     </div>
+
                     <div class="asset-card">
                         <div class="asset-card-head">
-                            <div class="asset-card-icon">🎨</div>
+                            <div class="asset-card-icon css">🎨</div>
                             <h3 class="asset-card-title">Extra CSS</h3>
                         </div>
-                        <p class="asset-card-desc">Raw CSS injected as a &lt;style&gt; block.</p>
-                        <textarea id="assetCss" placeholder="body { background: #000; }"></textarea>
+                        <p class="asset-card-desc">
+                            Raw CSS injected as a <code>&lt;style&gt;</code> block in the head. Applies to the whole game page — you can style the body, add background layers, or reset defaults.
+                        </p>
+                        <textarea id="assetCss" placeholder="body { background: linear-gradient(135deg, #0a0a1e, #150a2a); }
+canvas { box-shadow: 0 20px 60px rgba(110,168,254,0.3); }"></textarea>
+                        <div class="asset-hint">
+                            <span>💡</span>
+                            <span>Standard CSS. Runs <em>after</em> the engine's own styles so you can override them.</span>
+                        </div>
                     </div>
+
                     <div class="asset-card">
                         <div class="asset-card-head">
-                            <div class="asset-card-icon">📜</div>
+                            <div class="asset-card-icon scripts">📜</div>
                             <h3 class="asset-card-title">External Scripts</h3>
                         </div>
-                        <p class="asset-card-desc">One URL per line. Loaded before the engine.</p>
-                        <textarea id="assetScripts" placeholder="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></textarea>
+                        <p class="asset-card-desc">
+                            One URL per line. Each becomes a <code>&lt;script src="..."&gt;</code> tag in the head, loaded <em>before</em> the engine. Use this for libraries like Three.js, Matter.js, or your own CDN bundles.
+                        </p>
+                        <textarea id="assetScripts" placeholder="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js
+https://cdn.example.com/my-library.js"></textarea>
+                        <div class="asset-hint">
+                            <span>💡</span>
+                            <span>Loads synchronously before the engine. If a script fails to load, the game will show an error in the console.</span>
+                        </div>
                     </div>
+
                     <div class="asset-actions">
-                        <button class="btn" id="assetTest">▶ Test in preview</button>
-                        <button class="btn" id="assetClear">🗑 Clear all</button>
+                        <button class="btn" type="button" id="assetTest">▶ Test in preview</button>
+                        <button class="btn" type="button" id="assetClear">🗑 Clear all assets</button>
+                        <span style="flex:1"></span>
+                        <span style="font-size:12px;color:var(--text-2);align-self:center">Changes apply on next Run or Save.</span>
                     </div>
                 </div>
             </section>
 
-            <!-- Console -->
             <div class="console-section">
                 <details id="consoleDetails">
                     <summary>Console</summary>
                     <div class="console-window">
                         <div class="console-toolbar">
-                            <span id="consoleCount">0 messages</span>
-                            <div>
-                                <button class="console-toolbar-btn" id="consoleClearBtn">Clear</button>
-                                <button class="console-toolbar-btn active" id="consoleAutoscroll">Auto-scroll</button>
+                            <div class="console-toolbar-left">
+                                <span id="consoleCount">0 messages</span>
+                            </div>
+                            <div class="console-toolbar-left">
+                                <button class="console-toolbar-btn" id="consoleClearBtn" type="button">Clear</button>
+                                <button class="console-toolbar-btn active" id="consoleAutoscroll" type="button">Auto-scroll</button>
                             </div>
                         </div>
                         <div id="editor-console-logs"></div>
                         <div class="console-input-row">
                             <span class="console-chevron">&gt;</span>
-                            <input type="text" id="consoleReplInput" placeholder="Type an expression…" autocomplete="off" spellcheck="false" />
+                            <input type="text" id="consoleReplInput" placeholder="Type an expression and press Enter (e.g. player.x, display.camera.x)" autocomplete="off" spellcheck="false" />
                         </div>
                     </div>
                 </details>
@@ -726,69 +1879,645 @@ function update(dt) {
         </main>
     </div>
 
+    <div class="fab" id="fab">
+        <div class="fab-menu" id="fabMenu">
+            <div class="fab-menu-group-label">Run</div>
+            <button class="fab-menu-item" id="fabRun" type="button">
+                <span class="fi-icon">▶</span>
+                <span class="fi-label">Run game</span>
+                <span class="fi-shortcut">Ctrl+↵</span>
+            </button>
+            <button class="fab-menu-item" id="fabRunTab" type="button">
+                <span class="fi-icon">🌐</span>
+                <span class="fi-label">Open in new tab</span>
+            </button>
+            <button class="fab-menu-item" id="fabConsole" type="button">
+                <span class="fi-icon">🖥</span>
+                <span class="fi-label">Toggle console</span>
+            </button>
+
+            <div class="fab-menu-group-label">File</div>
+            <button class="fab-menu-item" id="fabSave" type="button">
+                <span class="fi-icon">💾</span>
+                <span class="fi-label">Save</span>
+                <span class="fi-shortcut">Ctrl+S</span>
+            </button>
+            <button class="fab-menu-item" id="fabSaveAs" type="button">
+                <span class="fi-icon">📝</span>
+                <span class="fi-label">Save as…</span>
+                <span class="fi-shortcut">Ctrl+⇧+S</span>
+            </button>
+            <button class="fab-menu-item" id="fabPublish" type="button">
+                <span class="fi-icon">🚀</span>
+                <span class="fi-label">Publish / Share</span>
+            </button>
+            <button class="fab-menu-item" id="fabDownload" type="button">
+                <span class="fi-icon">⬇</span>
+                <span class="fi-label">Download HTML</span>
+            </button>
+            <button class="fab-menu-item" id="fabSidebar" type="button">
+                <span class="fi-icon">📁</span>
+                <span class="fi-label">Workspace files</span>
+            </button>
+            <button class="fab-menu-item" id="fabNew" type="button">
+                <span class="fi-icon">🆕</span>
+                <span class="fi-label">New file</span>
+            </button>
+
+            <div class="fab-menu-group-label">Edit</div>
+            <button class="fab-menu-item" id="fabUndo" type="button">
+                <span class="fi-icon">↶</span>
+                <span class="fi-label">Undo</span>
+                <span class="fi-shortcut">Ctrl+Z</span>
+            </button>
+            <button class="fab-menu-item" id="fabRedo" type="button">
+                <span class="fi-icon">↷</span>
+                <span class="fi-label">Redo</span>
+                <span class="fi-shortcut">Ctrl+Y</span>
+            </button>
+            <button class="fab-menu-item" id="fabFind" type="button">
+                <span class="fi-icon">🔍</span>
+                <span class="fi-label">Find & Replace</span>
+                <span class="fi-shortcut">Ctrl+F</span>
+            </button>
+            <button class="fab-menu-item" id="fabFormat" type="button">
+                <span class="fi-icon">⤸</span>
+                <span class="fi-label">Format code</span>
+            </button>
+            <button class="fab-menu-item" id="fabComment" type="button">
+                <span class="fi-icon">💬</span>
+                <span class="fi-label">Toggle comment</span>
+                <span class="fi-shortcut">Ctrl+/</span>
+            </button>
+            <button class="fab-menu-item" id="fabWrap" type="button">
+                <span class="fi-icon">↩</span>
+                <span class="fi-label">Word wrap</span>
+            </button>
+
+            <div class="fab-menu-group-label">View</div>
+            <button class="fab-menu-item" id="fabZoomIn" type="button">
+                <span class="fi-icon">🔍</span>
+                <span class="fi-label">Zoom in</span>
+                <span class="fi-shortcut">+</span>
+            </button>
+            <button class="fab-menu-item" id="fabZoomOut" type="button">
+                <span class="fi-icon">🔎</span>
+                <span class="fi-label">Zoom out</span>
+                <span class="fi-shortcut">−</span>
+            </button>
+            <button class="fab-menu-item" id="fabZoomReset" type="button">
+                <span class="fi-icon">↺</span>
+                <span class="fi-label">Reset zoom</span>
+                <span class="fi-shortcut">0</span>
+            </button>
+            <button class="fab-menu-item" id="fabFullscreen" type="button">
+                <span class="fi-icon">⛶</span>
+                <span class="fi-label">Fullscreen</span>
+                <span class="fi-shortcut">F</span>
+            </button>
+
+            <div class="fab-menu-group-label">Help</div>
+            <button class="fab-menu-item" id="fabPalette" type="button">
+                <span class="fi-icon">⌘</span>
+                <span class="fi-label">Command palette</span>
+                <span class="fi-shortcut">Ctrl+K</span>
+            </button>
+            <a class="fab-menu-item" href="/reference.html">
+                <span class="fi-icon">📖</span>
+                <span class="fi-label">Docs</span>
+            </a>
+        </div>
+        <button class="fab-toggle" id="fabToggle" title="Tools" aria-label="Toggle tools menu" type="button">＋</button>
+    </div>
+
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- Hidden file input -->
-    <input type="file" id="fileInput" accept=".js,.html,.css,.txt" style="display:none" />
-
-    <!-- Scripts -->
     <script>
-    (function(){
-        // ---------- TOAST ----------
-        const toastContainer = document.getElementById('toastContainer');
+        var inp = document.createElement("input");
+        inp.type = "file";
+        inp.accept = ".js,.html,.css,.txt";
+
+        window.closeRunDialog = function () {
+            var d = document.getElementById('runDialog');
+            if (!d) return;
+            try {
+                if (document.fullscreenElement || document.webkitFullscreenElement) {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                }
+            } catch (e) {}
+            if (typeof d.close === 'function') {
+                try { d.close(); } catch (e) {}
+            }
+            d.removeAttribute('open');
+        };
+
+        window.__LIMN_CLICK_PATCH__ = function () {
+            if (typeof Display === 'undefined') return;
+
+            Display.prototype.addEventListeners = function () {
+                var self = this;
+
+                window.addEventListener('keydown', function (e) {
+                    self.keys[e.keyCode] = true;
+                });
+                window.addEventListener('keyup', function (e) {
+                    self.keys[e.keyCode] = false;
+                });
+
+                var toCanvasCoords = function (clientX, clientY) {
+                    var rect = self.canvas.getBoundingClientRect();
+                    var layoutW = self.canvas.offsetWidth  || self.canvas.width;
+                    var layoutH = self.canvas.offsetHeight || self.canvas.height;
+
+                    var bodyZoom = 1;
+                    try {
+                        var z = getComputedStyle(document.body).zoom;
+                        if (z && !isNaN(parseFloat(z))) bodyZoom = parseFloat(z);
+                    } catch (e) {}
+
+                    var rectIsZoomed = Math.abs(rect.width - layoutW * bodyZoom) <
+                                       Math.abs(rect.width - layoutW);
+
+                    var visualW, visualH, visualLeft, visualTop;
+                    if (rectIsZoomed) {
+                        visualW = rect.width;
+                        visualH = rect.height;
+                        visualLeft = rect.left;
+                        visualTop  = rect.top;
+                    } else {
+                        visualW = layoutW * bodyZoom;
+                        visualH = layoutH * bodyZoom;
+                        visualLeft = rect.left * bodyZoom;
+                        visualTop  = rect.top  * bodyZoom;
+                    }
+
+                    var scaleX = self.canvas.width  / visualW;
+                    var scaleY = self.canvas.height / visualH;
+
+                    return {
+                        x: (clientX - visualLeft) * scaleX,
+                        y: (clientY - visualTop)  * scaleY
+                    };
+                };
+
+                window.addEventListener('mousedown', function (e) {
+                    var p = toCanvasCoords(e.clientX, e.clientY);
+                    self.x = p.x + self.camera.x;
+                    self.y = p.y + self.camera.y;
+                });
+                window.addEventListener('mouseup', function () {
+                    self.x = false;
+                    self.y = false;
+                });
+                window.addEventListener('touchstart', function (e) {
+                    var t = e.touches[0];
+                    var p = toCanvasCoords(t.clientX, t.clientY);
+                    self.x = p.x + self.camera.x;
+                    self.y = p.y + self.camera.y;
+                }, { passive: true });
+                window.addEventListener('touchend', function () {
+                    self.x = false;
+                    self.y = false;
+                });
+                window.addEventListener('mousemove', function (e) {
+                    var p = toCanvasCoords(e.clientX, e.clientY);
+                    if (typeof mouse !== 'undefined') {
+                        mouse.x = p.x;
+                        mouse.y = p.y;
+                    }
+                });
+                window.addEventListener('touchmove', function (e) {
+                    var t = e.touches[0];
+                    var p = toCanvasCoords(t.clientX, t.clientY);
+                    if (typeof mouse !== 'undefined') {
+                        mouse.x = p.x;
+                        mouse.y = p.y;
+                    }
+                }, { passive: true });
+            };
+        };
+    </script>
+    <script src="jquery-3.7.1.min.js"></script>
+    <script src="function.js"></script>
+    <script src="templates.js"></script>
+
+    <script>
+    window.__templateSelectValue = "dressup";
+    (function () {
+        var root = document.getElementById('templateSelect');
+        var trigger = document.getElementById('templateSelectTrigger');
+        var label = document.getElementById('templateSelectLabel');
+        var menu = document.getElementById('templateSelectMenu');
+        if (!root || !trigger || !menu) return;
+
+        function close() { root.classList.remove('open'); }
+        function open() { root.classList.add('open'); }
+
+        function pick(btn) {
+            var val = btn.dataset.value;
+            window.__templateSelectValue = val;
+            label.textContent = btn.textContent;
+            var opts = menu.querySelectorAll('.custom-select-option');
+            for (var i = 0; i < opts.length; i++) opts[i].classList.remove('selected');
+            btn.classList.add('selected');
+            close();
+            window.dispatchEvent(new CustomEvent('templatechange', { detail: { value: val } }));
+        }
+
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (root.classList.contains('open')) close();
+            else open();
+        });
+
+        menu.addEventListener('click', function (e) {
+            var btn = e.target.closest('.custom-select-option');
+            if (!btn) return;
+            e.stopPropagation();
+            pick(btn);
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!root.contains(e.target)) close();
+        });
+    })();
+    </script>
+
+    <script src="script.js" type="module"></script>
+
+    <script>
+    (function () {
+        var toastContainer = document.getElementById('toastContainer');
         window.toast = function (msg, type) {
-            const t = document.createElement('div');
+            var t = document.createElement('div');
             t.className = 'toast ' + (type || '');
             t.textContent = msg;
             toastContainer.appendChild(t);
-            setTimeout(() => {
+            setTimeout(function () {
                 t.style.transition = 'opacity 0.3s, transform 0.3s';
                 t.style.opacity = '0';
                 t.style.transform = 'translateX(30px)';
-                setTimeout(() => t.remove(), 320);
+                setTimeout(function () { t.remove(); }, 320);
             }, 2800);
         };
 
-        // ---------- DOM refs ----------
-        const textarea = document.getElementById('js');
-        const highlight = document.getElementById('highlightLayer');
-        const gutter = document.getElementById('gutter');
-        const stats = document.getElementById('codeStats');
-        const statusLine = document.getElementById('statusLine');
-        const statusCol = document.getElementById('statusCol');
-        const statusSelection = document.getElementById('statusSelection');
-        const statusSize = document.getElementById('statusSize');
-        const stateDot = document.getElementById('stateDot');
-        const statusStateBadge = document.getElementById('statusStateBadge');
+        var runBtn = document.getElementById('run');
+        if (runBtn) runBtn.addEventListener('click', function () {
+            if (typeof runn === 'function') runn();
+        });
 
-        // ---------- TOKENIZER ----------
-        const KEYWORDS = new Set(['const','let','var','function','return','if','else','for','while','do','break','continue','new','this','class','extends','super','try','catch','finally','throw','switch','case','default','typeof','instanceof','in','of','delete','void','yield','await','async','static','get','set','import','export','from','as']);
-        const BUILTINS = new Set(['Display','Component','Tctxt','Camera','Sprite','AnimatedSprite','Tile','TileMap','Particle','ParticleSystem','Sound','SoundManager','Math','JSON','Object','Array','String','Number','Boolean','Date','Set','Map','Promise','Error','console','window','document','display','mouse']);
-        const LITERALS = new Set(['true','false','null','undefined','NaN','Infinity']);
+        var runBrowserBtn = document.getElementById('runBrowserBtn');
+        if (runBrowserBtn) {
+            runBrowserBtn.addEventListener('click', function () {
+                var textarea = document.getElementById('js');
+                if (!textarea) return;
+
+                var userCode = textarea.value;
+                if (!userCode || !userCode.trim()) {
+                    alert('Nothing to run. Write or generate some code first.');
+                    return;
+                }
+
+                if (typeof window.buildGameHTML !== 'function') {
+                    alert('Preview builder not loaded. Refresh the page.');
+                    return;
+                }
+
+                var versionSelect = document.getElementById('version');
+                var version = versionSelect ? versionSelect.value.toLowerCase() : 'v4';
+
+                var engineCode = version.includes('v2') ? window.__v2t
+                               : version.includes('v3') ? window.__v3t
+                               : window.__v4t;
+
+                if (!engineCode || !engineCode.trim()) {
+                    alert('Engine not loaded yet. Try again in a moment.');
+                    return;
+                }
+
+                var html = window.buildGameHTML(engineCode, userCode, window.getCurrentAssets());
+
+                var blob = new Blob([html], { type: 'text/html' });
+                var url = URL.createObjectURL(blob);
+
+                var win = window.open(url, '_blank');
+
+                if (!win) {
+                    alert('Pop-up blocked. Allow pop-ups for this site and try again.');
+                }
+
+                setTimeout(function () {
+                    URL.revokeObjectURL(url);
+                }, 60000);
+            });
+        }
+
+        var gameFrame = document.getElementById('gameFrame');
+        if (gameFrame) {
+            gameFrame.addEventListener('load', function () {
+                try {
+                    var win = gameFrame.contentWindow;
+                    if (win && typeof win.Display !== 'undefined' && typeof win.eval === 'function') {
+                        win.eval('(' + window.__LIMN_CLICK_PATCH__.toString() + ')();');
+                    }
+                } catch (e) {}
+            });
+        }
+
+        var sidebar = document.getElementById('fileSidebar');
+        var backdrop = document.getElementById('sidebarBackdrop');
+        var closeBtn = document.getElementById('sidebarClose');
+        var openBtn = document.getElementById('openBtn');
+
+        function openSidebar() { sidebar.classList.add('open'); backdrop.classList.add('open'); renderFileList(); }
+        function closeSidebar() { sidebar.classList.remove('open'); backdrop.classList.remove('open'); }
+
+        if (openBtn) openBtn.addEventListener('click', openSidebar);
+        if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+        if (backdrop) backdrop.addEventListener('click', closeSidebar);
+
+        var newBtn = document.getElementById('sidebarNew');
+        if (newBtn) newBtn.addEventListener('click', function () {
+            if (confirm('Create a new file? Unsaved changes will be lost.')) {
+                var ta = document.getElementById('js');
+                if (ta) ta.value = '';
+                var t = document.getElementById('title');
+                if (t) t.textContent = '*Untitled*';
+                if (window.__renderCode) window.__renderCode();
+                closeSidebar();
+            }
+        });
+
+        var openFileBtn = document.getElementById('sidebarOpenFile');
+        if (openFileBtn) openFileBtn.addEventListener('click', function () {
+            inp.click();
+        });
+
+        inp.onchange = function (e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.readAsText(file, 'UTF-8');
+            reader.onload = function (ev) {
+                var content = ev.target.result;
+                var ta = document.getElementById('js');
+                if (ta) ta.value = content;
+                var t = document.getElementById('title');
+                if (t) t.textContent = file.name;
+                if (window.__renderCode) window.__renderCode();
+                closeSidebar();
+                if (window.toast) window.toast('Opened ' + file.name, 'success');
+            };
+        };
+
+        function renderFileList() {
+            var list = document.getElementById('fileList');
+            if (!list) return;
+            list.innerHTML = '';
+            var names = window.filesName || [];
+            var store = window.files || {};
+            if (!names || names.length === 0) {
+                var empty = document.createElement('div');
+                empty.className = 'sidebar-empty';
+                empty.textContent = 'No saved files yet';
+                list.appendChild(empty);
+                return;
+            }
+            names.forEach(function (name) {
+                if (!name) return;
+                var row = document.createElement('div');
+                row.className = 'sidebar-file';
+
+                var openFile = document.createElement('button');
+                openFile.type = 'button';
+                openFile.className = 'file-open';
+                openFile.textContent = name;
+                openFile.addEventListener('click', function () {
+                    var ta = document.getElementById('js');
+                    if (ta) ta.value = store[name] || '';
+                    var t = document.getElementById('title');
+                    if (t) t.textContent = name;
+                    if (window.__renderCode) window.__renderCode();
+                    closeSidebar();
+                });
+
+                var actions = document.createElement('div');
+                actions.className = 'sidebar-file-actions';
+
+                var dl = document.createElement('button');
+                dl.type = 'button';
+                dl.textContent = '⬇';
+                dl.title = 'Download';
+                dl.setAttribute('aria-label', 'Download ' + name);
+                dl.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    if (window.down) window.down(name);
+                });
+
+                var rm = document.createElement('button');
+                rm.type = 'button';
+                rm.textContent = '🗑';
+                rm.title = 'Delete';
+                rm.setAttribute('aria-label', 'Delete ' + name);
+                rm.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    if (confirm('Delete "' + name + '"?')) {
+                        delete store[name];
+                        window.filesName = names.filter(function (e2) { return e2 !== name; });
+                        if (window.__persistFiles) window.__persistFiles();
+                        renderFileList();
+                        if (window.toast) window.toast('Deleted ' + name, 'warning');
+                    }
+                });
+
+                actions.appendChild(dl);
+                actions.appendChild(rm);
+                row.appendChild(openFile);
+                row.appendChild(actions);
+                list.appendChild(row);
+            });
+        }
+
+        window.__renderFileSidebar = renderFileList;
+
+        var tabs = document.querySelectorAll('.tab');
+        for (var i = 0; i < tabs.length; i++) {
+            tabs[i].addEventListener('click', function () {
+                var all = document.querySelectorAll('.tab');
+                for (var j = 0; j < all.length; j++) all[j].classList.remove('active');
+                this.classList.add('active');
+                var which = this.dataset.tab;
+                var bp = document.getElementById('buildPanel');
+                var cs = document.getElementById('codeSection');
+                var as = document.getElementById('assetsSection');
+                if (bp) bp.style.display = which === 'build' ? 'grid' : 'none';
+                if (cs) cs.style.display = which === 'code' ? 'block' : 'none';
+                if (as) as.style.display = which === 'assets' ? 'block' : 'none';
+                if (which === 'code' && window.__renderCode) window.__renderCode();
+            });
+        }
+
+        var fab = document.getElementById('fab');
+        var fabToggle = document.getElementById('fabToggle');
+        if (fab && fabToggle) {
+            fabToggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                fab.classList.toggle('open');
+            });
+            document.addEventListener('click', function (e) {
+                if (!fab.contains(e.target)) fab.classList.remove('open');
+            });
+        }
+
+        function closeFab() { fab.classList.remove('open'); }
+
+        var fabRun = document.getElementById('fabRun');
+        if (fabRun) fabRun.addEventListener('click', function () { closeFab(); if (typeof runn === 'function') runn(); });
+
+        var fabRunTab = document.getElementById('fabRunTab');
+        if (fabRunTab) fabRunTab.addEventListener('click', function () { closeFab(); if (runBrowserBtn) runBrowserBtn.click(); });
+
+        var fabConsole = document.getElementById('fabConsole');
+        if (fabConsole) fabConsole.addEventListener('click', function () {
+            closeFab();
+            var d = document.getElementById('consoleDetails');
+            if (!d) return;
+            d.open = !d.open;
+            if (d.open) {
+                setTimeout(function () {
+                    var logs = document.getElementById('editor-console-logs');
+                    if (logs) logs.scrollTop = logs.scrollHeight;
+                }, 60);
+            }
+        });
+
+        var fabSave = document.getElementById('fabSave');
+        if (fabSave) fabSave.addEventListener('click', function () { closeFab(); if (typeof save === 'function') save(); });
+
+        var fabSaveAs = document.getElementById('fabSaveAs');
+        if (fabSaveAs) fabSaveAs.addEventListener('click', function () { closeFab(); if (typeof saveAs === 'function') saveAs(); });
+
+        var fabPublish = document.getElementById('fabPublish');
+        if (fabPublish) fabPublish.addEventListener('click', function () { closeFab(); if (typeof shareProject === 'function') shareProject(); });
+
+        var fabDownload = document.getElementById('fabDownload');
+        if (fabDownload) fabDownload.addEventListener('click', function () {
+            closeFab();
+            var h5 = document.getElementById('title');
+            var name = h5 ? h5.textContent.replace(/\.js$/i, '') : 'game';
+            if (window.down) window.down(name + '.js');
+        });
+
+        var fabSidebar = document.getElementById('fabSidebar');
+        if (fabSidebar) fabSidebar.addEventListener('click', function () { closeFab(); openSidebar(); });
+
+        var fabNew = document.getElementById('fabNew');
+        if (fabNew) fabNew.addEventListener('click', function () { closeFab(); if (newBtn) newBtn.click(); });
+
+        var fabUndo = document.getElementById('fabUndo');
+        if (fabUndo) fabUndo.addEventListener('click', function () {
+            closeFab();
+            var ta = document.getElementById('js');
+            if (ta) { ta.focus(); try { document.execCommand('undo'); } catch (e) {} if (window.__renderCode) window.__renderCode(); }
+        });
+
+        var fabRedo = document.getElementById('fabRedo');
+        if (fabRedo) fabRedo.addEventListener('click', function () {
+            closeFab();
+            var ta = document.getElementById('js');
+            if (ta) { ta.focus(); try { document.execCommand('redo'); } catch (e) {} if (window.__renderCode) window.__renderCode(); }
+        });
+
+        var fabFind = document.getElementById('fabFind');
+        if (fabFind) fabFind.addEventListener('click', function () { closeFab(); if (window.openFind) window.openFind(); });
+
+        var fabFormat = document.getElementById('fabFormat');
+        if (fabFormat) fabFormat.addEventListener('click', function () {
+            closeFab();
+            var btn = document.getElementById('formatCodeBtn');
+            if (btn) btn.click();
+        });
+
+        var fabComment = document.getElementById('fabComment');
+        if (fabComment) fabComment.addEventListener('click', function () {
+            closeFab();
+            if (window.toggleComment) window.toggleComment();
+        });
+
+        var fabWrap = document.getElementById('fabWrap');
+        if (fabWrap) fabWrap.addEventListener('click', function () {
+            closeFab();
+            var ta = document.getElementById('js');
+            var hl = document.getElementById('highlightLayer');
+            if (!ta) return;
+            var wrapped = ta.classList.toggle('wrap');
+            if (hl) hl.classList.toggle('wrap', wrapped);
+            fabWrap.classList.toggle('active', wrapped);
+        });
+
+        var fabZoomIn = document.getElementById('fabZoomIn');
+        if (fabZoomIn) fabZoomIn.addEventListener('click', function () { closeFab(); var b = document.getElementById('zoomInBtn'); if (b) b.click(); });
+
+        var fabZoomOut = document.getElementById('fabZoomOut');
+        if (fabZoomOut) fabZoomOut.addEventListener('click', function () { closeFab(); var b = document.getElementById('zoomOutBtn'); if (b) b.click(); });
+
+        var fabZoomReset = document.getElementById('fabZoomReset');
+        if (fabZoomReset) fabZoomReset.addEventListener('click', function () { closeFab(); var b = document.getElementById('zoomDisplay'); if (b) b.click(); });
+
+        var fabFullscreen = document.getElementById('fabFullscreen');
+        if (fabFullscreen) fabFullscreen.addEventListener('click', function () { closeFab(); var b = document.getElementById('fsBtn'); if (b) b.click(); });
+
+        var fabPalette = document.getElementById('fabPalette');
+        if (fabPalette) fabPalette.addEventListener('click', function () { closeFab(); if (window.openPalette) window.openPalette(); });
+
+        setTimeout(function () { if (window.__renderFileSidebar) window.__renderFileSidebar(); }, 800);
+    })();
+    </script>
+
+    <script>
+    (function () {
+        var textarea = document.getElementById('js');
+        var highlight = document.getElementById('highlightLayer');
+        var gutter = document.getElementById('gutter');
+        var stats = document.getElementById('codeStats');
+        var copyBtn = document.getElementById('copyCodeBtn');
+        var copyLabel = document.getElementById('copyCodeLabel');
+        var formatBtn = document.getElementById('formatCodeBtn');
+        var minimap = document.getElementById('minimap');
+        var statusLine = document.getElementById('statusLine');
+        var statusCol = document.getElementById('statusCol');
+        var statusSelection = document.getElementById('statusSelection');
+        var statusSize = document.getElementById('statusSize');
+        var breadcrumbFunc = document.getElementById('breadcrumbFunc');
+        var stateDot = document.getElementById('stateDot');
+        if (!textarea || !highlight || !gutter) return;
+
+        var KEYWORDS = { 'const':1,'let':1,'var':1,'function':1,'return':1,'if':1,'else':1,'for':1,'while':1,'do':1,'break':1,'continue':1,'new':1,'this':1,'class':1,'extends':1,'super':1,'try':1,'catch':1,'finally':1,'throw':1,'switch':1,'case':1,'default':1,'typeof':1,'instanceof':1,'in':1,'of':1,'delete':1,'void':1,'yield':1,'await':1,'async':1,'static':1,'get':1,'set':1,'import':1,'export':1,'from':1,'as':1 };
+        var BUILTINS = { 'Display':1,'Component':1,'Tctxt':1,'Camera':1,'Sprite':1,'AnimatedSprite':1,'Tile':1,'TileMap':1,'Particle':1,'ParticleSystem':1,'Sound':1,'SoundManager':1,'Math':1,'JSON':1,'Object':1,'Array':1,'String':1,'Number':1,'Boolean':1,'Date':1,'Set':1,'Map':1,'Promise':1,'Error':1,'console':1,'window':1,'document':1,'display':1,'mouse':1 };
+        var LITERALS = { 'true':1,'false':1,'null':1,'undefined':1,'NaN':1,'Infinity':1 };
 
         function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
         function tokenize(code) {
-            let out = '';
-            let i = 0, n = code.length;
+            var out = '';
+            var i = 0, n = code.length;
             while (i < n) {
-                const ch = code[i];
-                // Comments
+                var ch = code[i];
                 if (ch === '/' && code[i+1] === '/') {
-                    let j = i; while (j < n && code[j] !== '\n') j++;
+                    var j = i; while (j < n && code[j] !== '\n') j++;
                     out += '<span class="tok-comment">' + esc(code.slice(i, j)) + '</span>';
                     i = j; continue;
                 }
                 if (ch === '/' && code[i+1] === '*') {
-                    let k = i + 2;
+                    var k = i + 2;
                     while (k < n && !(code[k] === '*' && code[k+1] === '/')) k++;
                     k = Math.min(k + 2, n);
                     out += '<span class="tok-comment">' + esc(code.slice(i, k)) + '</span>';
                     i = k; continue;
                 }
-                // Strings
                 if (ch === '"' || ch === "'" || ch === '`') {
-                    const q = ch; let m = i + 1;
+                    var q = ch, m = i + 1;
                     while (m < n) {
                         if (code[m] === '\\') { m += 2; continue; }
                         if (code[m] === q) { m++; break; }
@@ -797,42 +2526,38 @@ function update(dt) {
                     out += '<span class="tok-string">' + esc(code.slice(i, m)) + '</span>';
                     i = m; continue;
                 }
-                // Numbers
                 if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(code[i+1]))) {
-                    let p = i;
+                    var p = i;
                     while (p < n && /[0-9a-fA-FxX._]/.test(code[p])) p++;
                     out += '<span class="tok-number">' + esc(code.slice(i, p)) + '</span>';
                     i = p; continue;
                 }
-                // Identifiers
                 if (/[A-Za-z_$]/.test(ch)) {
-                    let s = i;
+                    var s = i;
                     while (s < n && /[A-Za-z0-9_$]/.test(code[s])) s++;
-                    const word = code.slice(i, s);
-                    let la = s;
+                    var word = code.slice(i, s);
+                    var la = s;
                     while (la < n && (code[la] === ' ' || code[la] === '\t')) la++;
-                    const isCall = code[la] === '(';
-                    let lb = i - 1;
+                    var isCall = code[la] === '(';
+                    var lb = i - 1;
                     while (lb >= 0 && (code[lb] === ' ' || code[lb] === '\t')) lb--;
-                    const isProperty = lb >= 0 && code[lb] === '.';
-                    let cls = 'tok-punct';
-                    if (LITERALS.has(word)) cls = 'tok-boolean';
-                    else if (KEYWORDS.has(word)) cls = 'tok-keyword';
-                    else if (BUILTINS.has(word)) cls = 'tok-builtin';
+                    var isProperty = lb >= 0 && code[lb] === '.';
+                    var cls = 'tok-punct';
+                    if (LITERALS[word]) cls = 'tok-boolean';
+                    else if (KEYWORDS[word]) cls = 'tok-keyword';
+                    else if (BUILTINS[word]) cls = 'tok-builtin';
                     else if (isProperty) cls = 'tok-property';
                     else if (isCall) cls = 'tok-function';
                     else if (/^[A-Z]/.test(word)) cls = 'tok-class';
                     out += '<span class="' + cls + '">' + esc(word) + '</span>';
                     i = s; continue;
                 }
-                // Operators
                 if (/[+\-*/%=<>!&|^~?:]/.test(ch)) {
-                    let o = i;
+                    var o = i;
                     while (o < n && /[+\-*/%=<>!&|^~?:]/.test(code[o])) o++;
                     out += '<span class="tok-operator">' + esc(code.slice(i, o)) + '</span>';
                     i = o; continue;
                 }
-                // Punctuation
                 if (/[{}()[\];,.]/.test(ch)) {
                     out += '<span class="tok-punct">' + esc(ch) + '</span>';
                     i++; continue;
@@ -843,31 +2568,130 @@ function update(dt) {
             return out;
         }
 
-        // ---------- RENDER ----------
-        let _lastLineCount = 0;
-        let _renderQueued = false;
+        function analyzeBrackets(code) {
+            var linesWithError = {};
+            var stack = [];
+            var pairs = { ')': '(', ']': '[', '}': '{' };
+            var inLineComment = false;
+            var inBlockComment = false;
+            var inString = null;
+            var lineNumber = 1;
+
+            for (var i = 0; i < code.length; i++) {
+                var ch = code[i];
+                var next = code[i+1];
+
+                if (ch === '\n') {
+                    lineNumber++;
+                    inLineComment = false;
+                    continue;
+                }
+                if (inLineComment) continue;
+                if (inBlockComment) {
+                    if (ch === '*' && next === '/') { inBlockComment = false; i++; }
+                    continue;
+                }
+                if (inString) {
+                    if (ch === '\\') { i++; continue; }
+                    if (ch === inString) inString = null;
+                    continue;
+                }
+                if (ch === '/' && next === '/') { inLineComment = true; i++; continue; }
+                if (ch === '/' && next === '*') { inBlockComment = true; i++; continue; }
+                if (ch === '"' || ch === "'" || ch === '`') { inString = ch; continue; }
+
+                if (ch === '(' || ch === '[' || ch === '{') {
+                    stack.push({ ch: ch, line: lineNumber });
+                } else if (ch === ')' || ch === ']' || ch === '}') {
+                    var expected = pairs[ch];
+                    if (stack.length === 0 || stack[stack.length - 1].ch !== expected) {
+                        linesWithError[lineNumber] = true;
+                    } else {
+                        stack.pop();
+                    }
+                }
+            }
+
+            for (var k = 0; k < stack.length; k++) {
+                linesWithError[stack[k].line] = true;
+            }
+
+            return linesWithError;
+        }
+
+        function renderMinimap() {
+            if (!minimap) return;
+            var code = textarea.value;
+            var lines = code.split('\n');
+            var maxH = minimap.clientHeight || 500;
+            var lineH = Math.max(1, Math.min(2, Math.floor(maxH / Math.max(1, lines.length))));
+            minimap.innerHTML = '';
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                if (!line.trim()) continue;
+                var el = document.createElement('div');
+                el.className = 'minimap-line';
+                if (/^\s*\/\//.test(line)) el.classList.add('comment');
+                else if (/function|=>/.test(line)) el.classList.add('function');
+                else if (/["'`]/.test(line)) el.classList.add('string');
+                else if (/\b(const|let|var|if|for|return|new)\b/.test(line)) el.classList.add('keyword');
+                var indent = line.search(/\S/);
+                el.style.top = (i * lineH) + 'px';
+                el.style.left = (2 + Math.min(indent, 20) * 0.6) + 'px';
+                el.style.height = lineH + 'px';
+                minimap.appendChild(el);
+            }
+            var vp = document.createElement('div');
+            vp.className = 'minimap-viewport';
+            vp.id = 'minimapViewport';
+            minimap.appendChild(vp);
+            updateMinimapViewport();
+        }
+
+        function updateMinimapViewport() {
+            var vp = document.getElementById('minimapViewport');
+            if (!vp || !minimap) return;
+            var lines = textarea.value.split('\n');
+            var maxH = minimap.clientHeight || 500;
+            var lineH = Math.max(1, Math.min(2, Math.floor(maxH / Math.max(1, lines.length))));
+            var scrollRatio = textarea.scrollTop / Math.max(1, textarea.scrollHeight - textarea.clientHeight);
+            var visibleRatio = textarea.clientHeight / Math.max(1, textarea.scrollHeight);
+            var vpH = Math.max(20, visibleRatio * lines.length * lineH);
+            vp.style.top = (scrollRatio * Math.max(0, maxH - vpH)) + 'px';
+            vp.style.height = vpH + 'px';
+        }
+
+        var pendingErrorAnalysis = null;
+
+        var _lastLineCount = 0;
+        var _renderQueued = false;
 
         function renderNow() {
             _renderQueued = false;
-            const code = textarea.value;
-            let html = tokenize(code);
+
+            var code = textarea.value;
+            var html = tokenize(code);
             if (code.endsWith('\n')) html += ' ';
             highlight.innerHTML = html;
 
-            const lineCount = code.split('\n').length;
+            var lineCount = code.split('\n').length;
+
             if (lineCount !== _lastLineCount) {
-                let g = '';
-                for (let i = 1; i <= lineCount; i++) {
-                    g += `<div class="gutter-line" data-line="${i}">${i}</div>`;
+                var g = '';
+                for (var i = 1; i <= lineCount; i++) {
+                    g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
                 }
                 gutter.innerHTML = g;
                 _lastLineCount = lineCount;
+                renderMinimap();
             }
 
             if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
             if (statusSize) statusSize.textContent = code.length + ' chars';
+
             syncScroll();
             updateActiveLine();
+            scheduleErrorAnalysis();
         }
 
         function render() {
@@ -876,104 +2700,143 @@ function update(dt) {
             requestAnimationFrame(renderNow);
         }
 
+        function scheduleErrorAnalysis() {
+            if (pendingErrorAnalysis) clearTimeout(pendingErrorAnalysis);
+            pendingErrorAnalysis = setTimeout(runErrorAnalysis, 350);
+        }
+
+        function runErrorAnalysis() {
+            pendingErrorAnalysis = null;
+            var errors = analyzeBrackets(textarea.value);
+            var lines = gutter.children;
+            for (var i = 0; i < lines.length; i++) {
+                lines[i].classList.toggle('has-error', !!errors[i + 1]);
+            }
+        }
+
         function syncScroll() {
-            const y = textarea.scrollTop;
-            const x = textarea.scrollLeft;
-            highlight.style.transform = `translate(${-x}px, ${-y}px)`;
+            var y = textarea.scrollTop;
+            var x = textarea.scrollLeft;
+            highlight.style.transform = 'translate(' + (-x) + 'px, ' + (-y) + 'px)';
             highlight.style.paddingLeft = (24 + x) + 'px';
             highlight.style.paddingTop = (18 + y) + 'px';
             gutter.scrollTop = y;
+            updateMinimapViewport();
         }
         textarea.addEventListener('scroll', syncScroll);
 
         function updateActiveLine() {
-            const before = textarea.value.slice(0, textarea.selectionStart);
-            const line = before.split('\n').length;
-            const col = before.length - before.lastIndexOf('\n');
-            const lines = gutter.children;
-            for (let i = 0; i < lines.length; i++) lines[i].classList.toggle('active', i + 1 === line);
+            var before = textarea.value.slice(0, textarea.selectionStart);
+            var line = before.split('\n').length;
+            var col = before.length - before.lastIndexOf('\n');
+            var lines = gutter.children;
+            for (var i = 0; i < lines.length; i++) lines[i].classList.toggle('active', i + 1 === line);
             if (statusLine) statusLine.textContent = line;
             if (statusCol) statusCol.textContent = col;
-            if (statusSelection) statusSelection.textContent = textarea.selectionEnd - textarea.selectionStart;
+            var selLen = textarea.selectionEnd - textarea.selectionStart;
+            if (statusSelection) statusSelection.textContent = selLen;
+            updateBreadcrumb(line);
         }
 
-        // ---------- SNIPPET INSERTION (fix) ----------
+        function updateBreadcrumb(line) {
+            if (!breadcrumbFunc) return;
+            var code = textarea.value;
+            var lines = code.split('\n');
+            var func = 'top of file';
+            for (var i = line - 1; i >= 0; i--) {
+                var m = lines[i].match(/(?:function\s+|const\s+|let\s+|var\s+)([A-Za-z_$][\w$]*)/);
+                if (m) { func = m[1] + '()'; break; }
+            }
+            breadcrumbFunc.textContent = func;
+        }
+
         function insertAtCursor(text) {
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const val = textarea.value;
+            var start = textarea.selectionStart;
+            var end = textarea.selectionEnd;
+            var val = textarea.value;
             textarea.value = val.slice(0, start) + text + val.slice(end);
-            const pos = start + text.length;
+            var pos = start + text.length;
             textarea.selectionStart = textarea.selectionEnd = pos;
             render();
-            textarea.focus();
         }
 
-        document.getElementById('snippetBtn').addEventListener('click', function () {
-            const snippet = `\n// --- New snippet ---\nfunction update(dt) {\n    // your code here\n}\n`;
-            insertAtCursor(snippet);
-            toast('Snippet inserted', 'success');
-        });
-
-        // Also keep the existing format button
-        document.getElementById('formatBtn').addEventListener('click', function () {
-            let code = textarea.value;
-            const lines = code.split('\n');
-            const out = [];
-            let depth = 0;
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (line === '') { out.push(''); continue; }
-                if (/^[}\])]/.test(line)) depth = Math.max(0, depth - 1);
-                out.push('    '.repeat(depth) + line);
-                const opens = (line.match(/[{\[(]/g) || []).length;
-                const closes = (line.match(/[}\])]/g) || []).length;
-                if (!/^[}\])]/.test(line)) depth += opens - closes;
-                else depth += opens;
-            }
-            textarea.value = out.join('\n');
+        function indentSelection() {
+            var start = textarea.selectionStart;
+            var end = textarea.selectionEnd;
+            var val = textarea.value;
+            var lineStart = val.lastIndexOf('\n', start - 1) + 1;
+            var lineEnd = val.indexOf('\n', end);
+            if (lineEnd === -1) lineEnd = val.length;
+            var block = val.slice(lineStart, lineEnd);
+            var indented = block.split('\n').map(function (l) { return '    ' + l; }).join('\n');
+            textarea.value = val.slice(0, lineStart) + indented + val.slice(lineEnd);
+            textarea.selectionStart = lineStart;
+            textarea.selectionEnd = lineStart + indented.length;
             render();
-            toast('Formatted', 'success');
-        });
+        }
 
-        // ---------- TAB HANDLING ----------
-        const PAIRS = { '(':')', '[':']', '{':'}', '"':'"', "'":"'", '`':'`' };
-        const CLOSERS = { ')':1, ']':1, '}':1 };
+        var PAIRS = { '(':')', '[':']', '{':'}', '"':'"', "'":"'", '`':'`' };
+        var CLOSERS = { ')':1, ']':1, '}':1 };
 
         textarea.addEventListener('keydown', function (e) {
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const val = textarea.value;
-            const mod = e.ctrlKey || e.metaKey;
+            var start = textarea.selectionStart;
+            var end = textarea.selectionEnd;
+            var val = textarea.value;
+            var mod = e.ctrlKey || e.metaKey;
 
             if (mod && (e.key === 's' || e.key === 'S')) {
                 e.preventDefault();
-                saveFile();
+                if (e.shiftKey) { if (typeof saveAs === 'function') saveAs(); }
+                else { if (typeof save === 'function') save(); }
+                return;
+            }
+            if (mod && (e.key === 'k' || e.key === 'K' || e.key === 'p' || e.key === 'P')) {
+                e.preventDefault();
+                if (window.openPalette) window.openPalette();
+                return;
+            }
+            if (mod && (e.key === 'f' || e.key === 'F')) {
+                e.preventDefault();
+                if (window.openFind) window.openFind();
+                return;
+            }
+            if (mod && (e.key === 'g' || e.key === 'G')) {
+                e.preventDefault();
+                if (window.gotoLine) window.gotoLine();
+                return;
+            }
+            if (mod && (e.key === '/' || e.key === '?')) {
+                e.preventDefault();
+                if (window.toggleComment) window.toggleComment();
+                return;
+            }
+            if (mod && (e.key === 'd' || e.key === 'D')) {
+                e.preventDefault();
+                duplicateLine();
+                return;
+            }
+            if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                e.preventDefault();
+                moveLine(e.key === 'ArrowUp' ? -1 : 1);
+                return;
+            }
+            if (mod && e.key === 'Enter') {
+                e.preventDefault();
+                if (typeof runn === 'function') runn();
                 return;
             }
             if (e.key === 'Tab') {
                 e.preventDefault();
                 if (start === end) insertAtCursor('    ');
-                else {
-                    // indent selection
-                    const lineStart = val.lastIndexOf('\n', start - 1) + 1;
-                    const lineEnd = val.indexOf('\n', end);
-                    const endPos = lineEnd === -1 ? val.length : lineEnd;
-                    const block = val.slice(lineStart, endPos);
-                    const indented = block.split('\n').map(l => '    ' + l).join('\n');
-                    textarea.value = val.slice(0, lineStart) + indented + val.slice(endPos);
-                    textarea.selectionStart = lineStart;
-                    textarea.selectionEnd = lineStart + indented.length;
-                    render();
-                }
+                else indentSelection();
                 return;
             }
             if (e.key === 'Enter') {
                 e.preventDefault();
-                const lineStart = val.lastIndexOf('\n', start - 1) + 1;
-                const currentLine = val.slice(lineStart, start);
-                const indentMatch = currentLine.match(/^[ \t]*/);
-                let indent = indentMatch ? indentMatch[0] : '';
+                var lineStart = val.lastIndexOf('\n', start - 1) + 1;
+                var currentLine = val.slice(lineStart, start);
+                var indentMatch = currentLine.match(/^[ \t]*/);
+                var indent = indentMatch ? indentMatch[0] : '';
                 if (/[{[(]\s*$/.test(currentLine)) indent += '    ';
                 insertAtCursor('\n' + indent);
                 return;
@@ -990,8 +2853,8 @@ function update(dt) {
                 return;
             }
             if (e.key === 'Backspace' && start === end && start > 0) {
-                const before = val[start - 1];
-                const after = val[start];
+                var before = val[start - 1];
+                var after = val[start];
                 if (PAIRS[before] && PAIRS[before] === after) {
                     e.preventDefault();
                     textarea.value = val.slice(0, start - 1) + val.slice(start + 1);
@@ -1002,243 +2865,796 @@ function update(dt) {
             }
         });
 
+        function duplicateLine() {
+            var start = textarea.selectionStart;
+            var val = textarea.value;
+            var lineStart = val.lastIndexOf('\n', start - 1) + 1;
+            var lineEnd = val.indexOf('\n', start);
+            if (lineEnd === -1) lineEnd = val.length;
+            var line = val.slice(lineStart, lineEnd);
+            textarea.value = val.slice(0, lineEnd) + '\n' + line + val.slice(lineEnd);
+            textarea.selectionStart = textarea.selectionEnd = lineEnd + 1 + line.length;
+            render();
+        }
+
+        function moveLine(dir) {
+            var start = textarea.selectionStart;
+            var val = textarea.value;
+            var lineStart = val.lastIndexOf('\n', start - 1) + 1;
+            var lineEnd = val.indexOf('\n', start);
+            if (lineEnd === -1) lineEnd = val.length;
+            var line = val.slice(lineStart, lineEnd);
+            if (dir === -1 && lineStart === 0) return;
+            if (dir === 1 && lineEnd === val.length) return;
+            if (dir === -1) {
+                var prevStart = val.lastIndexOf('\n', lineStart - 2) + 1;
+                var prevLine = val.slice(prevStart, lineStart - 1);
+                textarea.value = val.slice(0, prevStart) + line + '\n' + prevLine + val.slice(lineEnd);
+                textarea.selectionStart = textarea.selectionEnd = prevStart + line.length;
+            } else {
+                var nextEnd = val.indexOf('\n', lineEnd + 1);
+                if (nextEnd === -1) nextEnd = val.length;
+                var nextLine = val.slice(lineEnd + 1, nextEnd);
+                textarea.value = val.slice(0, lineStart) + nextLine + '\n' + line + val.slice(nextEnd);
+                textarea.selectionStart = textarea.selectionEnd = lineStart + nextLine.length + 1 + line.length;
+            }
+            render();
+        }
+
+        window.toggleComment = function () {
+            var start = textarea.selectionStart;
+            var end = textarea.selectionEnd;
+            var val = textarea.value;
+            var lineStart = val.lastIndexOf('\n', start - 1) + 1;
+            var lineEnd = val.indexOf('\n', end);
+            if (lineEnd === -1) lineEnd = val.length;
+            var block = val.slice(lineStart, lineEnd);
+            var lines = block.split('\n');
+            var allCommented = lines.every(function (l) { return /^\s*\/\//.test(l); });
+            var out = lines.map(function (l) {
+                if (allCommented) return l.replace(/^(\s*)\/\/\s?/, '$1');
+                return l.replace(/^(\s*)/, '$1// ');
+            }).join('\n');
+            textarea.value = val.slice(0, lineStart) + out + val.slice(lineEnd);
+            textarea.selectionStart = lineStart;
+            textarea.selectionEnd = lineStart + out.length;
+            render();
+        };
+
         textarea.addEventListener('input', function () {
             updateActiveLine();
             render();
-            markDirty();
+            if (window.__markDirty) window.__markDirty();
         });
         textarea.addEventListener('keyup', updateActiveLine);
         textarea.addEventListener('click', updateActiveLine);
         textarea.addEventListener('select', updateActiveLine);
 
-        // ---------- COPY ----------
-        document.getElementById('copyCodeBtn').addEventListener('click', function () {
-            const text = textarea.value;
-            navigator.clipboard.writeText(text).then(() => {
-                toast('Code copied', 'success');
-            }).catch(() => {
-                // fallback
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-                toast('Code copied', 'success');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', function () {
+                var text = textarea.value;
+                var done = function () {
+                    copyBtn.classList.add('copied');
+                    copyLabel.textContent = 'Copied!';
+                    if (window.toast) window.toast('Code copied to clipboard', 'success');
+                    setTimeout(function () {
+                        copyBtn.classList.remove('copied');
+                        copyLabel.textContent = 'Copy';
+                    }, 1400);
+                };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text, done); });
+                } else {
+                    fallbackCopy(text, done);
+                }
             });
-        });
+        }
 
-        // ---------- FONT SIZE ----------
-        let fontSize = 13;
-        const fontRoot = document.documentElement;
+        function fallbackCopy(text, done) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch (err) {}
+            document.body.removeChild(ta);
+            done();
+        }
+
+        if (formatBtn) {
+            formatBtn.addEventListener('click', function () {
+                var code = textarea.value;
+                var lines = code.split('\n');
+                var out = [];
+                var depth = 0;
+                for (var i = 0; i < lines.length; i++) {
+                    var line = lines[i].trim();
+                    if (line === '') { out.push(''); continue; }
+                    if (/^[}\])]/.test(line)) depth = Math.max(0, depth - 1);
+                    out.push('    '.repeat(depth) + line);
+                    var opens = (line.match(/[{\[(]/g) || []).length;
+                    var closes = (line.match(/[}\])]/g) || []).length;
+                    if (!/^[}\])]/.test(line)) depth += opens - closes;
+                    else depth += opens;
+                }
+                textarea.value = out.join('\n');
+                render();
+                if (window.toast) window.toast('Code formatted', 'success');
+            });
+        }
+
+        var fontDec = document.getElementById('fontDecBtn');
+        var fontInc = document.getElementById('fontIncBtn');
+        var fontSize = 13;
+        var fontRoot = document.documentElement;
+
         function applyFont() {
-            const lh = fontSize + 9;
+            var lh = fontSize + 9;
             fontRoot.style.setProperty('--code-font-size', fontSize + 'px');
             fontRoot.style.setProperty('--code-line-height', lh + 'px');
             textarea.style.fontSize = fontSize + 'px';
             highlight.style.fontSize = fontSize + 'px';
             textarea.style.lineHeight = lh + 'px';
             highlight.style.lineHeight = lh + 'px';
-            const lines = gutter.querySelectorAll('.gutter-line');
-            lines.forEach(l => {
-                l.style.height = lh + 'px';
-                l.style.lineHeight = lh + 'px';
-                l.style.fontSize = fontSize + 'px';
+            var lines = gutter.querySelectorAll('.gutter-line');
+            for (var i = 0; i < lines.length; i++) {
+                lines[i].style.height = lh + 'px';
+                lines[i].style.lineHeight = lh + 'px';
+                lines[i].style.fontSize = fontSize + 'px';
+            }
+        }
+        if (fontDec) fontDec.addEventListener('click', function () {
+            fontSize = Math.max(10, fontSize - 1); applyFont();
+        });
+        if (fontInc) fontInc.addEventListener('click', function () {
+            fontSize = Math.min(22, fontSize + 1); applyFont();
+        });
+
+        var findBtn = document.getElementById('findBtn');
+        if (findBtn) findBtn.addEventListener('click', function () {
+            if (window.openFind) window.openFind();
+        });
+
+        if (minimap) {
+            minimap.addEventListener('click', function (e) {
+                var rect = minimap.getBoundingClientRect();
+                var ratio = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+                textarea.scrollTop = ratio * Math.max(0, textarea.scrollHeight - textarea.clientHeight);
+                syncScroll();
             });
         }
-        document.getElementById('fontDecBtn').addEventListener('click', () => { fontSize = Math.max(10, fontSize - 1); applyFont(); });
-        document.getElementById('fontIncBtn').addEventListener('click', () => { fontSize = Math.min(22, fontSize + 1); applyFont(); });
 
-        // ---------- DIRTY STATE ----------
-        let lastSavedCode = textarea.value;
-        function markDirty() {
-            const dirty = textarea.value !== lastSavedCode;
-            if (stateDot) stateDot.style.background = dirty ? 'var(--danger)' : 'var(--success)';
-            if (stateDot) stateDot.style.boxShadow = dirty ? '0 0 8px rgba(248,113,113,0.6)' : '0 0 8px rgba(34,197,94,0.6)';
-            if (statusStateBadge) {
-                statusStateBadge.textContent = dirty ? 'Unsaved' : 'Saved';
-                statusStateBadge.style.background = dirty ? 'rgba(248,113,113,0.2)' : 'rgba(34,197,94,0.2)';
-                statusStateBadge.style.color = dirty ? 'var(--danger)' : 'var(--success)';
-            }
-        }
-        function markSaved() { lastSavedCode = textarea.value; markDirty(); }
-        markDirty();
-
-        // ---------- TABS ----------
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', function () {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                const which = this.dataset.tab;
-                document.getElementById('codeSection').style.display = which === 'code' ? 'block' : 'none';
-                document.getElementById('assetsSection').style.display = which === 'assets' ? 'block' : 'none';
-                if (which === 'code') render();
-            });
-        });
-
-        // ---------- SIDEBAR ----------
-        const sidebar = document.getElementById('fileSidebar');
-        const backdrop = document.getElementById('sidebarBackdrop');
-        function openSidebar() { sidebar.classList.add('open'); backdrop.classList.add('open'); }
-        function closeSidebar() { sidebar.classList.remove('open'); backdrop.classList.remove('open'); }
-        document.getElementById('openBtn').addEventListener('click', openSidebar);
-        document.getElementById('sidebarClose').addEventListener('click', closeSidebar);
-        backdrop.addEventListener('click', closeSidebar);
-
-        document.getElementById('sidebarNew').addEventListener('click', () => {
-            if (confirm('New file? Unsaved changes will be lost.')) {
-                textarea.value = '';
-                document.getElementById('title').textContent = '*Untitled*';
-                render();
-                closeSidebar();
-            }
-        });
-
-        document.getElementById('sidebarOpenFile').addEventListener('click', () => {
-            document.getElementById('fileInput').click();
-        });
-
-        document.getElementById('fileInput').addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function (ev) {
-                textarea.value = ev.target.result;
-                document.getElementById('title').textContent = file.name;
-                render();
-                closeSidebar();
-                toast('Opened ' + file.name, 'success');
-            };
-            reader.readAsText(file);
-        });
-
-        // ---------- SAVE ----------
-        function saveFile() {
-            markSaved();
-            toast('File saved (in memory)', 'success');
-        }
-        window.save = saveFile;
-
-        // ---------- RUN (simple preview) ----------
-        const dialog = document.getElementById('runDialog');
-        const frame = document.getElementById('gameFrame');
-
-        function getEngineCode() {
-            // A minimal engine wrapper — works with the user code
-            return `
-                (function(){
-                    // Minimal Display stub — replace with real engine if needed
-                    window.Display = function(){};
-                    Display.prototype.perform = function(){};
-                    Display.prototype.start = function(w,h){ this.width=w; this.height=h; this.canvas=document.createElement('canvas'); this.canvas.width=w; this.canvas.height=h; document.body.appendChild(this.canvas); };
-                    Display.prototype.backgroundColor = function(c){ this._bg = c; };
-                    Display.prototype.add = function(){};
-                    Display.prototype.addEventListeners = function(){};
-                    Display.prototype.keys = {};
-                    window.Component = function(){};
-                    window.Tctxt = function(){ this.setText=function(){}; this.fixed=function(){}; };
-                    window.mouse = {x:0,y:0};
-                })();
-            `;
-        }
-
-        document.getElementById('run').addEventListener('click', function () {
-            const userCode = textarea.value;
-            if (!userCode.trim()) { alert('Write some code first.'); return; }
-            const html = `<!DOCTYPE html><html><head><style>body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh;overflow:hidden}canvas{max-width:100%;max-height:100%}</style></head><body><script>${getEngineCode()}<\/script><script>${userCode}<\/script></body></html>`;
-            frame.srcdoc = html;
-            if (typeof dialog.showModal === 'function') dialog.showModal();
-            else dialog.setAttribute('open', '');
-        });
-
-        document.getElementById('runBrowserBtn').addEventListener('click', function () {
-            const userCode = textarea.value;
-            if (!userCode.trim()) { alert('Write some code first.'); return; }
-            const html = `<!DOCTYPE html><html><head><style>body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh;overflow:hidden}canvas{max-width:100%;max-height:100%}</style></head><body><script>${getEngineCode()}<\/script><script>${userCode}<\/script></body></html>`;
-            const blob = new Blob([html], {type:'text/html'});
-            const url = URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            setTimeout(() => URL.revokeObjectURL(url), 60000);
-        });
-
-        document.getElementById('dialogClose').addEventListener('click', function () {
-            if (typeof dialog.close === 'function') dialog.close();
-            else dialog.removeAttribute('open');
-        });
-
-        // ---------- ASSETS ----------
-        function getAssets() {
-            return {
-                head: document.getElementById('assetHead')?.value || '',
-                css: document.getElementById('assetCss')?.value || '',
-                scripts: document.getElementById('assetScripts')?.value || ''
-            };
-        }
-        window.getCurrentAssets = getAssets;
-
-        document.getElementById('assetTest').addEventListener('click', () => document.getElementById('run').click());
-        document.getElementById('assetClear').addEventListener('click', () => {
-            if (!confirm('Clear all assets?')) return;
-            document.getElementById('assetHead').value = '';
-            document.getElementById('assetCss').value = '';
-            document.getElementById('assetScripts').value = '';
-            toast('Assets cleared', 'warning');
-        });
-
-        // ---------- CONSOLE ----------
-        const logsEl = document.getElementById('editor-console-logs');
-        const countEl = document.getElementById('consoleCount');
-        let messageCount = 0;
-        function logToConsole(kind, args) {
-            const line = document.createElement('div');
-            line.className = 'log-line log-' + kind;
-            const time = document.createElement('span');
-            time.className = 'log-time';
-            time.textContent = new Date().toLocaleTimeString();
-            line.appendChild(time);
-            const prefix = document.createElement('span');
-            prefix.className = 'log-prefix';
-            prefix.textContent = kind === 'error' ? '✖' : kind === 'warn' ? '⚠' : '·';
-            line.appendChild(prefix);
-            const text = document.createElement('span');
-            text.textContent = Array.from(args).map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
-            line.appendChild(text);
-            logsEl.appendChild(line);
-            messageCount++;
-            countEl.textContent = messageCount + ' messages';
-            logsEl.scrollTop = logsEl.scrollHeight;
-        }
-        document.getElementById('consoleClearBtn').addEventListener('click', () => {
-            logsEl.innerHTML = '';
-            messageCount = 0;
-            countEl.textContent = '0 messages';
-        });
-        document.getElementById('consoleReplInput').addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                const code = this.value.trim();
-                if (!code) return;
-                logToConsole('input', [code]);
-                try {
-                    // Try to evaluate in the context of the current frame if possible
-                    const win = frame.contentWindow;
-                    if (win && win.eval) {
-                        const result = win.eval(code);
-                        logToConsole('result', [result]);
-                    } else {
-                        logToConsole('error', ['No game running']);
-                    }
-                } catch (err) {
-                    logToConsole('error', [err.message]);
-                }
-                this.value = '';
-            }
-        });
-
-        // ---------- INIT ----------
+        window.__renderCode = render;
         render();
-        applyFont();
-        logToConsole('info', ['Editor ready. Write code and press ▶ Run.']);
+
+        var lastSavedCode = textarea.value;
+        window.__markDirty = function () {
+            var state = textarea.value === lastSavedCode ? 'saved' : 'unsaved';
+            if (stateDot) stateDot.className = 'dot' + (state === 'saved' ? ' saved' : ' unsaved');
+            var s = document.getElementById('statusState');
+            if (s) {
+                s.className = 'status-item ' + state;
+                var b = s.querySelector('.badge');
+                if (b) b.textContent = state === 'saved' ? 'Saved' : 'Unsaved';
+            }
+        };
+        window.__markSaved = function () {
+            lastSavedCode = textarea.value;
+            window.__markDirty();
+        };
+        window.__markDirty();
+    })();
+    </script>
+
+    <script>
+    (function () {
+        var headField = document.getElementById('assetHead');
+        var cssField = document.getElementById('assetCss');
+        var scriptsField = document.getElementById('assetScripts');
+        var testBtn = document.getElementById('assetTest');
+        var clearBtn = document.getElementById('assetClear');
+
+        function ensureConfig() {
+            if (!window.currentConfig || typeof window.currentConfig !== 'object') {
+                window.currentConfig = {};
+            }
+            if (!window.currentConfig.assets || typeof window.currentConfig.assets !== 'object') {
+                window.currentConfig.assets = { head: '', css: '', scripts: '' };
+            }
+            return window.currentConfig.assets;
+        }
+
+        window.getCurrentAssets = function () {
+            var a = ensureConfig();
+            return {
+                head: (headField && headField.value) || a.head || '',
+                css: (cssField && cssField.value) || a.css || '',
+                scripts: (scriptsField && scriptsField.value) || a.scripts || ''
+            };
+        };
+
+        window.__applyAssetsToFields = function () {
+            var a = ensureConfig();
+            if (headField) headField.value = a.head || '';
+            if (cssField) cssField.value = a.css || '';
+            if (scriptsField) scriptsField.value = a.scripts || '';
+        };
+
+        function saveAssetsToConfig() {
+            var a = ensureConfig();
+            if (headField) a.head = headField.value;
+            if (cssField) a.css = cssField.value;
+            if (scriptsField) a.scripts = scriptsField.value;
+        }
+
+        if (headField) headField.addEventListener('input', saveAssetsToConfig);
+        if (cssField) cssField.addEventListener('input', saveAssetsToConfig);
+        if (scriptsField) scriptsField.addEventListener('input', saveAssetsToConfig);
+
+        if (testBtn) {
+            testBtn.addEventListener('click', function () {
+                saveAssetsToConfig();
+                if (typeof runn === 'function') runn();
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                if (!confirm('Clear all assets? This cannot be undone.')) return;
+                if (headField) headField.value = '';
+                if (cssField) cssField.value = '';
+                if (scriptsField) scriptsField.value = '';
+                saveAssetsToConfig();
+                if (window.toast) window.toast('Assets cleared', 'warning');
+            });
+        }
+
+        window.__applyAssetsToFields();
+    })();
+    </script>
+
+    <script>
+    (function () {
+        var palette = document.getElementById('palette');
+        var paletteInput = document.getElementById('paletteInput');
+        var paletteList = document.getElementById('paletteList');
+        var paletteBackdrop = document.getElementById('paletteBackdrop');
+        var focusedIndex = 0;
+        var items = [];
+
+        var commands = [
+            { icon: '▶', label: 'Run game', shortcut: 'Ctrl+Enter', action: function () { if (typeof runn === 'function') runn(); } },
+            { icon: '💾', label: 'Save file', shortcut: 'Ctrl+S', action: function () { if (typeof save === 'function') save(); } },
+            { icon: '💾', label: 'Save as…', shortcut: 'Ctrl+Shift+S', action: function () { if (typeof saveAs === 'function') saveAs(); } },
+            { icon: '🚀', label: 'Publish / Share', action: function () { if (typeof shareProject === 'function') shareProject(); } },
+            { icon: '⬇', label: 'Download HTML', action: function () { var h5 = document.getElementById('title'); var n = h5 ? h5.textContent.replace(/\.js$/i,'') : 'game'; if (window.down) window.down(n + '.js'); } },
+            { icon: '🔍', label: 'Find & Replace', shortcut: 'Ctrl+F', action: function () { window.openFind(); } },
+            { icon: '→', label: 'Go to line…', shortcut: 'Ctrl+G', action: function () { window.gotoLine(); } },
+            { icon: '💬', label: 'Toggle comment', shortcut: 'Ctrl+/', action: function () { window.toggleComment(); } },
+            { icon: '⤸', label: 'Format code', action: function () { var b = document.getElementById('formatCodeBtn'); if (b) b.click(); } },
+            { icon: '↩', label: 'Toggle word wrap', action: function () { var b = document.getElementById('fabWrap'); if (b) b.click(); } },
+            { icon: '📁', label: 'Open workspace sidebar', action: function () { document.getElementById('openBtn').click(); } },
+            { icon: '🔌', label: 'Switch to Assets tab', action: function () { document.querySelector('.tab[data-tab="assets"]').click(); } },
+            { icon: '🎨', label: 'Switch to Build tab', action: function () { document.querySelector('.tab[data-tab="build"]').click(); } },
+            { icon: '⌨️', label: 'Switch to Code tab', action: function () { document.querySelector('.tab[data-tab="code"]').click(); } },
+            { icon: '🖥', label: 'Toggle console', action: function () { var b = document.getElementById('fabConsole'); if (b) b.click(); } },
+            { icon: '📋', label: 'Copy all code', action: function () { document.getElementById('copyCodeBtn').click(); } },
+            { icon: '🧹', label: 'Clear console', action: function () { var c = document.getElementById('editor-console-logs'); if (c) c.innerHTML = ''; } }
+        ];
+
+        function scoreMatch(label, query) {
+            var l = label.toLowerCase();
+            var q = query.toLowerCase();
+            if (!q) return 1;
+            var idx = l.indexOf(q);
+            if (idx === 0) return 100;
+            if (idx > 0) return 50 - idx;
+            var qi = 0, score = 0;
+            for (var i = 0; i < l.length && qi < q.length; i++) {
+                if (l[i] === q[qi]) { score += 1; qi++; }
+            }
+            return qi === q.length ? score : 0;
+        }
+
+        function renderPalette(query) {
+            paletteList.innerHTML = '';
+            var matches = commands.map(function (c) {
+                return { cmd: c, score: scoreMatch(c.label, query) };
+            }).filter(function (m) { return m.score > 0; }).sort(function (a, b) { return b.score - a.score; });
+
+            items = matches.map(function (m) { return m.cmd; });
+            if (matches.length === 0) {
+                var empty = document.createElement('div');
+                empty.className = 'palette-empty';
+                empty.textContent = 'No matching commands';
+                paletteList.appendChild(empty);
+                return;
+            }
+
+            if (focusedIndex >= matches.length) focusedIndex = 0;
+            matches.forEach(function (m, i) {
+                var el = document.createElement('div');
+                el.className = 'palette-item' + (i === focusedIndex ? ' focused' : '');
+                var left = document.createElement('div');
+                left.className = 'pi-left';
+                var icon = document.createElement('span');
+                icon.className = 'pi-icon';
+                icon.textContent = m.cmd.icon;
+                var label = document.createElement('span');
+                label.textContent = m.cmd.label;
+                left.appendChild(icon);
+                left.appendChild(label);
+                el.appendChild(left);
+                if (m.cmd.shortcut) {
+                    var sc = document.createElement('span');
+                    sc.className = 'pi-shortcut';
+                    sc.textContent = m.cmd.shortcut;
+                    el.appendChild(sc);
+                }
+                el.addEventListener('click', function () {
+                    closePalette();
+                    m.cmd.action();
+                });
+                paletteList.appendChild(el);
+            });
+        }
+
+        function openPalette() {
+            palette.classList.add('open');
+            paletteBackdrop.classList.add('open');
+            paletteInput.value = '';
+            focusedIndex = 0;
+            renderPalette('');
+            setTimeout(function () { paletteInput.focus(); }, 30);
+        }
+        function closePalette() {
+            palette.classList.remove('open');
+            paletteBackdrop.classList.remove('open');
+        }
+
+        window.openPalette = openPalette;
+        window.closePalette = closePalette;
+
+        if (paletteBackdrop) paletteBackdrop.addEventListener('click', closePalette);
+        if (paletteInput) {
+            paletteInput.addEventListener('input', function () { focusedIndex = 0; renderPalette(this.value); });
+            paletteInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') { e.preventDefault(); closePalette(); }
+                else if (e.key === 'ArrowDown') { e.preventDefault(); focusedIndex = Math.min(items.length - 1, focusedIndex + 1); renderPalette(this.value); }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); focusedIndex = Math.max(0, focusedIndex - 1); renderPalette(this.value); }
+                else if (e.key === 'Enter') { e.preventDefault(); var c = items[focusedIndex]; if (c) { closePalette(); c.action(); } }
+            });
+        }
+
+        document.addEventListener('keydown', function (e) {
+            var mod = e.ctrlKey || e.metaKey;
+            var t = e.target;
+            var tag = t && t.tagName ? t.tagName.toLowerCase() : '';
+            var inField = tag === 'input' || tag === 'textarea' || (t && t.isContentEditable);
+            if (mod && (e.key === 'k' || e.key === 'K' || e.key === 'p' || e.key === 'P')) {
+                if (!inField || e.target !== paletteInput) {
+                    e.preventDefault();
+                    openPalette();
+                }
+            }
+            if (e.key === 'Escape' && palette.classList.contains('open')) closePalette();
+        });
+    })();
+    </script>
+
+    <script>
+    (function () {
+        var findBar = document.getElementById('findBar');
+        var findInput = document.getElementById('findInput');
+        var replaceInput = document.getElementById('replaceInput');
+        var findCount = document.getElementById('findCount');
+        var findPrev = document.getElementById('findPrev');
+        var findNext = document.getElementById('findNext');
+        var replaceOne = document.getElementById('replaceOne');
+        var replaceAll = document.getElementById('replaceAll');
+        var findClose = document.getElementById('findClose');
+        var textarea = document.getElementById('js');
+        if (!findBar || !textarea) return;
+
+        var matches = [];
+        var matchIndex = 0;
+
+        function findAll() {
+            var q = findInput.value;
+            matches = [];
+            if (!q) { findCount.textContent = '0/0'; return; }
+            var text = textarea.value;
+            var lower = text.toLowerCase();
+            var lq = q.toLowerCase();
+            var i = 0;
+            while (i < lower.length) {
+                var idx = lower.indexOf(lq, i);
+                if (idx === -1) break;
+                matches.push(idx);
+                i = idx + 1;
+            }
+            if (matchIndex >= matches.length) matchIndex = 0;
+            findCount.textContent = (matches.length ? (matchIndex + 1) : 0) + '/' + matches.length;
+        }
+
+        function jumpTo(idx) {
+            if (!matches.length) return;
+            var pos = matches[idx];
+            textarea.focus();
+            textarea.setSelectionRange(pos, pos + findInput.value.length);
+            var lineCount = textarea.value.slice(0, pos).split('\n').length;
+            var lineH = 22;
+            textarea.scrollTop = Math.max(0, (lineCount - 6) * lineH);
+        }
+
+        window.openFind = function () {
+            findBar.classList.add('open');
+            setTimeout(function () { findInput.focus(); findInput.select(); }, 30);
+        };
+        window.closeFind = function () { findBar.classList.remove('open'); };
+
+        findInput.addEventListener('input', function () { matchIndex = 0; findAll(); });
+        findPrev.addEventListener('click', function () {
+            if (!matches.length) return;
+            matchIndex = (matchIndex - 1 + matches.length) % matches.length;
+            findCount.textContent = (matchIndex + 1) + '/' + matches.length;
+            jumpTo(matchIndex);
+        });
+        findNext.addEventListener('click', function () {
+            if (!matches.length) return;
+            matchIndex = (matchIndex + 1) % matches.length;
+            findCount.textContent = (matchIndex + 1) + '/' + matches.length;
+            jumpTo(matchIndex);
+        });
+        replaceOne.addEventListener('click', function () {
+            var q = findInput.value;
+            if (!q) return;
+            var sel = textarea.value.slice(textarea.selectionStart, textarea.selectionEnd);
+            if (sel.toLowerCase() === q.toLowerCase()) {
+                var start = textarea.selectionStart;
+                textarea.value = textarea.value.slice(0, start) + replaceInput.value + textarea.value.slice(textarea.selectionEnd);
+                textarea.selectionStart = textarea.selectionEnd = start + replaceInput.value.length;
+                if (window.__renderCode) window.__renderCode();
+            }
+            findAll();
+        });
+        replaceAll.addEventListener('click', function () {
+            var q = findInput.value;
+            if (!q) return;
+            var re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            textarea.value = textarea.value.replace(re, replaceInput.value);
+            if (window.__renderCode) window.__renderCode();
+            findAll();
+        });
+        findClose.addEventListener('click', window.closeFind);
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && findBar.classList.contains('open')) window.closeFind();
+        });
+    })();
+    </script>
+
+    <script>
+    (function () {
+        window.gotoLine = function () {
+            var line = prompt('Go to line:');
+            if (!line) return;
+            line = parseInt(line, 10);
+            if (isNaN(line) || line < 1) return;
+            var textarea = document.getElementById('js');
+            var lines = textarea.value.split('\n');
+            line = Math.min(line, lines.length);
+            var pos = 0;
+            for (var i = 0; i < line - 1; i++) pos += lines[i].length + 1;
+            textarea.focus();
+            textarea.setSelectionRange(pos, pos);
+            var lineH = 22;
+            textarea.scrollTop = Math.max(0, (line - 6) * lineH);
+        };
+    })();
+    </script>
+
+    <script>
+    (function () {
+        var logsEl = document.getElementById('editor-console-logs');
+        var replInput = document.getElementById('consoleReplInput');
+        var countEl = document.getElementById('consoleCount');
+        var clearBtn = document.getElementById('consoleClearBtn');
+        var autoscrollBtn = document.getElementById('consoleAutoscroll');
+
+        if (!logsEl) return;
+
+        var messageCount = 0;
+        var autoscroll = true;
+        var MAX_LINES = 500;
+
+        function now() {
+            var d = new Date();
+            var hh = String(d.getHours()).padStart(2, '0');
+            var mm = String(d.getMinutes()).padStart(2, '0');
+            var ss = String(d.getSeconds()).padStart(2, '0');
+            return hh + ':' + mm + ':' + ss;
+        }
+
+        function formatValue(v) {
+            if (v === undefined) return 'undefined';
+            if (v === null) return 'null';
+            if (typeof v === 'string') return v;
+            if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+            if (typeof v === 'function') return '[Function ' + (v.name || 'anonymous') + ']';
+            if (v instanceof Error) return v.name + ': ' + v.message;
+            try {
+                return JSON.stringify(v, null, 2);
+            } catch (e) {
+                return String(v);
+            }
+        }
+
+        function trimOldLines() {
+            while (logsEl.children.length > MAX_LINES) {
+                logsEl.removeChild(logsEl.firstChild);
+            }
+        }
+
+        window.__logToConsole = function (kind, args, stack) {
+            var line = document.createElement('div');
+            line.className = 'log-line log-' + kind;
+
+            var time = document.createElement('span');
+            time.className = 'log-time';
+            time.textContent = now();
+            line.appendChild(time);
+
+            var prefix = document.createElement('span');
+            prefix.className = 'log-prefix';
+            prefix.textContent = kind === 'error' ? '✖' : kind === 'warn' ? '⚠' : kind === 'result' ? '←' : kind === 'input' ? '›' : '·';
+            line.appendChild(prefix);
+
+            var text = document.createElement('span');
+            var formatted = Array.prototype.map.call(args, formatValue).join(' ');
+            text.textContent = formatted;
+            line.appendChild(text);
+
+            if (stack) {
+                var stackEl = document.createElement('span');
+                stackEl.className = 'log-stack';
+                var lines = String(stack).split('\n').slice(1, 4);
+                for (var i = 0; i < lines.length; i++) {
+                    var s = lines[i].trim();
+                    if (!s) continue;
+                    var span = document.createElement('span');
+                    span.className = 'stack-loc';
+                    span.textContent = s + '\n';
+                    stackEl.appendChild(span);
+                }
+                line.appendChild(stackEl);
+            }
+
+            logsEl.appendChild(line);
+            trimOldLines();
+            messageCount++;
+            if (countEl) countEl.textContent = messageCount + (messageCount === 1 ? ' message' : ' messages');
+            if (autoscroll) logsEl.scrollTop = logsEl.scrollHeight;
+        };
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                logsEl.innerHTML = '';
+                messageCount = 0;
+                if (countEl) countEl.textContent = '0 messages';
+            });
+        }
+
+        if (autoscrollBtn) {
+            autoscrollBtn.addEventListener('click', function () {
+                autoscroll = !autoscroll;
+                autoscrollBtn.classList.toggle('active', autoscroll);
+            });
+        }
+
+        function getGameWindow() {
+            var frame = document.getElementById('gameFrame');
+            if (!frame) return null;
+            try { return frame.contentWindow; } catch (e) { return null; }
+        }
+
+        function tryEval(code) {
+            var win = getGameWindow();
+            if (!win) {
+                window.__logToConsole('error', ['No game running. Press ▶ Run first to start a game, then type expressions here.']);
+                return;
+            }
+            try {
+                var result = win.eval(code);
+                window.__logToConsole('result', [formatValue(result)]);
+            } catch (e) {
+                window.__logToConsole('error', [e.name + ': ' + e.message], e.stack);
+            }
+        }
+
+        if (replInput) {
+            var history = [];
+            var historyIdx = -1;
+
+            replInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    var code = replInput.value.trim();
+                    if (!code) return;
+                    history.unshift(code);
+                    historyIdx = -1;
+                    replInput.value = '';
+                    window.__logToConsole('input', [code]);
+                    tryEval(code);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (history.length === 0) return;
+                    historyIdx = Math.min(history.length - 1, historyIdx + 1);
+                    replInput.value = history[historyIdx] || '';
+                } else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (history.length === 0) return;
+                    historyIdx = Math.max(-1, historyIdx - 1);
+                    replInput.value = historyIdx === -1 ? '' : history[historyIdx];
+                }
+            });
+        }
+
+        var pendingMessages = [];
+        var flushScheduled = false;
+
+        function flushMessages() {
+            flushScheduled = false;
+            var batch = pendingMessages;
+            pendingMessages = [];
+            for (var i = 0; i < batch.length; i++) {
+                var m = batch[i];
+                if (m.type === 'console') {
+                    window.__logToConsole(m.kind || 'log', m.args || [], m.stack);
+                } else if (m.type === 'error') {
+                    window.__logToConsole('error', [m.message], m.stack);
+                }
+            }
+        }
+
+        window.addEventListener('message', function (e) {
+            if (!e.data || typeof e.data !== 'object') return;
+            if (e.data.type !== 'console' && e.data.type !== 'error') return;
+            pendingMessages.push(e.data);
+            if (!flushScheduled) {
+                flushScheduled = true;
+                requestAnimationFrame(flushMessages);
+            }
+        });
+
+        window.__logToConsole('info', ['Console ready. Press ▶ Run, then type expressions below.']);
+    })();
+    </script>
+
+    <script>
+    (function () {
+        var zoomLevel = 1;
+        var ZOOM_MIN = 0.3;
+        var ZOOM_MAX = 3;
+
+        function getFrame() { return document.getElementById('gameFrame'); }
+        function getWrap() { return document.getElementById('dialogFrameWrap'); }
+        function getDisplay() { return document.getElementById('zoomDisplay'); }
+
+        function applyZoom() {
+            var wrap = getWrap();
+            if (!wrap) return;
+            if (zoomLevel === 1) {
+                wrap.style.transform = '';
+            } else {
+                wrap.style.transform = 'scale(' + zoomLevel + ')';
+            }
+            var d = getDisplay();
+            if (d) d.textContent = Math.round(zoomLevel * 100) + '%';
+        }
+
+        function setZoom(level) {
+            zoomLevel = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, +level.toFixed(2)));
+            applyZoom();
+        }
+
+        var zi = document.getElementById('zoomInBtn');
+        var zo = document.getElementById('zoomOutBtn');
+        var zd = document.getElementById('zoomDisplay');
+        var fs = document.getElementById('fsBtn');
+
+        if (zi) zi.addEventListener('click', function () { setZoom(zoomLevel + 0.1); });
+        if (zo) zo.addEventListener('click', function () { setZoom(zoomLevel - 0.1); });
+        if (zd) zd.addEventListener('click', function () { setZoom(1); });
+
+        if (fs) fs.addEventListener('click', async function () {
+            try {
+                if (document.fullscreenElement || document.webkitFullscreenElement) {
+                    if (document.exitFullscreen) await document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                    return;
+                }
+                var wrap = getWrap();
+                if (!wrap) return;
+                var req = wrap.requestFullscreen || wrap.webkitRequestFullscreen || wrap.msRequestFullscreen;
+                if (!req) { alert('Fullscreen not supported on this browser.'); return; }
+                await req.call(wrap);
+            } catch (err) {
+                console.error('[fullscreen] failed:', err);
+            }
+        });
+
+        document.addEventListener('fullscreenchange', function () {
+            var btn = document.getElementById('fsBtn');
+            if (!btn) return;
+            btn.textContent = document.fullscreenElement ? '⛶' : '⛶';
+            btn.title = document.fullscreenElement ? 'Exit fullscreen (F)' : 'Fullscreen (F)';
+        });
+
+        var frame = getFrame();
+        if (frame) {
+            frame.addEventListener('load', function () {
+                setTimeout(applyZoom, 60);
+            });
+        }
+
+        var runBtn = document.getElementById('run');
+        if (runBtn) {
+            runBtn.addEventListener('click', function () {
+                zoomLevel = 1;
+                applyZoom();
+            });
+        }
+
+        document.addEventListener('keydown', function (e) {
+            var t = e.target;
+            var tag = t && t.tagName ? t.tagName.toLowerCase() : '';
+            if (tag === 'input' || tag === 'textarea' || (t && t.isContentEditable)) return;
+
+            var d = document.getElementById('runDialog');
+            var dialogOpen = d && d.hasAttribute('open');
+            if (!dialogOpen) return;
+
+            if (e.key === 'f' || e.key === 'F') { e.preventDefault(); if (fs) fs.click(); }
+            else if (e.key === '+' || e.key === '=') { e.preventDefault(); setZoom(zoomLevel + 0.1); }
+            else if (e.key === '-' || e.key === '_') { e.preventDefault(); setZoom(zoomLevel - 0.1); }
+            else if (e.key === '0') { e.preventDefault(); setZoom(1); }
+        });
+
+        var dlg = document.getElementById('runDialog');
+        if (dlg) {
+            var closeBtn = document.getElementById('dialogClose');
+            if (closeBtn) closeBtn.addEventListener('click', function () { window.closeRunDialog(); });
+        }
+    })();
+    </script>
+
+    <script>
+    (function () {
+        var dialog = document.getElementById('runDialog');
+        if (!dialog) return;
+
+        function sync() {
+            var isOpen = dialog.hasAttribute('open');
+            document.body.classList.toggle('game-open', isOpen);
+        }
+
+        sync();
+
+        if (typeof MutationObserver !== 'undefined') {
+            new MutationObserver(sync).observe(dialog, {
+                attributes: true,
+                attributeFilter: ['open']
+            });
+        } else {
+            (function tick() {
+                sync();
+                requestAnimationFrame(tick);
+            })();
+        }
     })();
     </script>
 </body>
 </html>
+
