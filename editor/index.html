@@ -1409,6 +1409,32 @@
     </style>
 </head>
 <body>
+    <div id="errorBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:999999;background:#7f1d1d;color:#fff;font-family:monospace;font-size:12px;padding:10px 14px;border-bottom:2px solid #ef4444;max-height:40vh;overflow-y:auto;white-space:pre-wrap;line-height:1.4;"></div>
+<script>
+(function () {
+    var banner = document.getElementById('errorBanner');
+    var msgs = [];
+    function show() {
+        banner.style.display = 'block';
+        banner.textContent = msgs.join('\n\n---\n\n');
+    }
+    window.addEventListener('error', function (e) {
+        msgs.push('ERROR: ' + (e.message || 'unknown') + (e.filename ? '\n  at ' + e.filename + ':' + e.lineno : ''));
+        show();
+    }, true);
+    window.addEventListener('unhandledrejection', function (e) {
+        var r = e.reason;
+        msgs.push('PROMISE: ' + (r && r.message ? r.message : String(r)));
+        show();
+    });
+    window.addEventListener('error', function (e) {
+        if (e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK')) {
+            msgs.push('LOAD FAILED: ' + (e.target.src || e.target.href));
+            show();
+        }
+    }, true);
+})();
+</script>
     <dialog id="runDialog">
         <button class="dialog-close" id="dialogClose" aria-label="Close preview">✕</button>
         <div class="dialog-stage" id="dialogStage">
