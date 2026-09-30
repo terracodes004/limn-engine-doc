@@ -46,6 +46,30 @@ function setDescriptionField(value) {
     if (el) el.value = value || '';
 }
 
+function getAssets() {
+    if (typeof window.getCurrentAssets === 'function') {
+        return window.getCurrentAssets();
+    }
+    if (window.currentConfig && window.currentConfig.assets) {
+        return window.currentConfig.assets;
+    }
+    return { head: '', css: '', scripts: '' };
+}
+
+function setAssets(assets) {
+    if (!window.currentConfig || typeof window.currentConfig !== 'object') {
+        window.currentConfig = {};
+    }
+    window.currentConfig.assets = {
+        head: (assets && assets.head) || '',
+        css: (assets && assets.css) || '',
+        scripts: (assets && assets.scripts) || ''
+    };
+    if (typeof window.__applyAssetsToFields === 'function') {
+        window.__applyAssetsToFields();
+    }
+}
+
 function refreshSidebar() {
     if (typeof window.__renderFileSidebar === 'function') {
         window.__renderFileSidebar();
@@ -92,10 +116,8 @@ async function loadUserData() {
     const forkFlag = params.get('fork');
 
     if (forkFlag === '1') {
-        console.log('[loadUserData] fork mode');
         const code = localStorage.getItem('limn_fork_code');
         const title = localStorage.getItem('limn_fork_title') || 'forked';
-        console.log('[loadUserData] fork code length:', code ? code.length : 0);
 
         if (code) {
             const textarea = getCodeTextarea();
@@ -113,7 +135,6 @@ async function loadUserData() {
     }
 
     if (editSlug) {
-        console.log('[loadUserData] edit mode:', editSlug);
         localStorage.setItem('limn_edit_slug', editSlug);
 
         try {
@@ -130,7 +151,12 @@ async function loadUserData() {
                 if (h5) h5.innerText = data.title + '.js';
                 if (window.__renderCode) window.__renderCode();
 
-                if (data.config) window.currentConfig = data.config;
+                if (data.config) {
+                    window.currentConfig = data.config;
+                    if (data.config.assets) {
+                        setAssets(data.config.assets);
+                    }
+                }
                 if (data.description) setDescriptionField(data.description);
 
                 const versionSelect = document.querySelector('#version');
@@ -139,8 +165,7 @@ async function loadUserData() {
                     if (match) versionSelect.value = match;
                 }
 
-                const headerTitle = document.querySelector('header h1');
-                if (headerTitle) headerTitle.textContent = 'LIMN STUDIO — Editing';
+                if (typeof window.__markSaved === 'function') window.__markSaved();
             } else {
                 console.log('Edit load failed:', error);
             }
@@ -166,9 +191,7 @@ async function loadUserData() {
                     files = parsed.files;
                     filesName = parsed.filesName;
 
-                    const fileContainer = document.getElementById('file');
-                    if (fileContainer) fileContainer.innerHTML = '';
-                    filesName.forEach(e => { if (e) createFileUI(e); });
+                    if (parsed.assets) setAssets(parsed.assets);
 
                     if (filesName.length > 0) {
                         const firstFile = filesName[0];
@@ -223,60 +246,10 @@ async function loadFilesFromCloudOrLocal() {
         filesName = rawNames ? rawNames.split(",").filter(Boolean) : [];
     }
 
-    const fileContainer = document.getElementById('file');
-    if (fileContainer) fileContainer.innerHTML = '';
-    filesName.forEach(e => { if (e) createFileUI(e); });
-
     refreshSidebar();
 }
 
 loadUserData();
-
-const editor = document.getElementById("js");
-if (editor) {
-    editor.addEventListener('keydown', (e) => {
-        const pairs = { '(': ')', '<': '>', '"': '"', "'": "'", '[': ']' };
-        if (pairs[e.key]) {
-            e.preventDefault();
-            const start = editor.selectionStart;
-            const end = editor.selectionEnd;
-            editor.setRangeText(pairs[e.key], start, end, 'preserve');
-        } else if (e.key === "{") {
-            e.preventDefault();
-            const start = editor.selectionStart;
-            const end = editor.selectionEnd;
-            editor.setRangeText('\n  \n}', start, end, 'preserve');
-        }
-    });
-}
-
-function createFileUI(name) {
-    let np = document.createElement('p');
-    let btn = document.createElement('button');
-    btn.innerHTML = name;
-    btn.title = "Click to open. Double click to delete";
-
-    btn.addEventListener('click', () => {
-        const textarea = getCodeTextarea();
-        const h5 = getTitleEl();
-        if (textarea) textarea.value = files[name] || "";
-        if (h5) h5.innerText = name;
-        if (window.__renderCode) window.__renderCode();
-    });
-
-    btn.addEventListener("dblclick", () => del(name, np));
-
-    let dbtn = document.createElement('button');
-    dbtn.innerHTML = "⬇️";
-    dbtn.title = "Click to download standalone game";
-    dbtn.addEventListener("click", () => window.down(name));
-
-    np.appendChild(btn);
-    np.appendChild(dbtn);
-
-    const fileListEl = document.getElementById('file');
-    if (fileListEl) fileListEl.appendChild(np);
-}
 
 async function persistData() {
     const user = await getActiveUser();
@@ -325,9 +298,9 @@ window.saveAs = async function() {
     }
 
     await persistData();
-    createFileUI(name);
     refreshSidebar();
-    alert("Saved Successfully ✅");
+    if (window.__markSaved) window.__markSaved();
+    if (window.toast) window.toast("Saved successfully", "success");
 };
 
 window.save = async function() {
@@ -348,7 +321,8 @@ window.save = async function() {
         if (textarea) files[currentFileName] = textarea.value;
         await persistData();
         refreshSidebar();
-        alert("Saved Successfully ✅");
+        if (window.__markSaved) window.__markSaved();
+        if (window.toast) window.toast("Saved successfully", "success");
     }
 };
 
@@ -384,9 +358,9 @@ window.shareProject = async function() {
 
     const versionDropdown = document.querySelector('#version');
     const selectedVersion = versionDropdown ? versionDropdown.value.toLowerCase() : 'v4';
-    const engineCode = selectedVersion.includes('v2') ? v2t
-                     : selectedVersion.includes('v3') ? v3t
-                     : v4t;
+    const engineCode = selectedVersion.includes('v2') ? window.__v2t
+                     : selectedVersion.includes('v3') ? window.__v3t
+                     : window.__v4t;
 
     let title = "Untitled";
     const h5Text = h5 ? h5.innerText : "";
@@ -402,6 +376,8 @@ window.shareProject = async function() {
         slots: [],
         palette: []
     };
+
+    config.assets = getAssets();
 
     const description = getDescriptionField();
 
@@ -479,7 +455,8 @@ async function shareAsLink() {
 
     const payload = JSON.stringify({
         files: files,
-        filesName: filesName
+        filesName: filesName,
+        assets: getAssets()
     });
 
     const { data, error } = await supabase
@@ -507,27 +484,10 @@ async function del(name, element) {
         delete files[name];
         filesName = filesName.filter(e => e !== name);
         await persistData();
-        element.remove();
+        if (element && element.parentNode) element.parentNode.removeChild(element);
         refreshSidebar();
-        alert("File deleted 🗑️");
-    } else {
-        alert("File is still available ✅😁");
+        if (window.toast) window.toast("File deleted", "warning");
     }
-}
-
-const textareaEl = document.getElementById("js");
-if (textareaEl) {
-    textareaEl.addEventListener("keydown", (e) => {
-        if (e.ctrlKey) {
-            if (e.shiftKey && (e.key === "S" || e.key === "s")) {
-                e.preventDefault();
-                window.saveAs();
-            } else if (e.key === "s" || e.key === "S") {
-                e.preventDefault();
-                window.save();
-            }
-        }
-    });
 }
 
 window.down = function(filename) {
@@ -536,28 +496,21 @@ window.down = function(filename) {
 
     const versionDropdown = document.querySelector('#version');
     const selectedVersion = versionDropdown ? versionDropdown.value.toLowerCase() : 'v4';
-    const engineCode = selectedVersion.includes('v2') ? v2t
-                     : selectedVersion.includes('v3') ? v3t
-                     : v4t;
+    const engineCode = selectedVersion.includes('v2') ? window.__v2t
+                     : selectedVersion.includes('v3') ? window.__v3t
+                     : window.__v4t;
 
-    const htmlTemplate = '<!DOCTYPE html>\n' +
-'<html lang="en">\n' +
-'<head>\n' +
-'    <meta charset="UTF-8">\n' +
-'    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
-'    <title>' + filename + ' - Limn Engine Game</title>\n' +
-'    <style>\n' +
-'        body { margin: 0; background: #0a0a0a; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }\n' +
-'        canvas { display: block; }\n' +
-'    </style>\n' +
-'</head>\n' +
-'<body>\n' +
-'    <script>' + engineCode + '<\/script>\n' +
-'    <script>\n' +
-'        ' + codeData + '\n' +
-'    <\/script>\n' +
-'</body>\n' +
-'</html>';
+    if (!engineCode || !engineCode.trim()) {
+        alert("Engine not loaded yet. Try again in a moment.");
+        return;
+    }
+
+    if (typeof window.buildGameHTML !== 'function') {
+        alert("Preview builder not loaded. Refresh the page.");
+        return;
+    }
+
+    const htmlTemplate = window.buildGameHTML(engineCode, codeData, getAssets());
 
     const blob = new Blob([htmlTemplate], { type: "text/html" });
     const url = URL.createObjectURL(blob);
