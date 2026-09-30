@@ -206,4 +206,8 @@ window.runn = function () {
     var html = window.buildGameHTML(engineCode, userEditorCode, assets);
 
     iframe.srcdoc = html;
+
+    if (typeof window.__applyZoomToFrame === 'function') {
+        setTimeout(window.__applyZoomToFrame, 80);
+    }
 };
