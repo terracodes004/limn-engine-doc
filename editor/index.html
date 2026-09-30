@@ -34,9 +34,6 @@
             --danger: #f87171;
             --radius: 10px;
             --radius-lg: 14px;
-            --code-font-size: 13px;
-            --code-line-height: 22px;
-            --code-font: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
         }
         * { box-sizing: border-box; }
         html, body {
@@ -81,6 +78,9 @@
             0%   { background-position: 0% 50%; }
             50%  { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
+        }
+        @keyframes cm-loading-spin {
+            to { transform: rotate(360deg); }
         }
 
         dialog {
@@ -149,7 +149,7 @@
             border-radius: 12px;
             font-size: 13px;
             font-weight: 700;
-            font-family: var(--code-font);
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
             min-width: 76px;
             cursor: pointer;
         }
@@ -326,7 +326,7 @@
         .dropdown-content .shortcut {
             font-size: 11px;
             color: var(--text-2);
-            font-family: var(--code-font);
+            font-family: ui-monospace, monospace;
             padding: 2px 6px;
             background: var(--bg-1);
             border: 1px solid var(--border);
@@ -410,7 +410,7 @@
             background: var(--bg-3);
             border: 1px solid var(--border-2);
             border-radius: 6px;
-            font-family: var(--code-font);
+            font-family: ui-monospace, monospace;
             font-size: 11.5px; color: var(--text-0); margin: 0 2px;
         }
         .feature-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
@@ -470,7 +470,7 @@
             border: 1px solid var(--border-2);
             border-radius: var(--radius);
             color: var(--text-0);
-            font-family: var(--code-font);
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
             font-size: 12.5px;
             line-height: 1.6;
             resize: vertical;
@@ -502,7 +502,7 @@
             border: 1px solid var(--border);
             border-radius: 4px;
             padding: 1px 6px;
-            font-family: var(--code-font);
+            font-family: ui-monospace, monospace;
             font-size: 11px;
             color: var(--text-1);
         }
@@ -531,88 +531,27 @@
             letter-spacing: 0.8px;
             font-weight: 600;
         }
-
-        .custom-select { position: relative; width: 100%; }
-        .custom-select-trigger {
-            width: 100%;
-            padding: 13px 44px 13px 16px;
-            background: linear-gradient(180deg, #1a1f2b, var(--bg-0));
-            border: 1px solid var(--border-2);
-            border-radius: var(--radius);
-            color: var(--text-0);
-            font-size: 14px;
-            font-family: inherit; font-weight: 500;
-            cursor: pointer; text-align: left; position: relative;
-            line-height: 1.4;
-        }
-        .custom-select-trigger:hover { border-color: var(--border-3); }
-        .custom-select-trigger::after {
-            content: "";
-            position: absolute;
-            right: 18px;
-            top: 50%;
-            width: 8px; height: 8px;
-            border-right: 2px solid var(--text-1);
-            border-bottom: 2px solid var(--text-1);
-            transform: translateY(-65%) rotate(45deg);
-            transform-origin: center center;
-            transition: transform 0.2s;
-        }
-        .custom-select.open .custom-select-trigger::after {
-            transform: translateY(-35%) rotate(-135deg);
-        }
-        .custom-select.open .custom-select-trigger {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(110,168,254,0.15);
-        }
-        .custom-select-menu {
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 0; right: 0;
-            background: var(--bg-2);
-            border: 1px solid var(--border-2);
-            border-radius: var(--radius);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-            padding: 8px;
-            z-index: 500;
-            max-height: 340px;
-            overflow-y: auto;
-            display: none;
-            backdrop-filter: blur(20px);
-        }
-        .custom-select.open .custom-select-menu { display: block; }
-        .custom-select-option {
-            display: flex; align-items: center; gap: 10px;
-            width: 100%; padding: 11px 14px;
-            background: none; border: none;
-            color: var(--text-0); text-align: left;
-            font-size: 13.5px; font-family: inherit;
-            border-radius: 8px; cursor: pointer;
-            line-height: 1.4;
-        }
-        .custom-select-option:hover { background: var(--bg-3); }
-        .custom-select-option.selected {
-            background: linear-gradient(90deg, rgba(110,168,254,0.15), transparent);
-            color: #fff; font-weight: 600;
-        }
-
         .field input[type="text"],
         .field input[type="number"],
         .field textarea {
-            width: 100%; padding: 12px 14px;
+            width: 100%;
+            padding: 12px 14px;
             background: var(--bg-0);
             border: 1px solid var(--border-2);
             border-radius: var(--radius);
             color: var(--text-0);
-            font-size: 13.5px; font-family: inherit;
+            font-size: 13.5px;
+            font-family: inherit;
         }
         .field textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
-        .field input:focus, .field textarea:focus {
+        .field input:focus,
+        .field textarea:focus {
             outline: none;
             border-color: var(--accent);
             box-shadow: 0 0 0 3px rgba(110,168,254,0.15);
         }
-        .field input::placeholder, .field textarea::placeholder { color: var(--text-3); }
+        .field input::placeholder,
+        .field textarea::placeholder { color: var(--text-3); }
 
         .swatch-field {
             display: flex; align-items: center; gap: 12px;
@@ -638,7 +577,7 @@
         .swatch-input::-moz-color-swatch { border: none; border-radius: 10px; }
         .swatch-hex {
             flex: 1;
-            font-family: var(--code-font);
+            font-family: ui-monospace, monospace;
             font-size: 13px; font-weight: 500;
             color: var(--text-0);
             background: transparent; border: none; outline: none;
@@ -670,11 +609,6 @@
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
             overflow: hidden;
-            font-family: var(--code-font);
-            font-size: var(--code-font-size);
-            line-height: var(--code-line-height);
-            font-variant-ligatures: none;
-            font-feature-settings: "liga" 0, "calt" 0;
             display: flex; flex-direction: column;
             box-shadow: 0 4px 16px rgba(0,0,0,0.5);
         }
@@ -697,7 +631,7 @@
             display: inline-flex; align-items: center; gap: 8px;
             padding: 5px 12px; color: var(--text-0);
             font-weight: 500; font-size: 12.5px;
-            font-family: var(--code-font);
+            font-family: ui-monospace, monospace;
             background: var(--bg-1);
             border: 1px solid var(--border);
             border-radius: 6px;
@@ -736,7 +670,7 @@
             border-bottom: 1px solid var(--border);
             font-size: 12px;
             color: var(--text-2);
-            font-family: var(--code-font);
+            font-family: ui-monospace, monospace;
             overflow-x: auto;
             white-space: nowrap;
         }
@@ -754,138 +688,101 @@
             background: var(--bg-1);
             position: relative;
         }
-        .gutter {
-            flex: 0 0 66px;
-            padding: 18px 0;
-            background: var(--bg-1);
-            color: var(--text-3);
-            text-align: right;
-            user-select: none;
-            overflow: hidden;
-            font-variant-numeric: tabular-nums;
-            border-right: 1px solid var(--border);
-            position: relative;
-            font-family: var(--code-font);
-        }
-        .gutter-inner {
-            position: relative;
-            will-change: transform;
-        }
-        .gutter-line {
-            height: var(--code-line-height);
-            line-height: var(--code-line-height);
-            padding-right: 18px;
-            font-size: var(--code-font-size);
-            position: relative;
-            padding-left: 16px;
-            box-sizing: border-box;
-        }
-        .gutter-line.active { color: var(--accent); }
-        .gutter-line.has-error { color: #ffb4b4; }
-        .gutter-line.has-error::before {
-            content: "";
-            position: absolute;
-            left: 4px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #f87171;
-            box-shadow: 0 0 8px rgba(248,113,113,0.8);
-        }
-
-        .editor-scroll { position: relative; flex: 1; overflow: hidden; }
-
-        .highlight-layer,
-        .code-input {
-            position: absolute;
-            top: 0; left: 0;
-            margin: 0;
-            padding: 18px 24px;
-            border: 0;
-            font-family: var(--code-font);
-            font-size: var(--code-font-size);
-            line-height: var(--code-line-height);
-            font-variant-ligatures: none;
-            font-feature-settings: "liga" 0, "calt" 0;
-            letter-spacing: normal;
-            word-spacing: normal;
-            white-space: pre;
-            tab-size: 4;
-            box-sizing: border-box;
+        #cm-editor-container {
             width: 100%;
             height: 100%;
-            overflow: auto;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        .highlight-layer::-webkit-scrollbar,
-        .code-input::-webkit-scrollbar { display: none; }
-        .highlight-layer {
-            pointer-events: none;
-            z-index: 1;
-            color: var(--text-0);
-            background: transparent;
-            overflow: hidden;
-        }
-        .highlight-inner {
-            will-change: transform;
-            min-height: 100%;
-        }
-        .code-input {
-            z-index: 2;
-            background: transparent;
-            color: transparent;
-            caret-color: var(--accent);
-            resize: none;
-            outline: none;
-            -webkit-text-fill-color: transparent;
-        }
-        .code-input::selection { background: rgba(110,168,254,0.35); -webkit-text-fill-color: transparent; }
-        .code-input.wrap,
-        .highlight-layer.wrap { white-space: pre-wrap; word-break: break-word; }
-        .code-input.wrap .highlight-inner { white-space: pre-wrap; word-break: break-word; }
-
-        .minimap {
-            flex: 0 0 18px;
-            background: var(--bg-0);
-            border-left: 1px solid var(--border);
             position: relative;
-            overflow: hidden;
-            cursor: pointer;
         }
-        .minimap-line {
-            position: absolute;
-            left: 2px; right: 2px;
-            height: 2px;
-            background: var(--border-2);
-            border-radius: 1px;
+        #cm-editor-container .cm-editor {
+            height: 100%;
+            background: var(--bg-1);
         }
-        .minimap-line.keyword { background: #ff7b72; }
-        .minimap-line.string { background: #a5d6ff; }
-        .minimap-line.function { background: #d2a8ff; }
-        .minimap-line.comment { background: #4a5163; }
-        .minimap-viewport {
-            position: absolute;
-            left: 0; right: 0;
-            background: rgba(110,168,254,0.15);
-            border-top: 1px solid rgba(110,168,254,0.5);
-            border-bottom: 1px solid rgba(110,168,254,0.5);
-            pointer-events: none;
+        #cm-editor-container .cm-scroller {
+            font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+            overflow: auto;
+        }
+        #cm-editor-container .cm-gutters {
+            background: var(--bg-1);
+            color: var(--text-3);
+            border-right: 1px solid var(--border);
+            user-select: none;
+        }
+        #cm-editor-container .cm-activeLineGutter {
+            background: transparent;
+            color: var(--accent);
+        }
+        #cm-editor-container .cm-activeLine {
+            background: rgba(110,168,254,0.05);
+        }
+        #cm-editor-container .cm-cursor {
+            border-left-color: var(--accent);
+        }
+        #cm-editor-container .cm-selectionBackground {
+            background: rgba(110,168,254,0.25) !important;
+        }
+        #cm-editor-container .cm-focused .cm-selectionBackground {
+            background: rgba(110,168,254,0.35) !important;
+        }
+        #cm-editor-container .cm-panels {
+            background: var(--bg-2);
+            color: var(--text-0);
+            border-color: var(--border);
+        }
+        #cm-editor-container .cm-panels.cm-panels-top {
+            border-bottom: 1px solid var(--border);
+        }
+        #cm-editor-container .cm-searchMatch {
+            background: rgba(251,191,36,0.35);
+        }
+        #cm-editor-container .cm-searchMatch.cm-searchMatch-selected {
+            background: rgba(236,72,153,0.6);
+        }
+        #cm-editor-container .cm-tooltip {
+            background: var(--bg-2);
+            border: 1px solid var(--border-2);
+            color: var(--text-0);
+        }
+        #cm-editor-container .cm-tooltip-autocomplete > ul > li[aria-selected] {
+            background: linear-gradient(90deg, rgba(110,168,254,0.25), transparent);
+            color: #fff;
+        }
+        #cm-editor-container .cm-tooltip-autocomplete > ul > li {
+            padding: 4px 8px;
+        }
+        #cm-editor-container .cm-completionDetail {
+            color: var(--text-2);
+            font-style: normal;
+            margin-left: 8px;
+        }
+        #cm-editor-container .cm-completionLabel {
+            font-family: ui-monospace, monospace;
         }
 
-        .tok-keyword   { color: #ff7b72; font-weight: 500; }
-        .tok-string    { color: #a5d6ff; }
-        .tok-number    { color: #79c0ff; }
-        .tok-comment   { color: #8b949e; font-style: italic; }
-        .tok-function  { color: #d2a8ff; }
-        .tok-builtin   { color: #ffa657; }
-        .tok-class     { color: #ffa657; font-weight: 500; }
-        .tok-punct     { color: var(--text-0); }
-        .tok-operator  { color: #ff7b72; }
-        .tok-boolean   { color: #79c0ff; }
-        .tok-property  { color: #79c0ff; }
+        .cm-loading {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            background: var(--bg-1);
+            color: var(--text-2);
+            font-size: 13px;
+            z-index: 1;
+        }
+        .cm-loading-spinner {
+            width: 28px;
+            height: 28px;
+            border: 2.5px solid var(--border-2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: cm-loading-spin 0.8s linear infinite;
+        }
+        .cm-loading-text {
+            font-family: ui-monospace, monospace;
+            letter-spacing: 0.4px;
+        }
 
         .status-bar {
             display: flex;
@@ -896,7 +793,7 @@
             border-top: 1px solid var(--border);
             font-size: 11.5px;
             color: var(--text-1);
-            font-family: var(--code-font);
+            font-family: ui-monospace, monospace;
             gap: 12px;
             flex-wrap: wrap;
             border-radius: 0 0 var(--radius-lg) var(--radius-lg);
@@ -1071,7 +968,7 @@
             background: #0a0a0a;
             border-bottom: 1px solid #1a1a1a;
             font-size: 11px;
-            font-family: var(--code-font);
+            font-family: ui-monospace, monospace;
             color: #6e7589;
         }
         .console-toolbar-left {
@@ -1087,14 +984,14 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 11px;
-            font-family: var(--code-font);
+            font-family: ui-monospace, monospace;
         }
         .console-toolbar-btn:hover { color: #f0f3f8; border-color: #3d4459; background: #141821; }
         .console-toolbar-btn.active { color: #6ea8fe; border-color: rgba(110,168,254,0.5); background: rgba(110,168,254,0.08); }
 
         #editor-console-logs {
             background: #000;
-            font-family: var(--code-font);
+            font-family: ui-monospace, monospace;
             min-height: 140px;
             max-height: 340px;
             padding: 12px 16px;
@@ -1153,7 +1050,7 @@
         }
         .console-chevron {
             color: #22c55e;
-            font-family: var(--code-font);
+            font-family: ui-monospace, monospace;
             font-size: 13px;
             font-weight: 700;
             user-select: none;
@@ -1164,7 +1061,7 @@
             border: none;
             outline: none;
             color: #cbd5e1;
-            font-family: var(--code-font);
+            font-family: ui-monospace, monospace;
             font-size: 12.5px;
             padding: 4px 0;
         }
@@ -1276,7 +1173,7 @@
         .fab-menu-item .fi-shortcut {
             font-size: 10.5px;
             color: var(--text-2);
-            font-family: var(--code-font);
+            font-family: ui-monospace, monospace;
             padding: 2px 6px;
             background: var(--bg-1);
             border: 1px solid var(--border);
@@ -1334,7 +1231,7 @@
         .palette-item .pi-shortcut {
             font-size: 11px;
             color: var(--text-2);
-            font-family: var(--code-font);
+            font-family: ui-monospace, monospace;
             padding: 2px 6px;
             background: var(--bg-1);
             border: 1px solid var(--border);
@@ -1344,49 +1241,6 @@
             background: linear-gradient(90deg, rgba(110,168,254,0.15), transparent);
         }
         .palette-empty { padding: 30px; text-align: center; color: var(--text-2); font-size: 13px; }
-
-        .find-bar {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            background: var(--bg-2);
-            border-bottom: 1px solid var(--border);
-            font-size: 13px;
-            flex-wrap: wrap;
-        }
-        .find-bar.open { display: flex; }
-        .find-bar input {
-            padding: 6px 12px;
-            background: var(--bg-0);
-            border: 1px solid var(--border-2);
-            border-radius: 6px;
-            color: var(--text-0);
-            font-size: 13px;
-            font-family: var(--code-font);
-            outline: none;
-            min-width: 160px;
-        }
-        .find-bar input:focus { border-color: var(--accent); }
-        .find-bar .fcount {
-            color: var(--text-2);
-            font-family: var(--code-font);
-            font-size: 12px;
-            min-width: 60px;
-        }
-        .find-bar button {
-            padding: 6px 10px;
-            background: var(--bg-3);
-            color: var(--text-0);
-            border: 1px solid var(--border-2);
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            min-width: 36px;
-            min-height: 36px;
-            touch-action: manipulation;
-        }
-        .find-bar button:hover { background: var(--bg-4); }
 
         .toast-container {
             position: fixed;
@@ -1501,20 +1355,12 @@
             .build-right p { font-size: 12.5px; }
             .topbar-title { display: none; }
             .brand-sub { display: none; }
-            .minimap { display: none; }
             .editor-body { height: 68vh; min-height: 400px; border-radius: 0; }
             .code-header { padding: 8px 10px; gap: 8px; }
             #fontDecBtn, #fontIncBtn, #formatCodeBtn { display: none; }
             .breadcrumb { padding: 6px 14px; font-size: 11px; }
             .status-bar { padding: 6px 12px; font-size: 10.5px; gap: 8px; border-radius: 0; }
             .status-left, .status-right { gap: 10px; }
-            .gutter { flex: 0 0 52px; }
-            .gutter-line { padding-right: 12px; padding-left: 12px; font-size: 12px; }
-            .highlight-layer,
-            .code-input { padding: 14px 14px; font-size: 12.5px; line-height: 20px; }
-            .gutter-line { height: 20px; line-height: 20px; }
-            .console-section { margin: 16px 0 0; }
-            .console-section details { margin: 0 16px; }
             .palette { top: 5vh; max-height: 75vh; width: 94vw; }
             .palette-list { max-height: 55vh; }
             .dropdown-content { min-width: 220px; }
@@ -1545,23 +1391,15 @@
             .topbar-actions { gap: 6px; }
             .dropdown-content { min-width: 200px; }
             .field input[type="text"], .field input[type="number"], .field textarea { padding: 10px 12px; font-size: 13px; }
-            .custom-select-trigger { padding: 11px 40px 11px 14px; font-size: 13px; }
             .tab { padding: 8px 14px; font-size: 12px; }
             .code-filename { font-size: 11.5px; padding: 4px 10px; }
             #codeStats { display: none; }
-            .gutter { flex: 0 0 44px; }
-            .gutter-line { padding-right: 8px; padding-left: 8px; font-size: 11.5px; }
-            .highlight-layer,
-            .code-input { padding: 12px 12px; font-size: 12px; line-height: 19px; }
-            .gutter-line { height: 19px; line-height: 19px; }
             .toast { font-size: 12px; padding: 10px 14px; }
             .fab-toggle { width: 48px; height: 48px; font-size: 22px; }
             .fab-menu { width: 92vw; max-width: 360px; bottom: 60px; }
             .sidebar-header { padding: 16px 18px; }
             .sidebar-body { padding: 14px 16px; }
             .sidebar-close { padding: 4px 8px; }
-            .find-bar { flex-wrap: wrap; }
-            .find-bar input { min-width: 0; flex: 1; }
         }
 
         @media (max-height: 600px) and (orientation: landscape) {
@@ -1752,24 +1590,8 @@
                         <span class="active-crumb" id="breadcrumbFunc">top of file</span>
                     </div>
 
-                    <div class="find-bar" id="findBar">
-                        <input type="text" id="findInput" placeholder="Find…" aria-label="Find" />
-                        <input type="text" id="replaceInput" placeholder="Replace…" aria-label="Replace" />
-                        <span class="fcount" id="findCount">0/0</span>
-                        <button type="button" id="findPrev" aria-label="Previous match">↑</button>
-                        <button type="button" id="findNext" aria-label="Next match">↓</button>
-                        <button type="button" id="replaceOne">Replace</button>
-                        <button type="button" id="replaceAll">All</button>
-                        <button type="button" id="findClose" aria-label="Close find">✕</button>
-                    </div>
-
                     <div class="editor-body">
-                        <div class="gutter" id="gutter">
-                            <div class="gutter-inner" id="gutterInner"></div>
-                        </div>
-                        <div class="editor-scroll">
-                            <pre class="highlight-layer" id="highlightLayer" aria-hidden="true"><div class="highlight-inner" id="highlightInner"></div></pre>
-                            <textarea id="js" class="code-input" wrap="off" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" aria-label="Code editor">const display = new Display();
+                        <textarea id="js" style="display:none">const display = new Display();
 display.perform();
 display.start(800, 600);
 display.backgroundColor("#0a0a0a");
@@ -1797,8 +1619,12 @@ function update(dt) {
     hud.setText("X: " + Math.floor(player.x) + "  Y: " + Math.floor(player.y));
     hud.fixed();
 }</textarea>
+                        <div id="cm-editor-container">
+                            <div class="cm-loading">
+                                <div class="cm-loading-spinner"></div>
+                                <div class="cm-loading-text">Loading editor…</div>
+                            </div>
                         </div>
-                        <div class="minimap" id="minimap" aria-hidden="true"></div>
                     </div>
 
                     <div class="status-bar">
@@ -2269,7 +2095,6 @@ https://cdn.example.com/my-library.js"></textarea>
                 if (ta) ta.value = '';
                 var t = document.getElementById('title');
                 if (t) t.textContent = '*Untitled*';
-                if (window.__renderCode) window.__renderCode();
                 closeSidebar();
             }
         });
@@ -2290,7 +2115,6 @@ https://cdn.example.com/my-library.js"></textarea>
                 if (ta) ta.value = content;
                 var t = document.getElementById('title');
                 if (t) t.textContent = file.name;
-                if (window.__renderCode) window.__renderCode();
                 closeSidebar();
                 if (window.toast) window.toast('Opened ' + file.name, 'success');
             };
@@ -2323,7 +2147,6 @@ https://cdn.example.com/my-library.js"></textarea>
                     if (ta) ta.value = store[name] || '';
                     var t = document.getElementById('title');
                     if (t) t.textContent = name;
-                    if (window.__renderCode) window.__renderCode();
                     closeSidebar();
                 });
 
@@ -2379,7 +2202,6 @@ https://cdn.example.com/my-library.js"></textarea>
                 if (bp) bp.style.display = which === 'build' ? 'grid' : 'none';
                 if (cs) cs.style.display = which === 'code' ? 'block' : 'none';
                 if (as) as.style.display = which === 'assets' ? 'block' : 'none';
-                if (which === 'code' && window.__renderCode) window.__renderCode();
             });
         }
 
@@ -2441,44 +2263,30 @@ https://cdn.example.com/my-library.js"></textarea>
         if (fabNew) fabNew.addEventListener('click', function () { closeFab(); if (newBtn) newBtn.click(); });
 
         var fabUndo = document.getElementById('fabUndo');
-        if (fabUndo) fabUndo.addEventListener('click', function () {
-            closeFab();
-            var ta = document.getElementById('js');
-            if (ta) { ta.focus(); try { document.execCommand('undo'); } catch (e) {} if (window.__renderCode) window.__renderCode(); }
-        });
+        if (fabUndo) fabUndo.addEventListener('click', function () { closeFab(); if (window.cmUndo) window.cmUndo(); });
 
         var fabRedo = document.getElementById('fabRedo');
-        if (fabRedo) fabRedo.addEventListener('click', function () {
-            closeFab();
-            var ta = document.getElementById('js');
-            if (ta) { ta.focus(); try { document.execCommand('redo'); } catch (e) {} if (window.__renderCode) window.__renderCode(); }
-        });
+        if (fabRedo) fabRedo.addEventListener('click', function () { closeFab(); if (window.cmRedo) window.cmRedo(); });
 
         var fabFind = document.getElementById('fabFind');
-        if (fabFind) fabFind.addEventListener('click', function () { closeFab(); if (window.openFind) window.openFind(); });
+        if (fabFind) fabFind.addEventListener('click', function () { closeFab(); if (window.cmOpenSearch) window.cmOpenSearch(); });
 
         var fabFormat = document.getElementById('fabFormat');
         if (fabFormat) fabFormat.addEventListener('click', function () {
             closeFab();
-            var btn = document.getElementById('formatCodeBtn');
-            if (btn) btn.click();
+            if (window.cmFormat) window.cmFormat();
         });
 
         var fabComment = document.getElementById('fabComment');
         if (fabComment) fabComment.addEventListener('click', function () {
             closeFab();
-            if (window.toggleComment) window.toggleComment();
+            if (window.cmToggleComment) window.cmToggleComment();
         });
 
         var fabWrap = document.getElementById('fabWrap');
         if (fabWrap) fabWrap.addEventListener('click', function () {
             closeFab();
-            var ta = document.getElementById('js');
-            var hl = document.getElementById('highlightLayer');
-            if (!ta) return;
-            var wrapped = ta.classList.toggle('wrap');
-            if (hl) hl.classList.toggle('wrap', wrapped);
-            fabWrap.classList.toggle('active', wrapped);
+            if (window.cmToggleWrap) window.cmToggleWrap();
         });
 
         var fabZoomIn = document.getElementById('fabZoomIn');
@@ -2500,519 +2308,240 @@ https://cdn.example.com/my-library.js"></textarea>
     })();
     </script>
 
-    <script>
-    (function () {
-        var textarea = document.getElementById('js');
-        var highlight = document.getElementById('highlightLayer');
-        var highlightInner = document.getElementById('highlightInner');
-        var gutter = document.getElementById('gutter');
-        var gutterInner = document.getElementById('gutterInner');
-        var stats = document.getElementById('codeStats');
-        var copyBtn = document.getElementById('copyCodeBtn');
-        var copyLabel = document.getElementById('copyCodeLabel');
-        var formatBtn = document.getElementById('formatCodeBtn');
-        var minimap = document.getElementById('minimap');
-        var statusLine = document.getElementById('statusLine');
-        var statusCol = document.getElementById('statusCol');
-        var statusSelection = document.getElementById('statusSelection');
-        var statusSize = document.getElementById('statusSize');
-        var breadcrumbFunc = document.getElementById('breadcrumbFunc');
-        var stateDot = document.getElementById('stateDot');
-        if (!textarea || !highlight || !gutter) return;
+    <script type="module">
+    import { EditorView, basicSetup } from "https://esm.sh/codemirror@6.0.1?deps=@codemirror/state@6.5.2,@codemirror/view@6.36.4,@codemirror/language@6.10.8,@codemirror/commands@6.7.1,@codemirror/search@6.5.8,@codemirror/autocomplete@6.18.3";
+    import { EditorState, Compartment } from "https://esm.sh/@codemirror/state@6.5.2";
+    import { javascript, javascriptLanguage } from "https://esm.sh/@codemirror/lang-javascript@6.2.2?deps=@codemirror/state@6.5.2,@codemirror/language@6.10.8,@codemirror/autocomplete@6.18.3";
+    import { oneDark } from "https://esm.sh/@codemirror/theme-one-dark@6.1.2?deps=@codemirror/state@6.5.2,@codemirror/view@6.36.4";
+    import { undo, redo } from "https://esm.sh/@codemirror/commands@6.7.1?deps=@codemirror/state@6.5.2,@codemirror/view@6.36.4";
+    import { openSearchPanel, closeSearchPanel } from "https://esm.sh/@codemirror/search@6.5.8?deps=@codemirror/state@6.5.2,@codemirror/view@6.36.4";
+    import { completeFromList } from "https://esm.sh/@codemirror/autocomplete@6.18.3?deps=@codemirror/state@6.5.2,@codemirror/view@6.36.4";
+    import { indentUnit } from "https://esm.sh/@codemirror/language@6.10.8?deps=@codemirror/state@6.5.2,@codemirror/view@6.36.4";
 
-        var KEYWORDS = { 'const':1,'let':1,'var':1,'function':1,'return':1,'if':1,'else':1,'for':1,'while':1,'do':1,'break':1,'continue':1,'new':1,'this':1,'class':1,'extends':1,'super':1,'try':1,'catch':1,'finally':1,'throw':1,'switch':1,'case':1,'default':1,'typeof':1,'instanceof':1,'in':1,'of':1,'delete':1,'void':1,'yield':1,'await':1,'async':1,'static':1,'get':1,'set':1,'import':1,'export':1,'from':1,'as':1 };
-        var BUILTINS = { 'Display':1,'Component':1,'Tctxt':1,'Camera':1,'Sprite':1,'AnimatedSprite':1,'Tile':1,'TileMap':1,'Particle':1,'ParticleSystem':1,'Sound':1,'SoundManager':1,'Math':1,'JSON':1,'Object':1,'Array':1,'String':1,'Number':1,'Boolean':1,'Date':1,'Set':1,'Map':1,'Promise':1,'Error':1,'console':1,'window':1,'document':1,'display':1,'mouse':1 };
-        var LITERALS = { 'true':1,'false':1,'null':1,'undefined':1,'NaN':1,'Infinity':1 };
+    var container = document.getElementById('cm-editor-container');
+    var textarea = document.getElementById('js');
 
-        var VISIBLE_BUFFER = 40;
-        var currentLineHeight = 22;
+    if (!container || !textarea) {
+        console.warn('[codemirror] container or textarea missing');
+    } else {
+        var wrapCompartment = new Compartment();
+        var wrapOn = false;
 
-        function measureLineHeight() {
-            var cs = getComputedStyle(textarea);
-            var lh = parseFloat(cs.lineHeight);
-            if (isNaN(lh)) {
-                var fs = parseFloat(cs.fontSize) || 13;
-                lh = fs * 1.5;
-            }
-            currentLineHeight = lh;
-            return lh;
-        }
+        var limnApis = [
+            { label: "Display", type: "class", detail: "Game engine core" },
+            { label: "new Display()", type: "method", detail: "Create a new engine" },
+            { label: "display.perform()", type: "method", detail: "Initialize the display" },
+            { label: "display.start(w, h)", type: "method", detail: "Start the game loop" },
+            { label: "display.backgroundColor(hex)", type: "method" },
+            { label: "display.add(obj)", type: "method", detail: "Add an object to the scene" },
+            { label: "display.remove(obj)", type: "method" },
+            { label: "display.camera", type: "property" },
+            { label: "display.camera.worldWidth", type: "property" },
+            { label: "display.camera.worldHeight", type: "property" },
+            { label: "display.camera.follow(target)", type: "method" },
+            { label: "display.keys", type: "property", detail: "Keyboard state by keyCode" },
+            { label: "display.x", type: "property", detail: "Mouse X (false if up)" },
+            { label: "display.y", type: "property", detail: "Mouse Y (false if up)" },
+            { label: "Component", type: "class", detail: "Rectangular game object" },
+            { label: "new Component(w, h, color, x, y, shape)", type: "method" },
+            { label: "Tctxt", type: "class", detail: "Text object" },
+            { label: "new Tctxt(size, font, color, x, y, align)", type: "method" },
+            { label: "hud.setText(str)", type: "method" },
+            { label: "hud.fixed()", type: "method", detail: "Keep text on screen (HUD)" },
+            { label: "obj.destroy()", type: "method", detail: "Remove object from scene" },
+            { label: "obj.speedX", type: "property" },
+            { label: "obj.speedY", type: "property" },
+            { label: "obj.width", type: "property" },
+            { label: "obj.height", type: "property" },
+            { label: "obj.color", type: "property" },
+            { label: "obj.angle", type: "property" },
+            { label: "function update(dt) {}", type: "function", detail: "Frame update callback" },
+            { label: "mouse.x", type: "property" },
+            { label: "mouse.y", type: "property" }
+        ];
 
-        function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-        function tokenize(code) {
-            var out = '';
-            var i = 0, n = code.length;
-            while (i < n) {
-                var ch = code[i];
-                if (ch === '/' && code[i+1] === '/') {
-                    var j = i; while (j < n && code[j] !== '\n') j++;
-                    out += '<span class="tok-comment">' + esc(code.slice(i, j)) + '</span>';
-                    i = j; continue;
-                }
-                if (ch === '/' && code[i+1] === '*') {
-                    var k = i + 2;
-                    while (k < n && !(code[k] === '*' && code[k+1] === '/')) k++;
-                    k = Math.min(k + 2, n);
-                    out += '<span class="tok-comment">' + esc(code.slice(i, k)) + '</span>';
-                    i = k; continue;
-                }
-                if (ch === '"' || ch === "'" || ch === '`') {
-                    var q = ch, m = i + 1;
-                    while (m < n) {
-                        if (code[m] === '\\') { m += 2; continue; }
-                        if (code[m] === q) { m++; break; }
-                        m++;
-                    }
-                    out += '<span class="tok-string">' + esc(code.slice(i, m)) + '</span>';
-                    i = m; continue;
-                }
-                if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(code[i+1]))) {
-                    var p = i;
-                    while (p < n && /[0-9a-fA-FxX._]/.test(code[p])) p++;
-                    out += '<span class="tok-number">' + esc(code.slice(i, p)) + '</span>';
-                    i = p; continue;
-                }
-                if (/[A-Za-z_$]/.test(ch)) {
-                    var s = i;
-                    while (s < n && /[A-Za-z0-9_$]/.test(code[s])) s++;
-                    var word = code.slice(i, s);
-                    var la = s;
-                    while (la < n && (code[la] === ' ' || code[la] === '\t')) la++;
-                    var isCall = code[la] === '(';
-                    var lb = i - 1;
-                    while (lb >= 0 && (code[lb] === ' ' || code[lb] === '\t')) lb--;
-                    var isProperty = lb >= 0 && code[lb] === '.';
-                    var cls = 'tok-punct';
-                    if (LITERALS[word]) cls = 'tok-boolean';
-                    else if (KEYWORDS[word]) cls = 'tok-keyword';
-                    else if (BUILTINS[word]) cls = 'tok-builtin';
-                    else if (isProperty) cls = 'tok-property';
-                    else if (isCall) cls = 'tok-function';
-                    else if (/^[A-Z]/.test(word)) cls = 'tok-class';
-                    out += '<span class="' + cls + '">' + esc(word) + '</span>';
-                    i = s; continue;
-                }
-                if (/[+\-*/%=<>!&|^~?:]/.test(ch)) {
-                    var o = i;
-                    while (o < n && /[+\-*/%=<>!&|^~?:]/.test(code[o])) o++;
-                    out += '<span class="tok-operator">' + esc(code.slice(i, o)) + '</span>';
-                    i = o; continue;
-                }
-                if (/[{}()[\];,.]/.test(ch)) {
-                    out += '<span class="tok-punct">' + esc(ch) + '</span>';
-                    i++; continue;
-                }
-                out += esc(ch);
-                i++;
-            }
-            return out;
-        }
-
-        function analyzeBrackets(code) {
-            var linesWithError = {};
-            var stack = [];
-            var pairs = { ')': '(', ']': '[', '}': '{' };
-            var inLineComment = false;
-            var inBlockComment = false;
-            var inString = null;
-            var lineNumber = 1;
-
-            for (var i = 0; i < code.length; i++) {
-                var ch = code[i];
-                var next = code[i+1];
-
-                if (ch === '\n') {
-                    lineNumber++;
-                    inLineComment = false;
-                    continue;
-                }
-                if (inLineComment) continue;
-                if (inBlockComment) {
-                    if (ch === '*' && next === '/') { inBlockComment = false; i++; }
-                    continue;
-                }
-                if (inString) {
-                    if (ch === '\\') { i++; continue; }
-                    if (ch === inString) inString = null;
-                    continue;
-                }
-                if (ch === '/' && next === '/') { inLineComment = true; i++; continue; }
-                if (ch === '/' && next === '*') { inBlockComment = true; i++; continue; }
-                if (ch === '"' || ch === "'" || ch === '`') { inString = ch; continue; }
-
-                if (ch === '(' || ch === '[' || ch === '{') {
-                    stack.push({ ch: ch, line: lineNumber });
-                } else if (ch === ')' || ch === ']' || ch === '}') {
-                    var expected = pairs[ch];
-                    if (stack.length === 0 || stack[stack.length - 1].ch !== expected) {
-                        linesWithError[lineNumber] = true;
-                    } else {
-                        stack.pop();
-                    }
-                }
-            }
-
-            for (var k = 0; k < stack.length; k++) {
-                linesWithError[stack[k].line] = true;
-            }
-
-            return linesWithError;
-        }
-
-        function renderMinimap() {
-            if (!minimap) return;
-            var code = textarea.value;
-            var lines = code.split('\n');
-            var maxH = minimap.clientHeight || 500;
-            var lineH = Math.max(1, Math.min(2, Math.floor(maxH / Math.max(1, lines.length))));
-            minimap.innerHTML = '';
-            for (var i = 0; i < lines.length; i++) {
-                var line = lines[i];
-                if (!line.trim()) continue;
-                var el = document.createElement('div');
-                el.className = 'minimap-line';
-                if (/^\s*\/\//.test(line)) el.classList.add('comment');
-                else if (/function|=>/.test(line)) el.classList.add('function');
-                else if (/["'`]/.test(line)) el.classList.add('string');
-                else if (/\b(const|let|var|if|for|return|new)\b/.test(line)) el.classList.add('keyword');
-                var indent = line.search(/\S/);
-                el.style.top = (i * lineH) + 'px';
-                el.style.left = (2 + Math.min(indent, 20) * 0.6) + 'px';
-                el.style.height = lineH + 'px';
-                minimap.appendChild(el);
-            }
-            var vp = document.createElement('div');
-            vp.className = 'minimap-viewport';
-            vp.id = 'minimapViewport';
-            minimap.appendChild(vp);
-            updateMinimapViewport();
-        }
-
-        function updateMinimapViewport() {
-            var vp = document.getElementById('minimapViewport');
-            if (!vp || !minimap) return;
-            var lines = textarea.value.split('\n');
-            var maxH = minimap.clientHeight || 500;
-            var lineH = Math.max(1, Math.min(2, Math.floor(maxH / Math.max(1, lines.length))));
-            var scrollRatio = textarea.scrollTop / Math.max(1, textarea.scrollHeight - textarea.clientHeight);
-            var visibleRatio = textarea.clientHeight / Math.max(1, textarea.scrollHeight);
-            var vpH = Math.max(20, visibleRatio * lines.length * lineH);
-            vp.style.top = (scrollRatio * Math.max(0, maxH - vpH)) + 'px';
-            vp.style.height = vpH + 'px';
-        }
-
-        var pendingErrorAnalysis = null;
-        var _lastGutterLineCount = 0;
-
-        function visibleRange(lineCount) {
-            var lh = currentLineHeight;
-            var viewportH = textarea.clientHeight || 500;
-            var scrollTop = textarea.scrollTop || 0;
-            var first = Math.max(0, Math.floor(scrollTop / lh) - VISIBLE_BUFFER);
-            var last = Math.min(lineCount, Math.ceil((scrollTop + viewportH) / lh) + VISIBLE_BUFFER);
-            if (last <= first) last = Math.min(lineCount, first + 1);
-            return { first: first, last: last };
-        }
-
-        function buildLineHtml(lineText) {
-            if (lineText === '') return ' ';
-            return tokenize(lineText);
-        }
-
-        function renderChunk() {
-            var code = textarea.value;
-            var lines = code.split('\n');
-            var lineCount = lines.length;
-
-            var r = visibleRange(lineCount);
-            var startLine = r.first;
-            var endLine = r.last;
-
-            var html = '';
-            if (startLine > 0) {
-                html += '<div style="height:' + (startLine * currentLineHeight) + 'px"></div>';
-            }
-            for (var i = startLine; i < endLine; i++) {
-                html += buildLineHtml(lines[i]);
-                if (i < endLine - 1) html += '\n';
-            }
-            if (endLine < lineCount) {
-                html += '<div style="height:' + ((lineCount - endLine) * currentLineHeight) + 'px"></div>';
-            }
-            if (code.endsWith('\n')) html += ' ';
-            highlightInner.innerHTML = html;
-
-            if (lineCount !== _lastGutterLineCount) {
-                var g = '';
-                for (var k = 1; k <= lineCount; k++) {
-                    g += '<div class="gutter-line" data-line="' + k + '">' + k + '</div>';
-                }
-                gutterInner.innerHTML = g;
-                _lastGutterLineCount = lineCount;
-                renderMinimap();
-            }
-
-            if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
-            if (statusSize) statusSize.textContent = code.length + ' chars';
-
-            syncScroll();
-            updateActiveLine();
-            scheduleErrorAnalysis();
-        }
-
-        var _renderQueued = false;
-        function render() {
-            if (_renderQueued) return;
-            _renderQueued = true;
-            requestAnimationFrame(function () {
-                _renderQueued = false;
-                renderChunk();
-            });
-        }
-
-        function scheduleErrorAnalysis() {
-            if (pendingErrorAnalysis) clearTimeout(pendingErrorAnalysis);
-            pendingErrorAnalysis = setTimeout(runErrorAnalysis, 350);
-        }
-
-        function runErrorAnalysis() {
-            pendingErrorAnalysis = null;
-            var errors = analyzeBrackets(textarea.value);
-            var lines = gutterInner.children;
-            for (var i = 0; i < lines.length; i++) {
-                lines[i].classList.toggle('has-error', !!errors[i + 1]);
-            }
-        }
-
-        function syncScroll() {
-            var y = textarea.scrollTop;
-            var x = textarea.scrollLeft;
-            highlightInner.style.transform = 'translate(' + (-x) + 'px, ' + (-y) + 'px)';
-            highlightInner.style.paddingLeft = x + 'px';
-            highlightInner.style.paddingTop = y + 'px';
-            gutterInner.style.transform = 'translateY(' + (-y) + 'px)';
-            updateMinimapViewport();
-            var lineCount = textarea.value.split('\n').length;
-            var r = visibleRange(lineCount);
-            var currentStart = parseInt(highlightInner.dataset.startLine || '0', 10);
-            var currentEnd = parseInt(highlightInner.dataset.endLine || '0', 10);
-            if (r.first !== currentStart || r.last !== currentEnd) {
-                highlightInner.dataset.startLine = r.first;
-                highlightInner.dataset.endLine = r.last;
-                renderChunk();
-            }
-        }
-        textarea.addEventListener('scroll', syncScroll);
-
-        function updateActiveLine() {
-            var before = textarea.value.slice(0, textarea.selectionStart);
-            var line = before.split('\n').length;
-            var col = before.length - before.lastIndexOf('\n');
-            var lines = gutterInner.children;
-            for (var i = 0; i < lines.length; i++) lines[i].classList.toggle('active', i + 1 === line);
-            if (statusLine) statusLine.textContent = line;
-            if (statusCol) statusCol.textContent = col;
-            var selLen = textarea.selectionEnd - textarea.selectionStart;
-            if (statusSelection) statusSelection.textContent = selLen;
-            updateBreadcrumb(line);
-        }
-
-        function updateBreadcrumb(line) {
-            if (!breadcrumbFunc) return;
-            var code = textarea.value;
-            var lines = code.split('\n');
-            var func = 'top of file';
-            for (var i = line - 1; i >= 0; i--) {
-                var m = lines[i].match(/(?:function\s+|const\s+|let\s+|var\s+)([A-Za-z_$][\w$]*)/);
-                if (m) { func = m[1] + '()'; break; }
-            }
-            breadcrumbFunc.textContent = func;
-        }
-
-        function insertAtCursor(text) {
-            var start = textarea.selectionStart;
-            var end = textarea.selectionEnd;
-            var val = textarea.value;
-            textarea.value = val.slice(0, start) + text + val.slice(end);
-            var pos = start + text.length;
-            textarea.selectionStart = textarea.selectionEnd = pos;
-            render();
-        }
-
-        function indentSelection() {
-            var start = textarea.selectionStart;
-            var end = textarea.selectionEnd;
-            var val = textarea.value;
-            var lineStart = val.lastIndexOf('\n', start - 1) + 1;
-            var lineEnd = val.indexOf('\n', end);
-            if (lineEnd === -1) lineEnd = val.length;
-            var block = val.slice(lineStart, lineEnd);
-            var indented = block.split('\n').map(function (l) { return '    ' + l; }).join('\n');
-            textarea.value = val.slice(0, lineStart) + indented + val.slice(lineEnd);
-            textarea.selectionStart = lineStart;
-            textarea.selectionEnd = lineStart + indented.length;
-            render();
-        }
-
-        var PAIRS = { '(':')', '[':']', '{':'}', '"':'"', "'":"'", '`':'`' };
-        var CLOSERS = { ')':1, ']':1, '}':1 };
-
-        textarea.addEventListener('keydown', function (e) {
-            var start = textarea.selectionStart;
-            var end = textarea.selectionEnd;
-            var val = textarea.value;
-            var mod = e.ctrlKey || e.metaKey;
-
-            if (mod && (e.key === 's' || e.key === 'S')) {
-                e.preventDefault();
-                if (e.shiftKey) { if (typeof saveAs === 'function') saveAs(); }
-                else { if (typeof save === 'function') save(); }
-                return;
-            }
-            if (mod && (e.key === 'k' || e.key === 'K' || e.key === 'p' || e.key === 'P')) {
-                e.preventDefault();
-                if (window.openPalette) window.openPalette();
-                return;
-            }
-            if (mod && (e.key === 'f' || e.key === 'F')) {
-                e.preventDefault();
-                if (window.openFind) window.openFind();
-                return;
-            }
-            if (mod && (e.key === 'g' || e.key === 'G')) {
-                e.preventDefault();
-                if (window.gotoLine) window.gotoLine();
-                return;
-            }
-            if (mod && (e.key === '/' || e.key === '?')) {
-                e.preventDefault();
-                if (window.toggleComment) window.toggleComment();
-                return;
-            }
-            if (mod && (e.key === 'd' || e.key === 'D')) {
-                e.preventDefault();
-                duplicateLine();
-                return;
-            }
-            if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-                e.preventDefault();
-                moveLine(e.key === 'ArrowUp' ? -1 : 1);
-                return;
-            }
-            if (mod && e.key === 'Enter') {
-                e.preventDefault();
-                if (typeof runn === 'function') runn();
-                return;
-            }
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                if (start === end) insertAtCursor('    ');
-                else indentSelection();
-                return;
-            }
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                var lineStart = val.lastIndexOf('\n', start - 1) + 1;
-                var currentLine = val.slice(lineStart, start);
-                var indentMatch = currentLine.match(/^[ \t]*/);
-                var indent = indentMatch ? indentMatch[0] : '';
-                if (/[{[(]\s*$/.test(currentLine)) indent += '    ';
-                insertAtCursor('\n' + indent);
-                return;
-            }
-            if (PAIRS[e.key] && start === end) {
-                e.preventDefault();
-                insertAtCursor(e.key + PAIRS[e.key]);
-                textarea.selectionStart = textarea.selectionEnd = start + 1;
-                return;
-            }
-            if (CLOSERS[e.key] && start === end && val[start] === e.key) {
-                e.preventDefault();
-                textarea.selectionStart = textarea.selectionEnd = start + 1;
-                return;
-            }
-            if (e.key === 'Backspace' && start === end && start > 0) {
-                var before = val[start - 1];
-                var after = val[start];
-                if (PAIRS[before] && PAIRS[before] === after) {
-                    e.preventDefault();
-                    textarea.value = val.slice(0, start - 1) + val.slice(start + 1);
-                    textarea.selectionStart = textarea.selectionEnd = start - 1;
-                    render();
-                    return;
-                }
-            }
+        var limnCompletion = javascriptLanguage.data.of({
+            autocomplete: completeFromList(limnApis)
         });
 
-        function duplicateLine() {
-            var start = textarea.selectionStart;
-            var val = textarea.value;
-            var lineStart = val.lastIndexOf('\n', start - 1) + 1;
-            var lineEnd = val.indexOf('\n', start);
-            if (lineEnd === -1) lineEnd = val.length;
-            var line = val.slice(lineStart, lineEnd);
-            textarea.value = val.slice(0, lineEnd) + '\n' + line + val.slice(lineEnd);
-            textarea.selectionStart = textarea.selectionEnd = lineEnd + 1 + line.length;
-            render();
+        var view = new EditorView({
+            state: EditorState.create({
+                doc: textarea.value,
+                extensions: [
+                    basicSetup,
+                    javascript(),
+                    oneDark,
+                    indentUnit.of('    '),
+                    limnCompletion,
+                    wrapCompartment.of([]),
+                    EditorView.updateListener.of(function (update) {
+                        if (update.docChanged) {
+                            var newCode = update.state.doc.toString();
+                            if (textarea.value !== newCode) {
+                                suppressSync = true;
+                                textarea.value = newCode;
+                                suppressSync = false;
+                            }
+                            updateStats(newCode);
+                            if (window.__markDirty) window.__markDirty();
+                        }
+                        if (update.selectionSet || update.docChanged) {
+                            updateCursorInfo(update.state);
+                        }
+                    })
+                ]
+            }),
+            parent: container
+        });
+
+        var suppressSync = false;
+
+        try {
+            var nativeSetter = Object.getOwnPropertyDescriptor(
+                HTMLTextAreaElement.prototype, 'value'
+            ).set;
+
+            Object.defineProperty(textarea, 'value', {
+                configurable: true,
+                get: function () {
+                    return nativeSetter.call(this);
+                },
+                set: function (v) {
+                    nativeSetter.call(this, v);
+                    if (suppressSync) return;
+                    var current = view.state.doc.toString();
+                    if (current !== v) {
+                        view.dispatch({
+                            changes: { from: 0, to: view.state.doc.length, insert: v }
+                        });
+                    }
+                }
+            });
+        } catch (e) {
+            console.warn('[codemirror] value override failed:', e);
         }
 
-        function moveLine(dir) {
-            var start = textarea.selectionStart;
-            var val = textarea.value;
-            var lineStart = val.lastIndexOf('\n', start - 1) + 1;
-            var lineEnd = val.indexOf('\n', start);
-            if (lineEnd === -1) lineEnd = val.length;
-            var line = val.slice(lineStart, lineEnd);
-            if (dir === -1 && lineStart === 0) return;
-            if (dir === 1 && lineEnd === val.length) return;
-            if (dir === -1) {
-                var prevStart = val.lastIndexOf('\n', lineStart - 2) + 1;
-                var prevLine = val.slice(prevStart, lineStart - 1);
-                textarea.value = val.slice(0, prevStart) + line + '\n' + prevLine + val.slice(lineEnd);
-                textarea.selectionStart = textarea.selectionEnd = prevStart + line.length;
-            } else {
-                var nextEnd = val.indexOf('\n', lineEnd + 1);
-                if (nextEnd === -1) nextEnd = val.length;
-                var nextLine = val.slice(lineEnd + 1, nextEnd);
-                textarea.value = val.slice(0, lineStart) + nextLine + '\n' + line + val.slice(nextEnd);
-                textarea.selectionStart = textarea.selectionEnd = lineStart + nextLine.length + 1 + line.length;
+        var loader = container.querySelector('.cm-loading');
+        if (loader) loader.remove();
+
+        function updateStats(code) {
+            var lines = code.split('\n').length;
+            var stats = document.getElementById('codeStats');
+            var size = document.getElementById('statusSize');
+            if (stats) stats.textContent = lines + (lines === 1 ? ' line' : ' lines');
+            if (size) size.textContent = code.length + ' chars';
+        }
+
+        function updateCursorInfo(state) {
+            var pos = state.selection.main.head;
+            var line = state.doc.lineAt(pos);
+            var lineEl = document.getElementById('statusLine');
+            var colEl = document.getElementById('statusCol');
+            if (lineEl) lineEl.textContent = line.number;
+            if (colEl) colEl.textContent = pos - line.from + 1;
+            var selEl = document.getElementById('statusSelection');
+            if (selEl) {
+                var len = state.selection.ranges.reduce(function (acc, r) {
+                    return acc + Math.abs(r.to - r.from);
+                }, 0);
+                selEl.textContent = len;
             }
-            render();
         }
 
-        window.toggleComment = function () {
-            var start = textarea.selectionStart;
-            var end = textarea.selectionEnd;
-            var val = textarea.value;
-            var lineStart = val.lastIndexOf('\n', start - 1) + 1;
-            var lineEnd = val.indexOf('\n', end);
-            if (lineEnd === -1) lineEnd = val.length;
-            var block = val.slice(lineStart, lineEnd);
-            var lines = block.split('\n');
-            var allCommented = lines.every(function (l) { return /^\s*\/\//.test(l); });
-            var out = lines.map(function (l) {
-                if (allCommented) return l.replace(/^(\s*)\/\/\s?/, '$1');
-                return l.replace(/^(\s*)/, '$1// ');
-            }).join('\n');
-            textarea.value = val.slice(0, lineStart) + out + val.slice(lineEnd);
-            textarea.selectionStart = lineStart;
-            textarea.selectionEnd = lineStart + out.length;
-            render();
+        window.cmUndo = function () { undo(view); view.focus(); };
+        window.cmRedo = function () { redo(view); view.focus(); };
+
+        window.cmOpenSearch = function () { openSearchPanel(view); };
+        window.cmCloseSearch = function () { closeSearchPanel(view); };
+
+        window.cmToggleWrap = function () {
+            wrapOn = !wrapOn;
+            view.dispatch({
+                effects: wrapCompartment.reconfigure(wrapOn ? EditorView.lineWrapping : [])
+            });
+            var btn = document.getElementById('fabWrap');
+            if (btn) btn.classList.toggle('active', wrapOn);
         };
 
-        textarea.addEventListener('input', function () {
-            updateActiveLine();
-            render();
-            if (window.__markDirty) window.__markDirty();
-        });
-        textarea.addEventListener('keyup', updateActiveLine);
-        textarea.addEventListener('click', updateActiveLine);
-        textarea.addEventListener('select', updateActiveLine);
+        window.cmToggleComment = function () {
+            var state = view.state;
+            var changes = [];
+            var lines = new Set();
+            state.selection.ranges.forEach(function (r) {
+                var startLine = state.doc.lineAt(r.from).number;
+                var endLine = state.doc.lineAt(r.to).number;
+                for (var i = startLine; i <= endLine; i++) lines.add(i);
+            });
+            var allCommented = true;
+            lines.forEach(function (n) {
+                var line = state.doc.line(n);
+                var trimmed = line.text.replace(/^\s*/, '');
+                if (!trimmed.startsWith('//')) allCommented = false;
+            });
+            lines.forEach(function (n) {
+                var line = state.doc.line(n);
+                if (allCommented) {
+                    var idx = line.text.indexOf('//');
+                    if (idx >= 0) {
+                        var end = idx + 2;
+                        if (line.text.charAt(end) === ' ') end++;
+                        changes.push({ from: line.from + idx, to: line.from + end, insert: '' });
+                    }
+                } else {
+                    var indent = line.text.match(/^\s*/)[0].length;
+                    changes.push({ from: line.from + indent, insert: '// ' });
+                }
+            });
+            if (changes.length) {
+                view.dispatch({ changes: changes });
+            }
+        };
 
+        window.cmFormat = function () {
+            var code = view.state.doc.toString();
+            var srcLines = code.split('\n');
+            var out = [];
+            var depth = 0;
+            for (var i = 0; i < srcLines.length; i++) {
+                var line = srcLines[i].trim();
+                if (line === '') { out.push(''); continue; }
+                if (/^[}\])]/.test(line)) depth = Math.max(0, depth - 1);
+                out.push('    '.repeat(depth) + line);
+                var opens = (line.match(/[{\[(]/g) || []).length;
+                var closes = (line.match(/[}\])]/g) || []).length;
+                if (!/^[}\])]/.test(line)) depth += opens - closes;
+                else depth += opens;
+                if (depth < 0) depth = 0;
+            }
+            var formatted = out.join('\n');
+            if (formatted === code) {
+                if (window.toast) window.toast('Code already formatted', 'success');
+                return;
+            }
+            view.dispatch({
+                changes: { from: 0, to: view.state.doc.length, insert: formatted }
+            });
+            if (window.toast) window.toast('Code formatted', 'success');
+        };
+
+        window.__getCode = function () { return view.state.doc.toString(); };
+        window.__setCode = function (code) {
+            view.dispatch({
+                changes: { from: 0, to: view.state.doc.length, insert: code }
+            });
+        };
+        window.__renderCode = function () {
+            var current = view.state.doc.toString();
+            if (textarea.value !== current) {
+                window.__setCode(textarea.value);
+            }
+        };
+
+        var copyBtn = document.getElementById('copyCodeBtn');
+        var copyLabel = document.getElementById('copyCodeLabel');
         if (copyBtn) {
             copyBtn.addEventListener('click', function () {
-                var text = textarea.value;
+                var text = view.state.doc.toString();
                 var done = function () {
                     copyBtn.classList.add('copied');
                     copyLabel.textContent = 'Copied!';
@@ -3023,7 +2552,9 @@ https://cdn.example.com/my-library.js"></textarea>
                     }, 1400);
                 };
                 if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text, done); });
+                    navigator.clipboard.writeText(text).then(done).catch(function () {
+                        fallbackCopy(text, done);
+                    });
                 } else {
                     fallbackCopy(text, done);
                 }
@@ -3042,400 +2573,63 @@ https://cdn.example.com/my-library.js"></textarea>
             done();
         }
 
-        if (formatBtn) {
-            formatBtn.addEventListener('click', function () {
-                var code = textarea.value;
-                var lines = code.split('\n');
-                var out = [];
-                var depth = 0;
-                for (var i = 0; i < lines.length; i++) {
-                    var line = lines[i].trim();
-                    if (line === '') { out.push(''); continue; }
-                    if (/^[}\])]/.test(line)) depth = Math.max(0, depth - 1);
-                    out.push('    '.repeat(depth) + line);
-                    var opens = (line.match(/[{\[(]/g) || []).length;
-                    var closes = (line.match(/[}\])]/g) || []).length;
-                    if (!/^[}\])]/.test(line)) depth += opens - closes;
-                    else depth += opens;
-                }
-                textarea.value = out.join('\n');
-                render();
-                if (window.toast) window.toast('Code formatted', 'success');
-            });
-        }
+        var formatBtn = document.getElementById('formatCodeBtn');
+        if (formatBtn) formatBtn.addEventListener('click', function () { window.cmFormat(); });
+
+        var findBtn = document.getElementById('findBtn');
+        if (findBtn) findBtn.addEventListener('click', function () { window.cmOpenSearch(); });
 
         var fontDec = document.getElementById('fontDecBtn');
         var fontInc = document.getElementById('fontIncBtn');
-        var fontSize = 13;
-        var fontRoot = document.documentElement;
+        var currentFontSize = 13;
 
-        function applyFont() {
-            var lh = Math.round(fontSize * 1.55);
-            fontRoot.style.setProperty('--code-font-size', fontSize + 'px');
-            fontRoot.style.setProperty('--code-line-height', lh + 'px');
-            textarea.style.fontSize = fontSize + 'px';
-            highlight.style.fontSize = fontSize + 'px';
-            textarea.style.lineHeight = lh + 'px';
-            highlight.style.lineHeight = lh + 'px';
-            var lines = gutterInner.children;
-            for (var i = 0; i < lines.length; i++) {
-                lines[i].style.height = lh + 'px';
-                lines[i].style.lineHeight = lh + 'px';
-                lines[i].style.fontSize = fontSize + 'px';
+        function applyFontSize() {
+            var editorDom = container.querySelector('.cm-editor');
+            if (editorDom) {
+                editorDom.style.fontSize = currentFontSize + 'px';
             }
-            measureLineHeight();
-            renderChunk();
         }
+
         if (fontDec) fontDec.addEventListener('click', function () {
-            fontSize = Math.max(10, fontSize - 1); applyFont();
+            currentFontSize = Math.max(10, currentFontSize - 1);
+            applyFontSize();
         });
         if (fontInc) fontInc.addEventListener('click', function () {
-            fontSize = Math.min(22, fontSize + 1); applyFont();
+            currentFontSize = Math.min(22, currentFontSize + 1);
+            applyFontSize();
         });
-
-        var findBtn = document.getElementById('findBtn');
-        if (findBtn) findBtn.addEventListener('click', function () {
-            if (window.openFind) window.openFind();
-        });
-
-        if (minimap) {
-            minimap.addEventListener('click', function (e) {
-                var rect = minimap.getBoundingClientRect();
-                var ratio = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-                textarea.scrollTop = ratio * Math.max(0, textarea.scrollHeight - textarea.clientHeight);
-                syncScroll();
-            });
-        }
-
-        window.__renderCode = render;
-
-        measureLineHeight();
-        applyFont();
-        renderChunk();
-
-        var lastSavedCode = textarea.value;
-        window.__markDirty = function () {
-            var state = textarea.value === lastSavedCode ? 'saved' : 'unsaved';
-            if (stateDot) stateDot.className = 'dot' + (state === 'saved' ? ' saved' : ' unsaved');
-            var s = document.getElementById('statusState');
-            if (s) {
-                s.className = 'status-item ' + state;
-                var b = s.querySelector('.badge');
-                if (b) b.textContent = state === 'saved' ? 'Saved' : 'Unsaved';
-            }
-        };
-        window.__markSaved = function () {
-            lastSavedCode = textarea.value;
-            window.__markDirty();
-        };
-        window.__markDirty();
-    })();
-    </script>
-
-    <script>
-    (function () {
-        var headField = document.getElementById('assetHead');
-        var cssField = document.getElementById('assetCss');
-        var scriptsField = document.getElementById('assetScripts');
-        var testBtn = document.getElementById('assetTest');
-        var clearBtn = document.getElementById('assetClear');
-
-        function ensureConfig() {
-            if (!window.currentConfig || typeof window.currentConfig !== 'object') {
-                window.currentConfig = {};
-            }
-            if (!window.currentConfig.assets || typeof window.currentConfig.assets !== 'object') {
-                window.currentConfig.assets = { head: '', css: '', scripts: '' };
-            }
-            return window.currentConfig.assets;
-        }
-
-        window.getCurrentAssets = function () {
-            var a = ensureConfig();
-            return {
-                head: (headField && headField.value) || a.head || '',
-                css: (cssField && cssField.value) || a.css || '',
-                scripts: (scriptsField && scriptsField.value) || a.scripts || ''
-            };
-        };
-
-        window.__applyAssetsToFields = function () {
-            var a = ensureConfig();
-            if (headField) headField.value = a.head || '';
-            if (cssField) cssField.value = a.css || '';
-            if (scriptsField) scriptsField.value = a.scripts || '';
-        };
-
-        function saveAssetsToConfig() {
-            var a = ensureConfig();
-            if (headField) a.head = headField.value;
-            if (cssField) a.css = cssField.value;
-            if (scriptsField) a.scripts = scriptsField.value;
-        }
-
-        if (headField) headField.addEventListener('input', saveAssetsToConfig);
-        if (cssField) cssField.addEventListener('input', saveAssetsToConfig);
-        if (scriptsField) scriptsField.addEventListener('input', saveAssetsToConfig);
-
-        if (testBtn) {
-            testBtn.addEventListener('click', function () {
-                saveAssetsToConfig();
-                if (typeof runn === 'function') runn();
-            });
-        }
-
-        if (clearBtn) {
-            clearBtn.addEventListener('click', function () {
-                if (!confirm('Clear all assets? This cannot be undone.')) return;
-                if (headField) headField.value = '';
-                if (cssField) cssField.value = '';
-                if (scriptsField) scriptsField.value = '';
-                saveAssetsToConfig();
-                if (window.toast) window.toast('Assets cleared', 'warning');
-            });
-        }
-
-        window.__applyAssetsToFields();
-    })();
-    </script>
-
-    <script>
-    (function () {
-        var palette = document.getElementById('palette');
-        var paletteInput = document.getElementById('paletteInput');
-        var paletteList = document.getElementById('paletteList');
-        var paletteBackdrop = document.getElementById('paletteBackdrop');
-        var focusedIndex = 0;
-        var items = [];
-
-        var commands = [
-            { icon: '▶', label: 'Run game', shortcut: 'Ctrl+Enter', action: function () { if (typeof runn === 'function') runn(); } },
-            { icon: '💾', label: 'Save file', shortcut: 'Ctrl+S', action: function () { if (typeof save === 'function') save(); } },
-            { icon: '💾', label: 'Save as…', shortcut: 'Ctrl+Shift+S', action: function () { if (typeof saveAs === 'function') saveAs(); } },
-            { icon: '🚀', label: 'Publish / Share', action: function () { if (typeof shareProject === 'function') shareProject(); } },
-            { icon: '⬇', label: 'Download HTML', action: function () { var h5 = document.getElementById('title'); var n = h5 ? h5.textContent.replace(/\.js$/i,'') : 'game'; if (window.down) window.down(n + '.js'); } },
-            { icon: '🔍', label: 'Find & Replace', shortcut: 'Ctrl+F', action: function () { window.openFind(); } },
-            { icon: '→', label: 'Go to line…', shortcut: 'Ctrl+G', action: function () { window.gotoLine(); } },
-            { icon: '💬', label: 'Toggle comment', shortcut: 'Ctrl+/', action: function () { window.toggleComment(); } },
-            { icon: '⤸', label: 'Format code', action: function () { var b = document.getElementById('formatCodeBtn'); if (b) b.click(); } },
-            { icon: '↩', label: 'Toggle word wrap', action: function () { var b = document.getElementById('fabWrap'); if (b) b.click(); } },
-            { icon: '📁', label: 'Open workspace sidebar', action: function () { document.getElementById('openBtn').click(); } },
-            { icon: '🔌', label: 'Switch to Assets tab', action: function () { document.querySelector('.tab[data-tab="assets"]').click(); } },
-            { icon: '🎨', label: 'Switch to Build tab', action: function () { document.querySelector('.tab[data-tab="build"]').click(); } },
-            { icon: '⌨️', label: 'Switch to Code tab', action: function () { document.querySelector('.tab[data-tab="code"]').click(); } },
-            { icon: '🖥', label: 'Toggle console', action: function () { var b = document.getElementById('fabConsole'); if (b) b.click(); } },
-            { icon: '📋', label: 'Copy all code', action: function () { document.getElementById('copyCodeBtn').click(); } },
-            { icon: '🧹', label: 'Clear console', action: function () { var c = document.getElementById('editor-console-logs'); if (c) c.innerHTML = ''; } }
-        ];
-
-        function scoreMatch(label, query) {
-            var l = label.toLowerCase();
-            var q = query.toLowerCase();
-            if (!q) return 1;
-            var idx = l.indexOf(q);
-            if (idx === 0) return 100;
-            if (idx > 0) return 50 - idx;
-            var qi = 0, score = 0;
-            for (var i = 0; i < l.length && qi < q.length; i++) {
-                if (l[i] === q[qi]) { score += 1; qi++; }
-            }
-            return qi === q.length ? score : 0;
-        }
-
-        function renderPalette(query) {
-            paletteList.innerHTML = '';
-            var matches = commands.map(function (c) {
-                return { cmd: c, score: scoreMatch(c.label, query) };
-            }).filter(function (m) { return m.score > 0; }).sort(function (a, b) { return b.score - a.score; });
-
-            items = matches.map(function (m) { return m.cmd; });
-            if (matches.length === 0) {
-                var empty = document.createElement('div');
-                empty.className = 'palette-empty';
-                empty.textContent = 'No matching commands';
-                paletteList.appendChild(empty);
-                return;
-            }
-
-            if (focusedIndex >= matches.length) focusedIndex = 0;
-            matches.forEach(function (m, i) {
-                var el = document.createElement('div');
-                el.className = 'palette-item' + (i === focusedIndex ? ' focused' : '');
-                var left = document.createElement('div');
-                left.className = 'pi-left';
-                var icon = document.createElement('span');
-                icon.className = 'pi-icon';
-                icon.textContent = m.cmd.icon;
-                var label = document.createElement('span');
-                label.textContent = m.cmd.label;
-                left.appendChild(icon);
-                left.appendChild(label);
-                el.appendChild(left);
-                if (m.cmd.shortcut) {
-                    var sc = document.createElement('span');
-                    sc.className = 'pi-shortcut';
-                    sc.textContent = m.cmd.shortcut;
-                    el.appendChild(sc);
-                }
-                el.addEventListener('click', function () {
-                    closePalette();
-                    m.cmd.action();
-                });
-                paletteList.appendChild(el);
-            });
-        }
-
-        function openPalette() {
-            palette.classList.add('open');
-            paletteBackdrop.classList.add('open');
-            paletteInput.value = '';
-            focusedIndex = 0;
-            renderPalette('');
-            setTimeout(function () { paletteInput.focus(); }, 30);
-        }
-        function closePalette() {
-            palette.classList.remove('open');
-            paletteBackdrop.classList.remove('open');
-        }
-
-        window.openPalette = openPalette;
-        window.closePalette = closePalette;
-
-        if (paletteBackdrop) paletteBackdrop.addEventListener('click', closePalette);
-        if (paletteInput) {
-            paletteInput.addEventListener('input', function () { focusedIndex = 0; renderPalette(this.value); });
-            paletteInput.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape') { e.preventDefault(); closePalette(); }
-                else if (e.key === 'ArrowDown') { e.preventDefault(); focusedIndex = Math.min(items.length - 1, focusedIndex + 1); renderPalette(this.value); }
-                else if (e.key === 'ArrowUp') { e.preventDefault(); focusedIndex = Math.max(0, focusedIndex - 1); renderPalette(this.value); }
-                else if (e.key === 'Enter') { e.preventDefault(); var c = items[focusedIndex]; if (c) { closePalette(); c.action(); } }
-            });
-        }
 
         document.addEventListener('keydown', function (e) {
             var mod = e.ctrlKey || e.metaKey;
-            var t = e.target;
-            var tag = t && t.tagName ? t.tagName.toLowerCase() : '';
-            var inField = tag === 'input' || tag === 'textarea' || (t && t.isContentEditable);
-            if (mod && (e.key === 'k' || e.key === 'K' || e.key === 'p' || e.key === 'P')) {
-                if (!inField || e.target !== paletteInput) {
-                    e.preventDefault();
-                    openPalette();
-                }
+            if (!mod) return;
+            if (e.key === 's' || e.key === 'S') {
+                e.preventDefault();
+                if (e.shiftKey) { if (typeof saveAs === 'function') saveAs(); }
+                else { if (typeof save === 'function') save(); }
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (typeof runn === 'function') runn();
+            } else if (e.key === 'g' || e.key === 'G') {
+                e.preventDefault();
+                if (window.gotoLine) window.gotoLine();
             }
-            if (e.key === 'Escape' && palette.classList.contains('open')) closePalette();
         });
-    })();
-    </script>
 
-    <script>
-    (function () {
-        var findBar = document.getElementById('findBar');
-        var findInput = document.getElementById('findInput');
-        var replaceInput = document.getElementById('replaceInput');
-        var findCount = document.getElementById('findCount');
-        var findPrev = document.getElementById('findPrev');
-        var findNext = document.getElementById('findNext');
-        var replaceOne = document.getElementById('replaceOne');
-        var replaceAll = document.getElementById('replaceAll');
-        var findClose = document.getElementById('findClose');
-        var textarea = document.getElementById('js');
-        if (!findBar || !textarea) return;
-
-        var matches = [];
-        var matchIndex = 0;
-
-        function findAll() {
-            var q = findInput.value;
-            matches = [];
-            if (!q) { findCount.textContent = '0/0'; return; }
-            var text = textarea.value;
-            var lower = text.toLowerCase();
-            var lq = q.toLowerCase();
-            var i = 0;
-            while (i < lower.length) {
-                var idx = lower.indexOf(lq, i);
-                if (idx === -1) break;
-                matches.push(idx);
-                i = idx + 1;
-            }
-            if (matchIndex >= matches.length) matchIndex = 0;
-            findCount.textContent = (matches.length ? (matchIndex + 1) : 0) + '/' + matches.length;
-        }
-
-        function jumpTo(idx) {
-            if (!matches.length) return;
-            var pos = matches[idx];
-            textarea.focus();
-            textarea.setSelectionRange(pos, pos + findInput.value.length);
-            var lineCount = textarea.value.slice(0, pos).split('\n').length;
-            var lineH = 22;
-            textarea.scrollTop = Math.max(0, (lineCount - 6) * lineH);
-        }
-
-        window.openFind = function () {
-            findBar.classList.add('open');
-            setTimeout(function () { findInput.focus(); findInput.select(); }, 30);
-        };
-        window.closeFind = function () { findBar.classList.remove('open'); };
-
-        findInput.addEventListener('input', function () { matchIndex = 0; findAll(); });
-        findPrev.addEventListener('click', function () {
-            if (!matches.length) return;
-            matchIndex = (matchIndex - 1 + matches.length) % matches.length;
-            findCount.textContent = (matchIndex + 1) + '/' + matches.length;
-            jumpTo(matchIndex);
-        });
-        findNext.addEventListener('click', function () {
-            if (!matches.length) return;
-            matchIndex = (matchIndex + 1) % matches.length;
-            findCount.textContent = (matchIndex + 1) + '/' + matches.length;
-            jumpTo(matchIndex);
-        });
-        replaceOne.addEventListener('click', function () {
-            var q = findInput.value;
-            if (!q) return;
-            var sel = textarea.value.slice(textarea.selectionStart, textarea.selectionEnd);
-            if (sel.toLowerCase() === q.toLowerCase()) {
-                var start = textarea.selectionStart;
-                textarea.value = textarea.value.slice(0, start) + replaceInput.value + textarea.value.slice(textarea.selectionEnd);
-                textarea.selectionStart = textarea.selectionEnd = start + replaceInput.value.length;
-                if (window.__renderCode) window.__renderCode();
-            }
-            findAll();
-        });
-        replaceAll.addEventListener('click', function () {
-            var q = findInput.value;
-            if (!q) return;
-            var re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-            textarea.value = textarea.value.replace(re, replaceInput.value);
-            if (window.__renderCode) window.__renderCode();
-            findAll();
-        });
-        findClose.addEventListener('click', window.closeFind);
-
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && findBar.classList.contains('open')) window.closeFind();
-        });
-    })();
+        updateStats(textarea.value);
+        updateCursorInfo(view.state);
+    }
     </script>
 
     <script>
     (function () {
         window.gotoLine = function () {
-            var line = prompt('Go to line:');
-            if (!line) return;
-            line = parseInt(line, 10);
+            var lineStr = prompt('Go to line:');
+            if (!lineStr) return;
+            var line = parseInt(lineStr, 10);
             if (isNaN(line) || line < 1) return;
-            var textarea = document.getElementById('js');
-            var lines = textarea.value.split('\n');
-            line = Math.min(line, lines.length);
-            var pos = 0;
-            for (var i = 0; i < line - 1; i++) pos += lines[i].length + 1;
-            textarea.focus();
-            textarea.setSelectionRange(pos, pos);
-            var lineH = 22;
-            textarea.scrollTop = Math.max(0, (line - 6) * lineH);
+            if (window.__cmGoToLine) {
+                window.__cmGoToLine(line);
+            }
         };
     })();
     </script>
