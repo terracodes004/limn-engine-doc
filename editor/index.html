@@ -783,6 +783,15 @@
             font-family: ui-monospace, monospace;
             letter-spacing: 0.4px;
         }
+        .cm-loading-error {
+            color: #f87171;
+            font-size: 12px;
+            max-width: 90%;
+            text-align: center;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
 
         .status-bar {
             display: flex;
@@ -1410,31 +1419,32 @@
 </head>
 <body>
     <div id="errorBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:999999;background:#7f1d1d;color:#fff;font-family:monospace;font-size:12px;padding:10px 14px;border-bottom:2px solid #ef4444;max-height:40vh;overflow-y:auto;white-space:pre-wrap;line-height:1.4;"></div>
-<script>
-(function () {
-    var banner = document.getElementById('errorBanner');
-    var msgs = [];
-    function show() {
-        banner.style.display = 'block';
-        banner.textContent = msgs.join('\n\n---\n\n');
-    }
-    window.addEventListener('error', function (e) {
-        msgs.push('ERROR: ' + (e.message || 'unknown') + (e.filename ? '\n  at ' + e.filename + ':' + e.lineno : ''));
-        show();
-    }, true);
-    window.addEventListener('unhandledrejection', function (e) {
-        var r = e.reason;
-        msgs.push('PROMISE: ' + (r && r.message ? r.message : String(r)));
-        show();
-    });
-    window.addEventListener('error', function (e) {
-        if (e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK')) {
-            msgs.push('LOAD FAILED: ' + (e.target.src || e.target.href));
-            show();
+    <script>
+    (function () {
+        var banner = document.getElementById('errorBanner');
+        var msgs = [];
+        function show() {
+            banner.style.display = 'block';
+            banner.textContent = msgs.join('\n\n---\n\n');
         }
-    }, true);
-})();
-</script>
+        window.addEventListener('error', function (e) {
+            msgs.push('ERROR: ' + (e.message || 'unknown') + (e.filename ? '\n  at ' + e.filename + ':' + e.lineno : ''));
+            show();
+        }, true);
+        window.addEventListener('unhandledrejection', function (e) {
+            var r = e.reason;
+            msgs.push('PROMISE: ' + (r && r.message ? r.message : String(r)));
+            show();
+        });
+        window.addEventListener('error', function (e) {
+            if (e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK')) {
+                msgs.push('LOAD FAILED: ' + (e.target.src || e.target.href));
+                show();
+            }
+        }, true);
+    })();
+    </script>
+
     <dialog id="runDialog">
         <button class="dialog-close" id="dialogClose" aria-label="Close preview">✕</button>
         <div class="dialog-stage" id="dialogStage">
@@ -2017,6 +2027,152 @@ https://cdn.example.com/my-library.js"></textarea>
     })();
     </script>
 
+    <script>
+    (function () {
+        if (!window.LimnTemplates) {
+            console.warn('[templates] LimnTemplates not defined');
+            return;
+        }
+
+        var fieldsRoot = document.getElementById('templateFields');
+        var buildReset = document.getElementById('buildReset');
+        var currentValues = {};
+
+        function renderFields(templateKey) {
+            if (!fieldsRoot) return;
+            var tpl = window.LimnTemplates[templateKey];
+            if (!tpl || !tpl.fields) {
+                fieldsRoot.innerHTML = '';
+                return;
+            }
+
+            var saved = currentValues[templateKey] || {};
+
+            var html = '';
+            tpl.fields.forEach(function (f) {
+                var val = saved[f.key] !== undefined ? saved[f.key] : f.default;
+                html += '<div class="field">';
+                html += '<label for="tf_' + f.key + '">' + f.label + '</label>';
+                if (f.type === 'color') {
+                    html += '<div class="swatch-field">' +
+                                '<input type="color" class="swatch-input" id="tf_' + f.key + '" data-key="' + f.key + '" value="' + val + '">' +
+                                '<input type="text" class="swatch-hex" data-hex-for="' + f.key + '" value="' + val + '" maxlength="7">' +
+                                '<button type="button" class="swatch-copy" data-copy-for="' + f.key + '" title="Copy hex">📋</button>' +
+                            '</div>';
+                } else {
+                    html += '<input type="text" id="tf_' + f.key + '" data-key="' + f.key + '" value="' + val + '">';
+                }
+                html += '</div>';
+            });
+
+            fieldsRoot.innerHTML = html;
+
+            fieldsRoot.querySelectorAll('[data-key]').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    if (!currentValues[templateKey]) currentValues[templateKey] = {};
+                    currentValues[templateKey][input.dataset.key] = input.value;
+                    if (input.type === 'color') {
+                        var hexInput = fieldsRoot.querySelector('[data-hex-for="' + input.dataset.key + '"]');
+                        if (hexInput) hexInput.value = input.value;
+                    }
+                    generate();
+                });
+            });
+
+            fieldsRoot.querySelectorAll('[data-hex-for]').forEach(function (hexInput) {
+                hexInput.addEventListener('input', function () {
+                    var key = hexInput.dataset.hexFor;
+                    var v = hexInput.value.trim();
+                    if (!v.startsWith('#')) v = '#' + v;
+                    if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+                        if (!currentValues[templateKey]) currentValues[templateKey] = {};
+                        currentValues[templateKey][key] = v;
+                        var colorInput = fieldsRoot.querySelector('[data-key="' + key + '"]');
+                        if (colorInput) colorInput.value = v;
+                        generate();
+                    }
+                });
+            });
+
+            fieldsRoot.querySelectorAll('[data-copy-for]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var key = btn.dataset.copyFor;
+                    var hexInput = fieldsRoot.querySelector('[data-hex-for="' + key + '"]');
+                    if (!hexInput) return;
+                    var text = hexInput.value;
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text).then(function () {
+                            if (window.toast) window.toast('Copied ' + text, 'success');
+                        });
+                    } else {
+                        var ta = document.createElement('textarea');
+                        ta.value = text;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        try { document.execCommand('copy'); } catch (e) {}
+                        document.body.removeChild(ta);
+                        if (window.toast) window.toast('Copied ' + text, 'success');
+                    }
+                });
+            });
+        }
+
+        function generate() {
+            var tplKey = window.__templateSelectValue || 'dressup';
+            var tpl = window.LimnTemplates[tplKey];
+            if (!tpl || !tpl.generate) return;
+
+            var saved = currentValues[tplKey] || {};
+            var cfg = {};
+            tpl.fields.forEach(function (f) {
+                cfg[f.key] = saved[f.key] !== undefined ? saved[f.key] : f.default;
+            });
+
+            var code = tpl.generate(cfg);
+            var textarea = document.getElementById('js');
+            if (textarea) textarea.value = code;
+
+            if (tpl.config) {
+                try {
+                    window.currentConfig = tpl.config(cfg);
+                } catch (e) {}
+            }
+
+            if (typeof window.__renderCode === 'function') {
+                window.__renderCode();
+            }
+        }
+
+        window.addEventListener('templatechange', function (e) {
+            var key = e.detail && e.detail.value;
+            if (key) renderFields(key);
+            generate();
+        });
+
+        if (buildReset) {
+            buildReset.addEventListener('click', function () {
+                var tplKey = window.__templateSelectValue || 'dressup';
+                currentValues[tplKey] = {};
+                renderFields(tplKey);
+                generate();
+                if (window.toast) window.toast('Reset to default', 'success');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            renderFields(window.__templateSelectValue || 'dressup');
+            generate();
+        });
+
+        setTimeout(function () {
+            if (!fieldsRoot || fieldsRoot.innerHTML === '') {
+                renderFields(window.__templateSelectValue || 'dressup');
+                generate();
+            }
+        }, 100);
+    })();
+    </script>
+
     <script src="script.js" type="module"></script>
 
     <script>
@@ -2335,14 +2491,14 @@ https://cdn.example.com/my-library.js"></textarea>
     </script>
 
     <script type="module">
-    import { EditorView, basicSetup } from "https://esm.sh/codemirror@6.0.1?deps=@codemirror/state@6.5.2,@codemirror/view@6.36.4,@codemirror/language@6.10.8,@codemirror/commands@6.7.1,@codemirror/search@6.5.8,@codemirror/autocomplete@6.18.3";
+    import { EditorView, basicSetup } from "https://esm.sh/codemirror@6.0.2";
     import { EditorState, Compartment } from "https://esm.sh/@codemirror/state@6.5.2";
-    import { javascript, javascriptLanguage } from "https://esm.sh/@codemirror/lang-javascript@6.2.2?deps=@codemirror/state@6.5.2,@codemirror/language@6.10.8,@codemirror/autocomplete@6.18.3";
-    import { oneDark } from "https://esm.sh/@codemirror/theme-one-dark@6.1.2?deps=@codemirror/state@6.5.2,@codemirror/view@6.36.4";
-    import { undo, redo } from "https://esm.sh/@codemirror/commands@6.7.1?deps=@codemirror/state@6.5.2,@codemirror/view@6.36.4";
-    import { openSearchPanel, closeSearchPanel } from "https://esm.sh/@codemirror/search@6.5.8?deps=@codemirror/state@6.5.2,@codemirror/view@6.36.4";
-    import { completeFromList } from "https://esm.sh/@codemirror/autocomplete@6.18.3?deps=@codemirror/state@6.5.2,@codemirror/view@6.36.4";
-    import { indentUnit } from "https://esm.sh/@codemirror/language@6.10.8?deps=@codemirror/state@6.5.2,@codemirror/view@6.36.4";
+    import { javascript, javascriptLanguage } from "https://esm.sh/@codemirror/lang-javascript@6.2.4";
+    import { oneDark } from "https://esm.sh/@codemirror/theme-one-dark@6.1.3";
+    import { undo, redo } from "https://esm.sh/@codemirror/commands@6.9.1";
+    import { openSearchPanel, closeSearchPanel } from "https://esm.sh/@codemirror/search@6.5.10";
+    import { completeFromList } from "https://esm.sh/@codemirror/autocomplete@6.18.6";
+    import { indentUnit } from "https://esm.sh/@codemirror/language@6.11.3";
 
     var container = document.getElementById('cm-editor-container');
     var textarea = document.getElementById('js');
