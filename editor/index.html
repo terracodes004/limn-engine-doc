@@ -762,7 +762,6 @@
             font-variant-numeric: tabular-nums;
             border-right: 1px solid var(--border);
             position: relative;
-            will-change: transform;
         }
         .gutter-line {
             height: var(--code-line-height);
@@ -816,7 +815,6 @@
             color: var(--text-0);
             background: transparent;
             overflow: hidden;
-            will-change: transform;
         }
         .code-input {
             z-index: 2;
@@ -2479,25 +2477,21 @@ https://cdn.example.com/my-library.js"></textarea>
 
     <script>
     (function () {
-        var textarea    = document.getElementById('js');
-        var highlight   = document.getElementById('highlightLayer');
-        var gutter      = document.getElementById('gutter');
-        var editorScroll= document.querySelector('.editor-scroll');
-        var minimap     = document.getElementById('minimap');
-        var stats       = document.getElementById('codeStats');
-        var copyBtn     = document.getElementById('copyCodeBtn');
-        var copyLabel   = document.getElementById('copyCodeLabel');
-        var formatBtn   = document.getElementById('formatCodeBtn');
-        var statusLine  = document.getElementById('statusLine');
-        var statusCol   = document.getElementById('statusCol');
+        var textarea = document.getElementById('js');
+        var highlight = document.getElementById('highlightLayer');
+        var gutter = document.getElementById('gutter');
+        var stats = document.getElementById('codeStats');
+        var copyBtn = document.getElementById('copyCodeBtn');
+        var copyLabel = document.getElementById('copyCodeLabel');
+        var formatBtn = document.getElementById('formatCodeBtn');
+        var minimap = document.getElementById('minimap');
+        var statusLine = document.getElementById('statusLine');
+        var statusCol = document.getElementById('statusCol');
         var statusSelection = document.getElementById('statusSelection');
-        var statusSize  = document.getElementById('statusSize');
+        var statusSize = document.getElementById('statusSize');
         var breadcrumbFunc = document.getElementById('breadcrumbFunc');
-        var stateDot    = document.getElementById('stateDot');
+        var stateDot = document.getElementById('stateDot');
         if (!textarea || !highlight || !gutter) return;
-
-        var OVERSCAN = 20;
-        var LINE_HEIGHT = 22;
 
         var KEYWORDS = { 'const':1,'let':1,'var':1,'function':1,'return':1,'if':1,'else':1,'for':1,'while':1,'do':1,'break':1,'continue':1,'new':1,'this':1,'class':1,'extends':1,'super':1,'try':1,'catch':1,'finally':1,'throw':1,'switch':1,'case':1,'default':1,'typeof':1,'instanceof':1,'in':1,'of':1,'delete':1,'void':1,'yield':1,'await':1,'async':1,'static':1,'get':1,'set':1,'import':1,'export':1,'from':1,'as':1 };
         var BUILTINS = { 'Display':1,'Component':1,'Tctxt':1,'Camera':1,'Sprite':1,'AnimatedSprite':1,'Tile':1,'TileMap':1,'Particle':1,'ParticleSystem':1,'Sound':1,'SoundManager':1,'Math':1,'JSON':1,'Object':1,'Array':1,'String':1,'Number':1,'Boolean':1,'Date':1,'Set':1,'Map':1,'Promise':1,'Error':1,'console':1,'window':1,'document':1,'display':1,'mouse':1 };
@@ -2505,15 +2499,15 @@ https://cdn.example.com/my-library.js"></textarea>
 
         function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-        function tokenizeLine(code) {
-            if (!code) return '';
+        function tokenize(code) {
             var out = '';
             var i = 0, n = code.length;
             while (i < n) {
                 var ch = code[i];
                 if (ch === '/' && code[i+1] === '/') {
-                    out += '<span class="tok-comment">' + esc(code.slice(i)) + '</span>';
-                    break;
+                    var j = i; while (j < n && code[j] !== '\n') j++;
+                    out += '<span class="tok-comment">' + esc(code.slice(i, j)) + '</span>';
+                    i = j; continue;
                 }
                 if (ch === '/' && code[i+1] === '*') {
                     var k = i + 2;
@@ -2574,62 +2568,130 @@ https://cdn.example.com/my-library.js"></textarea>
             return out;
         }
 
-        var _lines = [];
-        var _tokenCache = {};
+        function analyzeBrackets(code) {
+            var linesWithError = {};
+            var stack = [];
+            var pairs = { ')': '(', ']': '[', '}': '{' };
+            var inLineComment = false;
+            var inBlockComment = false;
+            var inString = null;
+            var lineNumber = 1;
+
+            for (var i = 0; i < code.length; i++) {
+                var ch = code[i];
+                var next = code[i+1];
+
+                if (ch === '\n') {
+                    lineNumber++;
+                    inLineComment = false;
+                    continue;
+                }
+                if (inLineComment) continue;
+                if (inBlockComment) {
+                    if (ch === '*' && next === '/') { inBlockComment = false; i++; }
+                    continue;
+                }
+                if (inString) {
+                    if (ch === '\\') { i++; continue; }
+                    if (ch === inString) inString = null;
+                    continue;
+                }
+                if (ch === '/' && next === '/') { inLineComment = true; i++; continue; }
+                if (ch === '/' && next === '*') { inBlockComment = true; i++; continue; }
+                if (ch === '"' || ch === "'" || ch === '`') { inString = ch; continue; }
+
+                if (ch === '(' || ch === '[' || ch === '{') {
+                    stack.push({ ch: ch, line: lineNumber });
+                } else if (ch === ')' || ch === ']' || ch === '}') {
+                    var expected = pairs[ch];
+                    if (stack.length === 0 || stack[stack.length - 1].ch !== expected) {
+                        linesWithError[lineNumber] = true;
+                    } else {
+                        stack.pop();
+                    }
+                }
+            }
+
+            for (var k = 0; k < stack.length; k++) {
+                linesWithError[stack[k].line] = true;
+            }
+
+            return linesWithError;
+        }
+
+        function renderMinimap() {
+            if (!minimap) return;
+            var code = textarea.value;
+            var lines = code.split('\n');
+            var maxH = minimap.clientHeight || 500;
+            var lineH = Math.max(1, Math.min(2, Math.floor(maxH / Math.max(1, lines.length))));
+            minimap.innerHTML = '';
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                if (!line.trim()) continue;
+                var el = document.createElement('div');
+                el.className = 'minimap-line';
+                if (/^\s*\/\//.test(line)) el.classList.add('comment');
+                else if (/function|=>/.test(line)) el.classList.add('function');
+                else if (/["'`]/.test(line)) el.classList.add('string');
+                else if (/\b(const|let|var|if|for|return|new)\b/.test(line)) el.classList.add('keyword');
+                var indent = line.search(/\S/);
+                el.style.top = (i * lineH) + 'px';
+                el.style.left = (2 + Math.min(indent, 20) * 0.6) + 'px';
+                el.style.height = lineH + 'px';
+                minimap.appendChild(el);
+            }
+            var vp = document.createElement('div');
+            vp.className = 'minimap-viewport';
+            vp.id = 'minimapViewport';
+            minimap.appendChild(vp);
+            updateMinimapViewport();
+        }
+
+        function updateMinimapViewport() {
+            var vp = document.getElementById('minimapViewport');
+            if (!vp || !minimap) return;
+            var lines = textarea.value.split('\n');
+            var maxH = minimap.clientHeight || 500;
+            var lineH = Math.max(1, Math.min(2, Math.floor(maxH / Math.max(1, lines.length))));
+            var scrollRatio = textarea.scrollTop / Math.max(1, textarea.scrollHeight - textarea.clientHeight);
+            var visibleRatio = textarea.clientHeight / Math.max(1, textarea.scrollHeight);
+            var vpH = Math.max(20, visibleRatio * lines.length * lineH);
+            vp.style.top = (scrollRatio * Math.max(0, maxH - vpH)) + 'px';
+            vp.style.height = vpH + 'px';
+        }
+
+        var pendingErrorAnalysis = null;
+
+        var _lastLineCount = 0;
         var _renderQueued = false;
-
-        function rebuildLines() {
-            _lines = textarea.value.split('\n');
-            _tokenCache = {};
-        }
-
-        function getTokenizedLine(i) {
-            var cached = _tokenCache[i];
-            if (cached !== undefined) return cached;
-            var html = tokenizeLine(_lines[i] || '');
-            _tokenCache[i] = html;
-            return html;
-        }
-
-        function layoutSpacerHeight() {
-            var total = _lines.length;
-            var h = total * LINE_HEIGHT;
-            var spacerHeight = h + 'px';
-            highlight.style.minHeight = spacerHeight;
-            textarea.style.height = 'auto';
-            textarea.style.minHeight = spacerHeight;
-        }
 
         function renderNow() {
             _renderQueued = false;
-            var scrollTop = textarea.scrollTop;
-            var viewH = textarea.clientHeight || editorScroll.clientHeight || 400;
-            var total = _lines.length;
 
-            var start = Math.max(0, Math.floor(scrollTop / LINE_HEIGHT) - OVERSCAN);
-            var end = Math.min(total, Math.ceil((scrollTop + viewH) / LINE_HEIGHT) + OVERSCAN);
-            var count = end - start;
+            var code = textarea.value;
+            var html = tokenize(code);
+            if (code.endsWith('\n')) html += ' ';
+            highlight.innerHTML = html;
 
-            var parts = new Array(count);
-            for (var k = 0; k < count; k++) parts[k] = getTokenizedLine(start + k);
-            var sliceHtml = parts.join('\n');
-            if (end === total && textarea.value.endsWith('\n')) sliceHtml += ' ';
+            var lineCount = code.split('\n').length;
 
-            highlight.style.transform = 'translateY(' + (start * LINE_HEIGHT) + 'px)';
-            highlight.style.paddingTop = '0';
-            highlight.innerHTML = sliceHtml;
-
-            var g = '';
-            for (var g2 = start; g2 < end; g2++) {
-                g += '<div class="gutter-line" data-line="' + (g2 + 1) + '" style="height:' + LINE_HEIGHT + 'px;line-height:' + LINE_HEIGHT + 'px;">' + (g2 + 1) + '</div>';
+            if (lineCount !== _lastLineCount) {
+                var g = '';
+                for (var i = 1; i <= lineCount; i++) {
+                    g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
+                }
+                gutter.innerHTML = g;
+                _lastLineCount = lineCount;
+                renderMinimap();
             }
-            gutter.innerHTML = g;
-            gutter.style.transform = 'translateY(' + (start * LINE_HEIGHT) + 'px)';
 
-            if (stats) stats.textContent = total + (total === 1 ? ' line' : ' lines');
-            if (statusSize) statusSize.textContent = textarea.value.length + ' chars';
+            if (stats) stats.textContent = lineCount + (lineCount === 1 ? ' line' : ' lines');
+            if (statusSize) statusSize.textContent = code.length + ' chars';
 
+            syncScroll();
             updateActiveLine();
+            scheduleErrorAnalysis();
         }
 
         function render() {
@@ -2638,83 +2700,55 @@ https://cdn.example.com/my-library.js"></textarea>
             requestAnimationFrame(renderNow);
         }
 
-        textarea.addEventListener('scroll', function () {
-            render();
+        function scheduleErrorAnalysis() {
+            if (pendingErrorAnalysis) clearTimeout(pendingErrorAnalysis);
+            pendingErrorAnalysis = setTimeout(runErrorAnalysis, 350);
+        }
+
+        function runErrorAnalysis() {
+            pendingErrorAnalysis = null;
+            var errors = analyzeBrackets(textarea.value);
+            var lines = gutter.children;
+            for (var i = 0; i < lines.length; i++) {
+                lines[i].classList.toggle('has-error', !!errors[i + 1]);
+            }
+        }
+
+        function syncScroll() {
+            var y = textarea.scrollTop;
+            var x = textarea.scrollLeft;
+            highlight.style.transform = 'translate(' + (-x) + 'px, ' + (-y) + 'px)';
+            highlight.style.paddingLeft = (24 + x) + 'px';
+            highlight.style.paddingTop = (18 + y) + 'px';
+            gutter.scrollTop = y;
             updateMinimapViewport();
-        });
+        }
+        textarea.addEventListener('scroll', syncScroll);
 
         function updateActiveLine() {
             var before = textarea.value.slice(0, textarea.selectionStart);
             var line = before.split('\n').length;
             var col = before.length - before.lastIndexOf('\n');
+            var lines = gutter.children;
+            for (var i = 0; i < lines.length; i++) lines[i].classList.toggle('active', i + 1 === line);
             if (statusLine) statusLine.textContent = line;
             if (statusCol) statusCol.textContent = col;
             var selLen = textarea.selectionEnd - textarea.selectionStart;
             if (statusSelection) statusSelection.textContent = selLen;
-
-            var children = gutter.children;
-            for (var i = 0; i < children.length; i++) {
-                var ln = parseInt(children[i].getAttribute('data-line'), 10);
-                children[i].classList.toggle('active', ln === line);
-            }
             updateBreadcrumb(line);
         }
 
         function updateBreadcrumb(line) {
             if (!breadcrumbFunc) return;
+            var code = textarea.value;
+            var lines = code.split('\n');
             var func = 'top of file';
             for (var i = line - 1; i >= 0; i--) {
-                var m = _lines[i] && _lines[i].match(/(?:function\s+|const\s+|let\s+|var\s+)([A-Za-z_$][\w$]*)/);
+                var m = lines[i].match(/(?:function\s+|const\s+|let\s+|var\s+)([A-Za-z_$][\w$]*)/);
                 if (m) { func = m[1] + '()'; break; }
             }
             breadcrumbFunc.textContent = func;
         }
-
-        var _inputTimer = null;
-        textarea.addEventListener('input', function () {
-            if (_inputTimer) clearTimeout(_inputTimer);
-            _inputTimer = setTimeout(function () {
-                rebuildLines();
-                layoutSpacerHeight();
-                render();
-                updateActiveLine();
-                if (window.__markDirty) window.__markDirty();
-            }, 40);
-            updateActiveLine();
-        });
-
-        rebuildLines();
-        layoutSpacerHeight();
-        render();
-
-        window.addEventListener('resize', function () {
-            layoutSpacerHeight();
-            render();
-        });
-
-        var fontDec = document.getElementById('fontDecBtn');
-        var fontInc = document.getElementById('fontIncBtn');
-        var fontSize = 13;
-
-        function applyFont() {
-            var lh = fontSize + 9;
-            LINE_HEIGHT = lh;
-            document.documentElement.style.setProperty('--code-font-size', fontSize + 'px');
-            document.documentElement.style.setProperty('--code-line-height', lh + 'px');
-            textarea.style.fontSize = fontSize + 'px';
-            textarea.style.lineHeight = lh + 'px';
-            highlight.style.fontSize = fontSize + 'px';
-            highlight.style.lineHeight = lh + 'px';
-            gutter.style.fontSize = fontSize + 'px';
-            layoutSpacerHeight();
-            render();
-        }
-        if (fontDec) fontDec.addEventListener('click', function () {
-            fontSize = Math.max(10, fontSize - 1); applyFont();
-        });
-        if (fontInc) fontInc.addEventListener('click', function () {
-            fontSize = Math.min(22, fontSize + 1); applyFont();
-        });
 
         function insertAtCursor(text) {
             var start = textarea.selectionStart;
@@ -2723,8 +2757,6 @@ https://cdn.example.com/my-library.js"></textarea>
             textarea.value = val.slice(0, start) + text + val.slice(end);
             var pos = start + text.length;
             textarea.selectionStart = textarea.selectionEnd = pos;
-            rebuildLines();
-            layoutSpacerHeight();
             render();
         }
 
@@ -2740,8 +2772,6 @@ https://cdn.example.com/my-library.js"></textarea>
             textarea.value = val.slice(0, lineStart) + indented + val.slice(lineEnd);
             textarea.selectionStart = lineStart;
             textarea.selectionEnd = lineStart + indented.length;
-            rebuildLines();
-            layoutSpacerHeight();
             render();
         }
 
@@ -2761,25 +2791,39 @@ https://cdn.example.com/my-library.js"></textarea>
                 return;
             }
             if (mod && (e.key === 'k' || e.key === 'K' || e.key === 'p' || e.key === 'P')) {
-                e.preventDefault(); if (window.openPalette) window.openPalette(); return;
+                e.preventDefault();
+                if (window.openPalette) window.openPalette();
+                return;
             }
             if (mod && (e.key === 'f' || e.key === 'F')) {
-                e.preventDefault(); if (window.openFind) window.openFind(); return;
+                e.preventDefault();
+                if (window.openFind) window.openFind();
+                return;
             }
             if (mod && (e.key === 'g' || e.key === 'G')) {
-                e.preventDefault(); if (window.gotoLine) window.gotoLine(); return;
+                e.preventDefault();
+                if (window.gotoLine) window.gotoLine();
+                return;
             }
             if (mod && (e.key === '/' || e.key === '?')) {
-                e.preventDefault(); if (window.toggleComment) window.toggleComment(); return;
+                e.preventDefault();
+                if (window.toggleComment) window.toggleComment();
+                return;
             }
             if (mod && (e.key === 'd' || e.key === 'D')) {
-                e.preventDefault(); duplicateLine(); return;
+                e.preventDefault();
+                duplicateLine();
+                return;
             }
             if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-                e.preventDefault(); moveLine(e.key === 'ArrowUp' ? -1 : 1); return;
+                e.preventDefault();
+                moveLine(e.key === 'ArrowUp' ? -1 : 1);
+                return;
             }
             if (mod && e.key === 'Enter') {
-                e.preventDefault(); if (typeof runn === 'function') runn(); return;
+                e.preventDefault();
+                if (typeof runn === 'function') runn();
+                return;
             }
             if (e.key === 'Tab') {
                 e.preventDefault();
@@ -2815,8 +2859,6 @@ https://cdn.example.com/my-library.js"></textarea>
                     e.preventDefault();
                     textarea.value = val.slice(0, start - 1) + val.slice(start + 1);
                     textarea.selectionStart = textarea.selectionEnd = start - 1;
-                    rebuildLines();
-                    layoutSpacerHeight();
                     render();
                     return;
                 }
@@ -2832,8 +2874,6 @@ https://cdn.example.com/my-library.js"></textarea>
             var line = val.slice(lineStart, lineEnd);
             textarea.value = val.slice(0, lineEnd) + '\n' + line + val.slice(lineEnd);
             textarea.selectionStart = textarea.selectionEnd = lineEnd + 1 + line.length;
-            rebuildLines();
-            layoutSpacerHeight();
             render();
         }
 
@@ -2858,8 +2898,6 @@ https://cdn.example.com/my-library.js"></textarea>
                 textarea.value = val.slice(0, lineStart) + nextLine + '\n' + line + val.slice(nextEnd);
                 textarea.selectionStart = textarea.selectionEnd = lineStart + nextLine.length + 1 + line.length;
             }
-            rebuildLines();
-            layoutSpacerHeight();
             render();
         }
 
@@ -2880,11 +2918,14 @@ https://cdn.example.com/my-library.js"></textarea>
             textarea.value = val.slice(0, lineStart) + out + val.slice(lineEnd);
             textarea.selectionStart = lineStart;
             textarea.selectionEnd = lineStart + out.length;
-            rebuildLines();
-            layoutSpacerHeight();
             render();
         };
 
+        textarea.addEventListener('input', function () {
+            updateActiveLine();
+            render();
+            if (window.__markDirty) window.__markDirty();
+        });
         textarea.addEventListener('keyup', updateActiveLine);
         textarea.addEventListener('click', updateActiveLine);
         textarea.addEventListener('select', updateActiveLine);
@@ -2908,6 +2949,7 @@ https://cdn.example.com/my-library.js"></textarea>
                 }
             });
         }
+
         function fallbackCopy(text, done) {
             var ta = document.createElement('textarea');
             ta.value = text;
@@ -2937,86 +2979,54 @@ https://cdn.example.com/my-library.js"></textarea>
                     else depth += opens;
                 }
                 textarea.value = out.join('\n');
-                rebuildLines();
-                layoutSpacerHeight();
                 render();
                 if (window.toast) window.toast('Code formatted', 'success');
             });
         }
+
+        var fontDec = document.getElementById('fontDecBtn');
+        var fontInc = document.getElementById('fontIncBtn');
+        var fontSize = 13;
+        var fontRoot = document.documentElement;
+
+        function applyFont() {
+            var lh = fontSize + 9;
+            fontRoot.style.setProperty('--code-font-size', fontSize + 'px');
+            fontRoot.style.setProperty('--code-line-height', lh + 'px');
+            textarea.style.fontSize = fontSize + 'px';
+            highlight.style.fontSize = fontSize + 'px';
+            textarea.style.lineHeight = lh + 'px';
+            highlight.style.lineHeight = lh + 'px';
+            var lines = gutter.querySelectorAll('.gutter-line');
+            for (var i = 0; i < lines.length; i++) {
+                lines[i].style.height = lh + 'px';
+                lines[i].style.lineHeight = lh + 'px';
+                lines[i].style.fontSize = fontSize + 'px';
+            }
+        }
+        if (fontDec) fontDec.addEventListener('click', function () {
+            fontSize = Math.max(10, fontSize - 1); applyFont();
+        });
+        if (fontInc) fontInc.addEventListener('click', function () {
+            fontSize = Math.min(22, fontSize + 1); applyFont();
+        });
 
         var findBtn = document.getElementById('findBtn');
         if (findBtn) findBtn.addEventListener('click', function () {
             if (window.openFind) window.openFind();
         });
 
-        var _minimapQueued = false;
-        function renderMinimap() {
-            if (!minimap) return;
-            if (_minimapQueued) return;
-            _minimapQueued = true;
-            requestAnimationFrame(function () {
-                _minimapQueued = false;
-                var total = _lines.length;
-                var maxH = minimap.clientHeight || 500;
-                var lineH = Math.max(1, Math.min(2, Math.floor(maxH / Math.max(1, total))));
-                minimap.innerHTML = '';
-                for (var i = 0; i < total; i++) {
-                    var line = _lines[i];
-                    if (!line || !line.trim()) continue;
-                    var el = document.createElement('div');
-                    el.className = 'minimap-line';
-                    if (/^\s*\/\//.test(line)) el.classList.add('comment');
-                    else if (/function|=>/.test(line)) el.classList.add('function');
-                    else if (/["'`]/.test(line)) el.classList.add('string');
-                    else if (/\b(const|let|var|if|for|return|new)\b/.test(line)) el.classList.add('keyword');
-                    var indent = line.search(/\S/);
-                    el.style.top = (i * lineH) + 'px';
-                    el.style.left = (2 + Math.min(indent, 20) * 0.6) + 'px';
-                    el.style.height = lineH + 'px';
-                    minimap.appendChild(el);
-                }
-                var vp = document.createElement('div');
-                vp.className = 'minimap-viewport';
-                vp.id = 'minimapViewport';
-                minimap.appendChild(vp);
-                updateMinimapViewport();
-            });
-        }
-        function updateMinimapViewport() {
-            var vp = document.getElementById('minimapViewport');
-            if (!vp || !minimap) return;
-            var total = _lines.length;
-            var maxH = minimap.clientHeight || 500;
-            var lineH = Math.max(1, Math.min(2, Math.floor(maxH / Math.max(1, total))));
-            var scrollRatio = textarea.scrollTop / Math.max(1, textarea.scrollHeight - textarea.clientHeight);
-            var visibleRatio = textarea.clientHeight / Math.max(1, textarea.scrollHeight);
-            var vpH = Math.max(20, visibleRatio * total * lineH);
-            vp.style.top = (scrollRatio * Math.max(0, maxH - vpH)) + 'px';
-            vp.style.height = vpH + 'px';
-        }
         if (minimap) {
             minimap.addEventListener('click', function (e) {
                 var rect = minimap.getBoundingClientRect();
                 var ratio = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
                 textarea.scrollTop = ratio * Math.max(0, textarea.scrollHeight - textarea.clientHeight);
-                render();
+                syncScroll();
             });
         }
-        window.__renderMinimap = renderMinimap;
-        setTimeout(renderMinimap, 50);
 
-        var _minimapTimer = null;
-        textarea.addEventListener('input', function () {
-            if (_minimapTimer) clearTimeout(_minimapTimer);
-            _minimapTimer = setTimeout(renderMinimap, 400);
-        });
-
-        window.__renderCode = function () {
-            rebuildLines();
-            layoutSpacerHeight();
-            render();
-        };
-        window.getCode = function () { return textarea.value; };
+        window.__renderCode = render;
+        render();
 
         var lastSavedCode = textarea.value;
         window.__markDirty = function () {
@@ -3647,3 +3657,4 @@ https://cdn.example.com/my-library.js"></textarea>
     </script>
 </body>
 </html>
+
