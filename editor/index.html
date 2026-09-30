@@ -2145,6 +2145,190 @@ https://cdn.example.com/my-library.js"></textarea>
     })();
     </script>
 
+    <script>
+    (function () {
+        var fieldsRoot = document.getElementById('templateFields');
+        var buildReset = document.getElementById('buildReset');
+        var currentValues = {};
+
+        function fallbackTemplate(key) {
+            return {
+                fields: [
+                    { key: 'bgColor', label: 'Background Color', type: 'color', default: '#0a0a0a' },
+                    { key: 'playerColor', label: 'Player Color', type: 'color', default: '#6ea8fe' },
+                    { key: 'speed', label: 'Player Speed', type: 'text', default: '220' }
+                ],
+                generate: function (cfg) {
+                    return [
+                        'const display = new Display();',
+                        'display.perform();',
+                        'display.start(800, 600);',
+                        'display.backgroundColor("' + (cfg.bgColor || '#0a0a0a') + '");',
+                        'display.camera.worldWidth = 2000;',
+                        'display.camera.worldHeight = 2000;',
+                        '',
+                        'const player = new Component(36, 36, "' + (cfg.playerColor || '#6ea8fe') + '", 400, 200, "rect");',
+                        'display.add(player);',
+                        '',
+                        'const hud = new Tctxt("16px", "Arial", "#e6edf3", 12, 20, "left", false, "alphabetic", "rgba(0,0,0,0.6)", 8, 4);',
+                        'hud.setText("WASD to move");',
+                        'display.add(hud);',
+                        '',
+                        'const SPEED = ' + (cfg.speed || '220') + ';',
+                        '',
+                        'function update(dt) {',
+                        '    player.speedX = 0;',
+                        '    player.speedY = 0;',
+                        '    if (display.keys[87]) player.speedY = -SPEED * dt;',
+                        '    if (display.keys[83]) player.speedY =  SPEED * dt;',
+                        '    if (display.keys[65]) player.speedX = -SPEED * dt;',
+                        '    if (display.keys[68]) player.speedX =  SPEED * dt;',
+                        '',
+                        '    display.camera.follow(player);',
+                        '    hud.setText("X: " + Math.floor(player.x) + "  Y: " + Math.floor(player.y));',
+                        '    hud.fixed();',
+                        '}'
+                    ].join('\n');
+                }
+            };
+        }
+
+        function getTemplate(key) {
+            var tpl = window.LimnTemplates && window.LimnTemplates[key];
+            if (tpl && tpl.fields && tpl.generate) return tpl;
+            return fallbackTemplate(key);
+        }
+
+        function renderFields(templateKey) {
+            if (!fieldsRoot) return;
+            var tpl = getTemplate(templateKey);
+            var saved = currentValues[templateKey] || {};
+            var html = '';
+            tpl.fields.forEach(function (f) {
+                var val = saved[f.key] !== undefined ? saved[f.key] : f.default;
+                html += '<div class="field">';
+                html += '<label for="tf_' + f.key + '">' + f.label + '</label>';
+                if (f.type === 'color') {
+                    html += '<div class="swatch-field">' +
+                                '<input type="color" class="swatch-input" id="tf_' + f.key + '" data-key="' + f.key + '" value="' + val + '">' +
+                                '<input type="text" class="swatch-hex" data-hex-for="' + f.key + '" value="' + val + '" maxlength="7">' +
+                                '<button type="button" class="swatch-copy" data-copy-for="' + f.key + '" title="Copy hex">📋</button>' +
+                            '</div>';
+                } else {
+                    html += '<input type="text" id="tf_' + f.key + '" data-key="' + f.key + '" value="' + val + '">';
+                }
+                html += '</div>';
+            });
+            fieldsRoot.innerHTML = html;
+
+            fieldsRoot.querySelectorAll('[data-key]').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    if (!currentValues[templateKey]) currentValues[templateKey] = {};
+                    currentValues[templateKey][input.dataset.key] = input.value;
+                    if (input.type === 'color') {
+                        var hexInput = fieldsRoot.querySelector('[data-hex-for="' + input.dataset.key + '"]');
+                        if (hexInput) hexInput.value = input.value;
+                    }
+                    generate();
+                });
+            });
+
+            fieldsRoot.querySelectorAll('[data-hex-for]').forEach(function (hexInput) {
+                hexInput.addEventListener('input', function () {
+                    var key = hexInput.dataset.hexFor;
+                    var v = hexInput.value.trim();
+                    if (!v.startsWith('#')) v = '#' + v;
+                    if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+                        if (!currentValues[templateKey]) currentValues[templateKey] = {};
+                        currentValues[templateKey][key] = v;
+                        var colorInput = fieldsRoot.querySelector('[data-key="' + key + '"]');
+                        if (colorInput) colorInput.value = v;
+                        generate();
+                    }
+                });
+            });
+
+            fieldsRoot.querySelectorAll('[data-copy-for]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var key = btn.dataset.copyFor;
+                    var hexInput = fieldsRoot.querySelector('[data-hex-for="' + key + '"]');
+                    if (!hexInput) return;
+                    var text = hexInput.value;
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(text).then(function () {
+                            if (window.toast) window.toast('Copied ' + text, 'success');
+                        });
+                    } else {
+                        var ta = document.createElement('textarea');
+                        ta.value = text;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        try { document.execCommand('copy'); } catch (e) {}
+                        document.body.removeChild(ta);
+                        if (window.toast) window.toast('Copied ' + text, 'success');
+                    }
+                });
+            });
+        }
+
+        function generate() {
+            var tplKey = window.__templateSelectValue || 'dressup';
+            var tpl = getTemplate(tplKey);
+
+            var saved = currentValues[tplKey] || {};
+            var cfg = {};
+            tpl.fields.forEach(function (f) {
+                cfg[f.key] = saved[f.key] !== undefined ? saved[f.key] : f.default;
+            });
+
+            var code = tpl.generate(cfg);
+            var textarea = document.getElementById('js');
+            if (textarea) textarea.value = code;
+
+            if (tpl.config) {
+                try {
+                    window.currentConfig = tpl.config(cfg);
+                } catch (e) {}
+            }
+
+            if (typeof window.__renderCode === 'function') {
+                window.__renderCode();
+            }
+        }
+
+        window.addEventListener('templatechange', function (e) {
+            var key = e.detail && e.detail.value;
+            if (key) renderFields(key);
+            generate();
+        });
+
+        if (buildReset) {
+            buildReset.addEventListener('click', function () {
+                var tplKey = window.__templateSelectValue || 'dressup';
+                currentValues[tplKey] = {};
+                renderFields(tplKey);
+                generate();
+                if (window.toast) window.toast('Reset to default', 'success');
+            });
+        }
+
+        function init() {
+            renderFields(window.__templateSelectValue || 'dressup');
+            generate();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () {
+                setTimeout(init, 100);
+            });
+        } else {
+            setTimeout(init, 100);
+        }
+
+        window.__initTemplates = init;
+    })();
+    </script>
+
     <script src="script.js" type="module"></script>
 
     <script>
@@ -2569,57 +2753,6 @@ https://cdn.example.com/my-library.js"></textarea>
             return out;
         }
 
-        function analyzeBrackets(code) {
-            var linesWithError = {};
-            var stack = [];
-            var pairs = { ')': '(', ']': '[', '}': '{' };
-            var inLineComment = false;
-            var inBlockComment = false;
-            var inString = null;
-            var lineNumber = 1;
-
-            for (var i = 0; i < code.length; i++) {
-                var ch = code[i];
-                var next = code[i+1];
-
-                if (ch === '\n') {
-                    lineNumber++;
-                    inLineComment = false;
-                    continue;
-                }
-                if (inLineComment) continue;
-                if (inBlockComment) {
-                    if (ch === '*' && next === '/') { inBlockComment = false; i++; }
-                    continue;
-                }
-                if (inString) {
-                    if (ch === '\\') { i++; continue; }
-                    if (ch === inString) inString = null;
-                    continue;
-                }
-                if (ch === '/' && next === '/') { inLineComment = true; i++; continue; }
-                if (ch === '/' && next === '*') { inBlockComment = true; i++; continue; }
-                if (ch === '"' || ch === "'" || ch === '`') { inString = ch; continue; }
-
-                if (ch === '(' || ch === '[' || ch === '{') {
-                    stack.push({ ch: ch, line: lineNumber });
-                } else if (ch === ')' || ch === ']' || ch === '}') {
-                    var expected = pairs[ch];
-                    if (stack.length === 0 || stack[stack.length - 1].ch !== expected) {
-                        linesWithError[lineNumber] = true;
-                    } else {
-                        stack.pop();
-                    }
-                }
-            }
-
-            for (var k = 0; k < stack.length; k++) {
-                linesWithError[stack[k].line] = true;
-            }
-
-            return linesWithError;
-        }
-
         function renderMinimap() {
             if (!minimap) return;
             var code = textarea.value;
@@ -2662,8 +2795,6 @@ https://cdn.example.com/my-library.js"></textarea>
             vp.style.height = vpH + 'px';
         }
 
-        var pendingErrorAnalysis = null;
-
         var _lastLineCount = 0;
         var _renderQueued = false;
 
@@ -2692,27 +2823,12 @@ https://cdn.example.com/my-library.js"></textarea>
 
             syncScroll();
             updateActiveLine();
-            scheduleErrorAnalysis();
         }
 
         function render() {
             if (_renderQueued) return;
             _renderQueued = true;
             requestAnimationFrame(renderNow);
-        }
-
-        function scheduleErrorAnalysis() {
-            if (pendingErrorAnalysis) clearTimeout(pendingErrorAnalysis);
-            pendingErrorAnalysis = setTimeout(runErrorAnalysis, 350);
-        }
-
-        function runErrorAnalysis() {
-            pendingErrorAnalysis = null;
-            var errors = analyzeBrackets(textarea.value);
-            var lines = gutter.children;
-            for (var i = 0; i < lines.length; i++) {
-                lines[i].classList.toggle('has-error', !!errors[i + 1]);
-            }
         }
 
         function syncScroll() {
@@ -3027,6 +3143,7 @@ https://cdn.example.com/my-library.js"></textarea>
         }
 
         window.__renderCode = render;
+        window.getCode = function () { return textarea.value; };
         render();
 
         var lastSavedCode = textarea.value;
