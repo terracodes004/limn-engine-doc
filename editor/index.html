@@ -2484,14 +2484,10 @@ https://cdn.example.com/my-library.js"></textarea>
     </script>
 
     <script type="module">
-    import { EditorView, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine, keymap } from "https://cdn.jsdelivr.net/npm/@codemirror/view@6.36.4/+esm";
+    import { EditorView, basicSetup } from "https://cdn.jsdelivr.net/npm/codemirror@6.0.1/+esm";
     import { EditorState, Compartment } from "https://cdn.jsdelivr.net/npm/@codemirror/state@6.5.2/+esm";
-    import { defaultKeymap, history, historyKeymap, indentWithTab, undo, redo } from "https://cdn.jsdelivr.net/npm/@codemirror/commands@6.7.1/+esm";
-    import { javascript, javascriptLanguage } from "https://cdn.jsdelivr.net/npm/@codemirror/lang-javascript@6.2.2/+esm";
+    import { javascript } from "https://cdn.jsdelivr.net/npm/@codemirror/lang-javascript@6.2.2/+esm";
     import { oneDark } from "https://cdn.jsdelivr.net/npm/@codemirror/theme-one-dark@6.1.2/+esm";
-    import { openSearchPanel, closeSearchPanel, searchKeymap } from "https://cdn.jsdelivr.net/npm/@codemirror/search@6.5.8/+esm";
-    import { completeFromList, autocompletion, completionKeymap, closeBrackets, closeBracketsKeymap } from "https://cdn.jsdelivr.net/npm/@codemirror/autocomplete@6.18.3/+esm";
-    import { indentUnit, bracketMatching, foldGutter, foldKeymap, syntaxHighlighting, defaultHighlightStyle } from "https://cdn.jsdelivr.net/npm/@codemirror/language@6.10.8/+esm";
 
     var container = document.getElementById('cm-editor-container');
     var textarea = document.getElementById('js');
@@ -2502,76 +2498,13 @@ https://cdn.example.com/my-library.js"></textarea>
         var wrapCompartment = new Compartment();
         var wrapOn = false;
 
-        var limnApis = [
-            { label: "Display", type: "class", detail: "Game engine core" },
-            { label: "new Display()", type: "method", detail: "Create a new engine" },
-            { label: "display.perform()", type: "method", detail: "Initialize the display" },
-            { label: "display.start(w, h)", type: "method", detail: "Start the game loop" },
-            { label: "display.backgroundColor(hex)", type: "method" },
-            { label: "display.add(obj)", type: "method", detail: "Add an object to the scene" },
-            { label: "display.remove(obj)", type: "method" },
-            { label: "display.camera", type: "property" },
-            { label: "display.camera.worldWidth", type: "property" },
-            { label: "display.camera.worldHeight", type: "property" },
-            { label: "display.camera.follow(target)", type: "method" },
-            { label: "display.keys", type: "property", detail: "Keyboard state by keyCode" },
-            { label: "display.x", type: "property", detail: "Mouse X (false if up)" },
-            { label: "display.y", type: "property", detail: "Mouse Y (false if up)" },
-            { label: "Component", type: "class", detail: "Rectangular game object" },
-            { label: "new Component(w, h, color, x, y, shape)", type: "method" },
-            { label: "Tctxt", type: "class", detail: "Text object" },
-            { label: "new Tctxt(size, font, color, x, y, align)", type: "method" },
-            { label: "hud.setText(str)", type: "method" },
-            { label: "hud.fixed()", type: "method", detail: "Keep text on screen (HUD)" },
-            { label: "obj.destroy()", type: "method", detail: "Remove object from scene" },
-            { label: "obj.speedX", type: "property" },
-            { label: "obj.speedY", type: "property" },
-            { label: "obj.width", type: "property" },
-            { label: "obj.height", type: "property" },
-            { label: "obj.color", type: "property" },
-            { label: "obj.angle", type: "property" },
-            { label: "function update(dt) {}", type: "function", detail: "Frame update callback" },
-            { label: "mouse.x", type: "property" },
-            { label: "mouse.y", type: "property" }
-        ];
-
-        var limnCompletion = javascriptLanguage.data.of({
-            autocomplete: completeFromList(limnApis)
-        });
-
         var view = new EditorView({
             state: EditorState.create({
                 doc: textarea.value,
                 extensions: [
-                    lineNumbers(),
-                    highlightActiveLineGutter(),
-                    highlightSpecialChars(),
-                    history(),
-                    foldGutter(),
-                    drawSelection(),
-                    dropCursor(),
-                    EditorState.allowMultipleSelections.of(true),
-                    indentUnit.of('    '),
-                    EditorState.tabSize.of(4),
-                    indentWithTab,
-                    bracketMatching(),
-                    closeBrackets(),
-                    autocompletion(),
-                    rectangularSelection(),
-                    crosshairCursor(),
-                    highlightActiveLine(),
+                    basicSetup,
                     javascript(),
                     oneDark,
-                    limnCompletion,
-                    keymap.of([
-                        ...closeBracketsKeymap,
-                        ...defaultKeymap,
-                        ...searchKeymap,
-                        ...historyKeymap,
-                        ...foldKeymap,
-                        ...completionKeymap,
-                        indentWithTab
-                    ]),
                     wrapCompartment.of([]),
                     EditorView.updateListener.of(function (update) {
                         if (update.docChanged) {
@@ -2647,11 +2580,20 @@ https://cdn.example.com/my-library.js"></textarea>
             }
         }
 
-        window.cmUndo = function () { undo(view); view.focus(); };
-        window.cmRedo = function () { redo(view); view.focus(); };
+        window.cmUndo = function () { document.execCommand('undo'); view.focus(); };
+        window.cmRedo = function () { document.execCommand('redo'); view.focus(); };
 
-        window.cmOpenSearch = function () { openSearchPanel(view); };
-        window.cmCloseSearch = function () { closeSearchPanel(view); };
+        window.cmOpenSearch = function () {
+            try {
+                view.dispatch({});
+                var event = new KeyboardEvent('keydown', { key: 'f', ctrlKey: true, bubbles: true });
+                view.contentDOM.dispatchEvent(event);
+            } catch (e) {
+                if (window.toast) window.toast('Search: press Ctrl+F in the editor', 'warning');
+            }
+        };
+
+        window.cmCloseSearch = function () {};
 
         window.cmToggleWrap = function () {
             wrapOn = !wrapOn;
@@ -2776,7 +2718,11 @@ https://cdn.example.com/my-library.js"></textarea>
         if (formatBtn) formatBtn.addEventListener('click', function () { window.cmFormat(); });
 
         var findBtn = document.getElementById('findBtn');
-        if (findBtn) findBtn.addEventListener('click', function () { window.cmOpenSearch(); });
+        if (findBtn) findBtn.addEventListener('click', function () {
+            view.focus();
+            var event = new KeyboardEvent('keydown', { key: 'f', ctrlKey: true, bubbles: true });
+            view.contentDOM.dispatchEvent(event);
+        });
 
         var fontDec = document.getElementById('fontDecBtn');
         var fontInc = document.getElementById('fontIncBtn');
