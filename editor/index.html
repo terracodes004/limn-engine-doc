@@ -336,10 +336,10 @@
 
         .main {
             flex: 1;
-            max-width: 1560px;
+            max-width: 2200px;
             width: 100%;
             margin: 0 auto;
-            padding: 24px 24px 160px;
+            padding: 20px 20px 160px;
         }
 
         .tabs {
@@ -349,7 +349,7 @@
             background: var(--bg-1);
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             width: fit-content;
         }
         .tab {
@@ -745,8 +745,8 @@
 
         .editor-body {
             display: flex;
-            height: 68vh;
-            min-height: 480px;
+            height: 82vh;
+            min-height: 620px;
             overflow: hidden;
             background: var(--bg-1);
             position: relative;
@@ -1483,7 +1483,7 @@
             .topbar-title { display: none; }
             .brand-sub { display: none; }
             .minimap { display: none; }
-            .editor-body { height: 68vh; min-height: 400px; border-radius: 0; }
+            .editor-body { height: 78vh; min-height: 500px; border-radius: 0; }
             .code-header { padding: 8px 10px; gap: 8px; }
             #fontDecBtn, #fontIncBtn, #formatCodeBtn { display: none; }
             .breadcrumb { padding: 6px 14px; font-size: 11px; }
@@ -1535,6 +1535,7 @@
             .highlight-layer,
             .code-input { padding: 12px 12px; font-size: 12px; line-height: 19px; }
             .gutter-line { height: 19px; line-height: 19px; }
+            .editor-body { height: 76vh; min-height: 460px; }
             .toast { font-size: 12px; padding: 10px 14px; }
             .fab-toggle { width: 48px; height: 48px; font-size: 22px; }
             .fab-menu { width: 92vw; max-width: 360px; bottom: 60px; }
@@ -1546,7 +1547,7 @@
         }
 
         @media (max-height: 600px) and (orientation: landscape) {
-            .editor-body { height: 55vh; min-height: 240px; }
+            .editor-body { height: 78vh; min-height: 300px; }
             .fab { bottom: 12px; }
         }
     </style>
@@ -3657,4 +3658,3 @@ https://cdn.example.com/my-library.js"></textarea>
     </script>
 </body>
 </html>
-
