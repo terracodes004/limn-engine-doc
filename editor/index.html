@@ -36,6 +36,7 @@
             --radius-lg: 14px;
             --code-font-size: 13px;
             --code-line-height: 22px;
+            --code-font: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
         }
         * { box-sizing: border-box; }
         html, body {
@@ -148,7 +149,7 @@
             border-radius: 12px;
             font-size: 13px;
             font-weight: 700;
-            font-family: "JetBrains Mono", monospace;
+            font-family: var(--code-font);
             min-width: 76px;
             cursor: pointer;
         }
@@ -325,7 +326,7 @@
         .dropdown-content .shortcut {
             font-size: 11px;
             color: var(--text-2);
-            font-family: "JetBrains Mono", monospace;
+            font-family: var(--code-font);
             padding: 2px 6px;
             background: var(--bg-1);
             border: 1px solid var(--border);
@@ -409,7 +410,7 @@
             background: var(--bg-3);
             border: 1px solid var(--border-2);
             border-radius: 6px;
-            font-family: "JetBrains Mono", ui-monospace, monospace;
+            font-family: var(--code-font);
             font-size: 11.5px; color: var(--text-0); margin: 0 2px;
         }
         .feature-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
@@ -469,7 +470,7 @@
             border: 1px solid var(--border-2);
             border-radius: var(--radius);
             color: var(--text-0);
-            font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+            font-family: var(--code-font);
             font-size: 12.5px;
             line-height: 1.6;
             resize: vertical;
@@ -501,7 +502,7 @@
             border: 1px solid var(--border);
             border-radius: 4px;
             padding: 1px 6px;
-            font-family: "JetBrains Mono", monospace;
+            font-family: var(--code-font);
             font-size: 11px;
             color: var(--text-1);
         }
@@ -637,7 +638,7 @@
         .swatch-input::-moz-color-swatch { border: none; border-radius: 10px; }
         .swatch-hex {
             flex: 1;
-            font-family: "JetBrains Mono", ui-monospace, monospace;
+            font-family: var(--code-font);
             font-size: 13px; font-weight: 500;
             color: var(--text-0);
             background: transparent; border: none; outline: none;
@@ -669,9 +670,11 @@
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
             overflow: hidden;
-            font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+            font-family: var(--code-font);
             font-size: var(--code-font-size);
             line-height: var(--code-line-height);
+            font-variant-ligatures: none;
+            font-feature-settings: "liga" 0, "calt" 0;
             display: flex; flex-direction: column;
             box-shadow: 0 4px 16px rgba(0,0,0,0.5);
         }
@@ -694,7 +697,7 @@
             display: inline-flex; align-items: center; gap: 8px;
             padding: 5px 12px; color: var(--text-0);
             font-weight: 500; font-size: 12.5px;
-            font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+            font-family: var(--code-font);
             background: var(--bg-1);
             border: 1px solid var(--border);
             border-radius: 6px;
@@ -733,7 +736,7 @@
             border-bottom: 1px solid var(--border);
             font-size: 12px;
             color: var(--text-2);
-            font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+            font-family: var(--code-font);
             overflow-x: auto;
             white-space: nowrap;
         }
@@ -762,6 +765,11 @@
             font-variant-numeric: tabular-nums;
             border-right: 1px solid var(--border);
             position: relative;
+            font-family: var(--code-font);
+        }
+        .gutter-inner {
+            position: relative;
+            will-change: transform;
         }
         .gutter-line {
             height: var(--code-line-height);
@@ -770,6 +778,7 @@
             font-size: var(--code-font-size);
             position: relative;
             padding-left: 16px;
+            box-sizing: border-box;
         }
         .gutter-line.active { color: var(--accent); }
         .gutter-line.has-error { color: #ffb4b4; }
@@ -795,14 +804,18 @@
             margin: 0;
             padding: 18px 24px;
             border: 0;
-            font-family: inherit;
-            font-size: inherit;
-            line-height: inherit;
+            font-family: var(--code-font);
+            font-size: var(--code-font-size);
+            line-height: var(--code-line-height);
+            font-variant-ligatures: none;
+            font-feature-settings: "liga" 0, "calt" 0;
+            letter-spacing: normal;
+            word-spacing: normal;
             white-space: pre;
             tab-size: 4;
             box-sizing: border-box;
             width: 100%;
-            min-height: 100%;
+            height: 100%;
             overflow: auto;
             scrollbar-width: none;
             -ms-overflow-style: none;
@@ -816,6 +829,10 @@
             background: transparent;
             overflow: hidden;
         }
+        .highlight-inner {
+            will-change: transform;
+            min-height: 100%;
+        }
         .code-input {
             z-index: 2;
             background: transparent;
@@ -828,6 +845,7 @@
         .code-input::selection { background: rgba(110,168,254,0.35); -webkit-text-fill-color: transparent; }
         .code-input.wrap,
         .highlight-layer.wrap { white-space: pre-wrap; word-break: break-word; }
+        .code-input.wrap .highlight-inner { white-space: pre-wrap; word-break: break-word; }
 
         .minimap {
             flex: 0 0 18px;
@@ -878,7 +896,7 @@
             border-top: 1px solid var(--border);
             font-size: 11.5px;
             color: var(--text-1);
-            font-family: "JetBrains Mono", ui-monospace, monospace;
+            font-family: var(--code-font);
             gap: 12px;
             flex-wrap: wrap;
             border-radius: 0 0 var(--radius-lg) var(--radius-lg);
@@ -1053,7 +1071,7 @@
             background: #0a0a0a;
             border-bottom: 1px solid #1a1a1a;
             font-size: 11px;
-            font-family: "JetBrains Mono", monospace;
+            font-family: var(--code-font);
             color: #6e7589;
         }
         .console-toolbar-left {
@@ -1069,14 +1087,14 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 11px;
-            font-family: "JetBrains Mono", monospace;
+            font-family: var(--code-font);
         }
         .console-toolbar-btn:hover { color: #f0f3f8; border-color: #3d4459; background: #141821; }
         .console-toolbar-btn.active { color: #6ea8fe; border-color: rgba(110,168,254,0.5); background: rgba(110,168,254,0.08); }
 
         #editor-console-logs {
             background: #000;
-            font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+            font-family: var(--code-font);
             min-height: 140px;
             max-height: 340px;
             padding: 12px 16px;
@@ -1135,7 +1153,7 @@
         }
         .console-chevron {
             color: #22c55e;
-            font-family: "JetBrains Mono", monospace;
+            font-family: var(--code-font);
             font-size: 13px;
             font-weight: 700;
             user-select: none;
@@ -1146,7 +1164,7 @@
             border: none;
             outline: none;
             color: #cbd5e1;
-            font-family: "JetBrains Mono", monospace;
+            font-family: var(--code-font);
             font-size: 12.5px;
             padding: 4px 0;
         }
@@ -1239,6 +1257,7 @@
             min-height: 44px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+            text-decoration: none;
         }
         .fab-menu-item:hover { background: var(--bg-3); }
         .fab-menu-item:active { transform: scale(0.98); }
@@ -1257,7 +1276,7 @@
         .fab-menu-item .fi-shortcut {
             font-size: 10.5px;
             color: var(--text-2);
-            font-family: "JetBrains Mono", monospace;
+            font-family: var(--code-font);
             padding: 2px 6px;
             background: var(--bg-1);
             border: 1px solid var(--border);
@@ -1315,7 +1334,7 @@
         .palette-item .pi-shortcut {
             font-size: 11px;
             color: var(--text-2);
-            font-family: "JetBrains Mono", monospace;
+            font-family: var(--code-font);
             padding: 2px 6px;
             background: var(--bg-1);
             border: 1px solid var(--border);
@@ -1344,14 +1363,14 @@
             border-radius: 6px;
             color: var(--text-0);
             font-size: 13px;
-            font-family: "JetBrains Mono", monospace;
+            font-family: var(--code-font);
             outline: none;
             min-width: 160px;
         }
         .find-bar input:focus { border-color: var(--accent); }
         .find-bar .fcount {
             color: var(--text-2);
-            font-family: "JetBrains Mono", monospace;
+            font-family: var(--code-font);
             font-size: 12px;
             min-width: 60px;
         }
@@ -1745,9 +1764,11 @@
                     </div>
 
                     <div class="editor-body">
-                        <div class="gutter" id="gutter"></div>
+                        <div class="gutter" id="gutter">
+                            <div class="gutter-inner" id="gutterInner"></div>
+                        </div>
                         <div class="editor-scroll">
-                            <pre class="highlight-layer" id="highlightLayer" aria-hidden="true"></pre>
+                            <pre class="highlight-layer" id="highlightLayer" aria-hidden="true"><div class="highlight-inner" id="highlightInner"></div></pre>
                             <textarea id="js" class="code-input" wrap="off" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" aria-label="Code editor">const display = new Display();
 display.perform();
 display.start(800, 600);
@@ -2222,6 +2243,10 @@ https://cdn.example.com/my-library.js"></textarea>
                         win.eval('(' + window.__LIMN_CLICK_PATCH__.toString() + ')();');
                     }
                 } catch (e) {}
+
+                if (typeof window.__applyZoomToFrame === 'function') {
+                    window.__applyZoomToFrame();
+                }
             });
         }
 
@@ -2479,7 +2504,9 @@ https://cdn.example.com/my-library.js"></textarea>
     (function () {
         var textarea = document.getElementById('js');
         var highlight = document.getElementById('highlightLayer');
+        var highlightInner = document.getElementById('highlightInner');
         var gutter = document.getElementById('gutter');
+        var gutterInner = document.getElementById('gutterInner');
         var stats = document.getElementById('codeStats');
         var copyBtn = document.getElementById('copyCodeBtn');
         var copyLabel = document.getElementById('copyCodeLabel');
@@ -2496,6 +2523,20 @@ https://cdn.example.com/my-library.js"></textarea>
         var KEYWORDS = { 'const':1,'let':1,'var':1,'function':1,'return':1,'if':1,'else':1,'for':1,'while':1,'do':1,'break':1,'continue':1,'new':1,'this':1,'class':1,'extends':1,'super':1,'try':1,'catch':1,'finally':1,'throw':1,'switch':1,'case':1,'default':1,'typeof':1,'instanceof':1,'in':1,'of':1,'delete':1,'void':1,'yield':1,'await':1,'async':1,'static':1,'get':1,'set':1,'import':1,'export':1,'from':1,'as':1 };
         var BUILTINS = { 'Display':1,'Component':1,'Tctxt':1,'Camera':1,'Sprite':1,'AnimatedSprite':1,'Tile':1,'TileMap':1,'Particle':1,'ParticleSystem':1,'Sound':1,'SoundManager':1,'Math':1,'JSON':1,'Object':1,'Array':1,'String':1,'Number':1,'Boolean':1,'Date':1,'Set':1,'Map':1,'Promise':1,'Error':1,'console':1,'window':1,'document':1,'display':1,'mouse':1 };
         var LITERALS = { 'true':1,'false':1,'null':1,'undefined':1,'NaN':1,'Infinity':1 };
+
+        var VISIBLE_BUFFER = 40;
+        var currentLineHeight = 22;
+
+        function measureLineHeight() {
+            var cs = getComputedStyle(textarea);
+            var lh = parseFloat(cs.lineHeight);
+            if (isNaN(lh)) {
+                var fs = parseFloat(cs.fontSize) || 13;
+                lh = fs * 1.5;
+            }
+            currentLineHeight = lh;
+            return lh;
+        }
 
         function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -2662,27 +2703,53 @@ https://cdn.example.com/my-library.js"></textarea>
         }
 
         var pendingErrorAnalysis = null;
+        var _lastGutterLineCount = 0;
 
-        var _lastLineCount = 0;
-        var _renderQueued = false;
+        function visibleRange(lineCount) {
+            var lh = currentLineHeight;
+            var viewportH = textarea.clientHeight || 500;
+            var scrollTop = textarea.scrollTop || 0;
+            var first = Math.max(0, Math.floor(scrollTop / lh) - VISIBLE_BUFFER);
+            var last = Math.min(lineCount, Math.ceil((scrollTop + viewportH) / lh) + VISIBLE_BUFFER);
+            if (last <= first) last = Math.min(lineCount, first + 1);
+            return { first: first, last: last };
+        }
 
-        function renderNow() {
-            _renderQueued = false;
+        function buildLineHtml(lineText) {
+            if (lineText === '') return ' ';
+            return tokenize(lineText);
+        }
 
+        function renderChunk() {
             var code = textarea.value;
-            var html = tokenize(code);
+            var lines = code.split('\n');
+            var lineCount = lines.length;
+
+            var r = visibleRange(lineCount);
+            var startLine = r.first;
+            var endLine = r.last;
+
+            var html = '';
+            if (startLine > 0) {
+                html += '<div style="height:' + (startLine * currentLineHeight) + 'px"></div>';
+            }
+            for (var i = startLine; i < endLine; i++) {
+                html += buildLineHtml(lines[i]);
+                if (i < endLine - 1) html += '\n';
+            }
+            if (endLine < lineCount) {
+                html += '<div style="height:' + ((lineCount - endLine) * currentLineHeight) + 'px"></div>';
+            }
             if (code.endsWith('\n')) html += ' ';
-            highlight.innerHTML = html;
+            highlightInner.innerHTML = html;
 
-            var lineCount = code.split('\n').length;
-
-            if (lineCount !== _lastLineCount) {
+            if (lineCount !== _lastGutterLineCount) {
                 var g = '';
-                for (var i = 1; i <= lineCount; i++) {
-                    g += '<div class="gutter-line" data-line="' + i + '">' + i + '</div>';
+                for (var k = 1; k <= lineCount; k++) {
+                    g += '<div class="gutter-line" data-line="' + k + '">' + k + '</div>';
                 }
-                gutter.innerHTML = g;
-                _lastLineCount = lineCount;
+                gutterInner.innerHTML = g;
+                _lastGutterLineCount = lineCount;
                 renderMinimap();
             }
 
@@ -2694,10 +2761,14 @@ https://cdn.example.com/my-library.js"></textarea>
             scheduleErrorAnalysis();
         }
 
+        var _renderQueued = false;
         function render() {
             if (_renderQueued) return;
             _renderQueued = true;
-            requestAnimationFrame(renderNow);
+            requestAnimationFrame(function () {
+                _renderQueued = false;
+                renderChunk();
+            });
         }
 
         function scheduleErrorAnalysis() {
@@ -2708,7 +2779,7 @@ https://cdn.example.com/my-library.js"></textarea>
         function runErrorAnalysis() {
             pendingErrorAnalysis = null;
             var errors = analyzeBrackets(textarea.value);
-            var lines = gutter.children;
+            var lines = gutterInner.children;
             for (var i = 0; i < lines.length; i++) {
                 lines[i].classList.toggle('has-error', !!errors[i + 1]);
             }
@@ -2717,11 +2788,20 @@ https://cdn.example.com/my-library.js"></textarea>
         function syncScroll() {
             var y = textarea.scrollTop;
             var x = textarea.scrollLeft;
-            highlight.style.transform = 'translate(' + (-x) + 'px, ' + (-y) + 'px)';
-            highlight.style.paddingLeft = (24 + x) + 'px';
-            highlight.style.paddingTop = (18 + y) + 'px';
-            gutter.scrollTop = y;
+            highlightInner.style.transform = 'translate(' + (-x) + 'px, ' + (-y) + 'px)';
+            highlightInner.style.paddingLeft = x + 'px';
+            highlightInner.style.paddingTop = y + 'px';
+            gutterInner.style.transform = 'translateY(' + (-y) + 'px)';
             updateMinimapViewport();
+            var lineCount = textarea.value.split('\n').length;
+            var r = visibleRange(lineCount);
+            var currentStart = parseInt(highlightInner.dataset.startLine || '0', 10);
+            var currentEnd = parseInt(highlightInner.dataset.endLine || '0', 10);
+            if (r.first !== currentStart || r.last !== currentEnd) {
+                highlightInner.dataset.startLine = r.first;
+                highlightInner.dataset.endLine = r.last;
+                renderChunk();
+            }
         }
         textarea.addEventListener('scroll', syncScroll);
 
@@ -2729,7 +2809,7 @@ https://cdn.example.com/my-library.js"></textarea>
             var before = textarea.value.slice(0, textarea.selectionStart);
             var line = before.split('\n').length;
             var col = before.length - before.lastIndexOf('\n');
-            var lines = gutter.children;
+            var lines = gutterInner.children;
             for (var i = 0; i < lines.length; i++) lines[i].classList.toggle('active', i + 1 === line);
             if (statusLine) statusLine.textContent = line;
             if (statusCol) statusCol.textContent = col;
@@ -2990,19 +3070,21 @@ https://cdn.example.com/my-library.js"></textarea>
         var fontRoot = document.documentElement;
 
         function applyFont() {
-            var lh = fontSize + 9;
+            var lh = Math.round(fontSize * 1.55);
             fontRoot.style.setProperty('--code-font-size', fontSize + 'px');
             fontRoot.style.setProperty('--code-line-height', lh + 'px');
             textarea.style.fontSize = fontSize + 'px';
             highlight.style.fontSize = fontSize + 'px';
             textarea.style.lineHeight = lh + 'px';
             highlight.style.lineHeight = lh + 'px';
-            var lines = gutter.querySelectorAll('.gutter-line');
+            var lines = gutterInner.children;
             for (var i = 0; i < lines.length; i++) {
                 lines[i].style.height = lh + 'px';
                 lines[i].style.lineHeight = lh + 'px';
                 lines[i].style.fontSize = fontSize + 'px';
             }
+            measureLineHeight();
+            renderChunk();
         }
         if (fontDec) fontDec.addEventListener('click', function () {
             fontSize = Math.max(10, fontSize - 1); applyFont();
@@ -3026,7 +3108,10 @@ https://cdn.example.com/my-library.js"></textarea>
         }
 
         window.__renderCode = render;
-        render();
+
+        measureLineHeight();
+        applyFont();
+        renderChunk();
 
         var lastSavedCode = textarea.value;
         window.__markDirty = function () {
@@ -3542,21 +3627,40 @@ https://cdn.example.com/my-library.js"></textarea>
         function getWrap() { return document.getElementById('dialogFrameWrap'); }
         function getDisplay() { return document.getElementById('zoomDisplay'); }
 
-        function applyZoom() {
+        window.__applyZoomToFrame = function () {
+            var frame = getFrame();
+            if (!frame) return;
+
+            var applied = false;
+            try {
+                var doc = frame.contentDocument;
+                if (doc && doc.documentElement) {
+                    if (zoomLevel === 1) {
+                        doc.documentElement.style.removeProperty('zoom');
+                        doc.body.style.removeProperty('zoom');
+                    } else {
+                        doc.documentElement.style.zoom = zoomLevel;
+                    }
+                    applied = true;
+                }
+            } catch (e) {}
+
             var wrap = getWrap();
-            if (!wrap) return;
-            if (zoomLevel === 1) {
-                wrap.style.transform = '';
-            } else {
-                wrap.style.transform = 'scale(' + zoomLevel + ')';
+            if (wrap) {
+                if (!applied && zoomLevel !== 1) {
+                    wrap.style.transform = 'scale(' + zoomLevel + ')';
+                } else {
+                    wrap.style.transform = '';
+                }
             }
+
             var d = getDisplay();
             if (d) d.textContent = Math.round(zoomLevel * 100) + '%';
-        }
+        };
 
         function setZoom(level) {
             zoomLevel = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, +level.toFixed(2)));
-            applyZoom();
+            window.__applyZoomToFrame();
         }
 
         var zi = document.getElementById('zoomInBtn');
@@ -3575,11 +3679,11 @@ https://cdn.example.com/my-library.js"></textarea>
                     else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
                     return;
                 }
-                var wrap = getWrap();
-                if (!wrap) return;
-                var req = wrap.requestFullscreen || wrap.webkitRequestFullscreen || wrap.msRequestFullscreen;
+                var dialog = document.getElementById('runDialog');
+                var target = dialog || document.documentElement;
+                var req = target.requestFullscreen || target.webkitRequestFullscreen || target.msRequestFullscreen;
                 if (!req) { alert('Fullscreen not supported on this browser.'); return; }
-                await req.call(wrap);
+                await req.call(target);
             } catch (err) {
                 console.error('[fullscreen] failed:', err);
             }
@@ -3588,14 +3692,13 @@ https://cdn.example.com/my-library.js"></textarea>
         document.addEventListener('fullscreenchange', function () {
             var btn = document.getElementById('fsBtn');
             if (!btn) return;
-            btn.textContent = document.fullscreenElement ? '⛶' : '⛶';
             btn.title = document.fullscreenElement ? 'Exit fullscreen (F)' : 'Fullscreen (F)';
         });
 
         var frame = getFrame();
         if (frame) {
             frame.addEventListener('load', function () {
-                setTimeout(applyZoom, 60);
+                setTimeout(window.__applyZoomToFrame, 60);
             });
         }
 
@@ -3603,7 +3706,7 @@ https://cdn.example.com/my-library.js"></textarea>
         if (runBtn) {
             runBtn.addEventListener('click', function () {
                 zoomLevel = 1;
-                applyZoom();
+                window.__applyZoomToFrame();
             });
         }
 
