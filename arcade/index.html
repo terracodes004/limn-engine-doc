@@ -91,6 +91,10 @@
     0% { transform: translateX(-100%) rotate(15deg); }
     100% { transform: translateX(300%) rotate(15deg); }
   }
+  @keyframes winnerPulse {
+    0%, 100% { box-shadow: 0 4px 14px rgba(251,191,36,0.55), 0 0 24px rgba(251,191,36,0.35); }
+    50% { box-shadow: 0 4px 20px rgba(251,191,36,0.85), 0 0 40px rgba(251,191,36,0.55); }
+  }
 
   .app { position: relative; z-index: 1; }
 
@@ -257,6 +261,7 @@
     background: linear-gradient(90deg, var(--accent), var(--accent-2));
     border-radius: 2px;
   }
+
   .view-toggle button .badge {
     display: inline-block;
     margin-left: 6px;
@@ -355,12 +360,10 @@
     padding: 10px 20px 12px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
   }
-  .hero-winners.no-winners {
-    display: none;
-  }
+  .hero-winners.no-winners { display: none; }
 
   .winner-slot {
     display: flex;
@@ -650,6 +653,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
+    animation: winnerPulse 2.4s ease-in-out infinite;
   }
   .winner-chip.offline-shift { top: auto; bottom: 8px; left: 8px; }
 
@@ -981,8 +985,8 @@
         <img src="/editor/logo.png" alt="Limn" />
       </div>
       <div class="hero-text">
-        <h2>Welcome to the Arcade</h2>
-        <p>Play, create, and share games with the Limn community — no install, no downloads, just hit play.</p>
+        <h2>Play. Create. Share.</h2>
+        <p>Discover games made by the Limn community — or build your own in minutes.</p>
       </div>
     </div>
     <div class="hero-winners no-winners" id="heroWinners"></div>
@@ -1592,30 +1596,57 @@ function hashString(str) {
 function detectTemplate(game) {
   const cfg = game.config || {};
   const title = (game.title || '').toLowerCase();
-  const hasSlots = cfg.slots && cfg.slots.length > 0;
+  const desc = (game.description || '').toLowerCase();
+  const text = title + ' ' + desc;
 
-  if (hasSlots) {
-    const slots = cfg.slots;
-    const n = slots.length;
-    if (n >= 6) return 'dressup';
-    if (n >= 2 && n <= 6) {
-      if (title.includes('snake')) return 'snake';
-      if (title.includes('shoot') || title.includes('star')) return 'shooter';
-      if (title.includes('plat') || title.includes('jump')) return 'platformer';
-      if (title.includes('run')) return 'runner';
-      if (title.includes('break') || title.includes('brick')) return 'breakout';
-      if (title.includes('flap')) return 'flappy';
-      if (title.includes('catch')) return 'catch';
-      if (title.includes('dodge')) return 'dodge';
-      if (title.includes('tank')) return 'tank';
-      if (title.includes('dungeon')) return 'dungeon';
-      if (title.includes('soccer') || title.includes('football')) return 'soccer';
-      if (title.includes('race') || title.includes('car')) return 'race';
-      if (title.includes('asteroid')) return 'asteroids';
-      if (title.includes('click')) return 'clicker';
-      return 'platformer';
-    }
+  const hasSlots = cfg.slots && cfg.slots.length > 0;
+  const slotCount = hasSlots ? cfg.slots.length : 0;
+
+  if (slotCount >= 8) return 'dressup';
+
+  if (text.includes('sniper') || text.includes('snipe') || text.includes('scope') ||
+      text.includes('crosshair') || text.includes('marksman')) return 'sniper';
+  if (text.includes('basket') || text.includes('soccer ball') ||
+      (text.includes('football') && slotCount < 4)) return 'ball';
+  if (text.includes('ball') && !text.includes('break')) return 'ball';
+  if (text.includes('puzzle') || text.includes('match-3') || text.includes('match3') ||
+      text.includes('jigsaw') || text.includes('2048') || text.includes('block blast')) return 'puzzle';
+  if (text.includes('tower') || text.includes('stack') || text.includes('jenga')) return 'tower';
+
+  if (text.includes('rac') || text.includes('kart') || text.includes('drift') ||
+      text.includes('rally') || text.includes('turbo') || text.includes('speed') ||
+      text.includes('highway') || text.includes('traffic') || text.includes('track') ||
+      text.includes('moto') || text.includes('bike') || text.includes('vehicle') ||
+      text.includes('car') || text.includes('drive') || text.includes('dash')) return 'racing';
+
+  if (text.includes('fight') || text.includes('combat') || text.includes('brawl') ||
+      (text.includes('arena') && slotCount < 4)) return 'fighting';
+  if (text.includes('rpg') || text.includes('quest') || text.includes('adventure') ||
+      text.includes('sword') || text.includes('hero')) return 'rpg';
+  if (text.includes('fish') || text.includes('ocean') || text.includes('aquarium')) return 'fishing';
+  if (text.includes('farm') || text.includes('harvest') || text.includes('crop') ||
+      text.includes('garden')) return 'farm';
+  if (text.includes('card') || text.includes('poker') || text.includes('solitaire') ||
+      text.includes('blackjack') || text.includes('uno')) return 'card';
+
+  if (slotCount >= 2 && slotCount <= 8) {
+    if (title.includes('snake')) return 'snake';
+    if (title.includes('shoot') || title.includes('star') ||
+        title.includes('space') || title.includes('alien')) return 'shooter';
+    if (title.includes('plat') || title.includes('jump')) return 'platformer';
+    if (title.includes('run')) return 'runner';
+    if (title.includes('break') || title.includes('brick')) return 'breakout';
+    if (title.includes('flap')) return 'flappy';
+    if (title.includes('catch')) return 'catch';
+    if (title.includes('dodge')) return 'dodge';
+    if (title.includes('tank')) return 'tank';
+    if (title.includes('dungeon')) return 'dungeon';
+    if (title.includes('soccer') || title.includes('football')) return 'soccer';
+    if (title.includes('asteroid')) return 'asteroids';
+    if (title.includes('click')) return 'clicker';
+    return 'platformer';
   }
+
   return 'custom';
 }
 
@@ -1642,9 +1673,18 @@ function thumbSVG(game, small) {
     tank: ['#0d0d2a', '#4af', '#f44', '#555'],
     dungeon: ['#1a1020', '#4af', '#f44', '#fd3'],
     soccer: ['#0a3d0a', '#4af', '#f44', '#ffffff'],
-    race: ['#1a4a1a', '#4af', '#f44', '#333'],
     asteroids: ['#000', '#4af', '#888', '#fd3'],
     dressup: ['#0d0d2a', '#4af', '#fd3', '#f44'],
+    sniper: ['#0a1420', '#4ade80', '#fbbf24', '#ef4444'],
+    ball: ['#0a1a0a', '#fbbf24', '#ffffff', '#f97316'],
+    puzzle: ['#1a0a2a', '#a371f7', '#fbbf24', '#ec4899'],
+    tower: ['#0d1a2a', '#6ea8fe', '#fbbf24', '#4ade80'],
+    racing: ['#1a1a1a', '#fbbf24', '#ef4444', '#ffffff'],
+    fighting: ['#1a0a0a', '#ef4444', '#fbbf24', '#6ea8fe'],
+    rpg: ['#0a0a1a', '#a371f7', '#fbbf24', '#ef4444'],
+    fishing: ['#0a1a2a', '#4af', '#a5d6ff', '#fbbf24'],
+    farm: ['#1a200a', '#4ade80', '#fbbf24', '#92400e'],
+    card: ['#0a0a1a', '#ffffff', '#ef4444', '#1a1a1a'],
     custom: ['#6ea8fe', '#a371f7', '#ec4899', '#fbbf24']
   };
   const p = palettes[type] || palettes.custom;
@@ -1674,7 +1714,212 @@ function renderScene(type, w, h, p, hash, slots, world) {
   const c1 = p[1], c2 = p[2], c3 = p[3];
   let art = '';
 
-  if (type === 'platformer') {
+  if (type === 'sniper') {
+    const cx = w * 0.5, cy = h * 0.48;
+    art += '<rect x="0" y="' + (h * 0.75) + '" width="' + w + '" height="' + (h * 0.25) + '" fill="#0f0a05"/>';
+    art += '<polygon points="0,' + (h * 0.78) + ' ' + (w * 0.35) + ',' + (h * 0.6) + ' ' + (w * 0.6) + ',' + (h * 0.72) + ' 0,' + (h * 0.9) + '" fill="#1a1a0f"/>';
+    art += '<polygon points="' + w + ',' + (h * 0.78) + ' ' + (w * 0.65) + ',' + (h * 0.55) + ' ' + (w * 0.4) + ',' + (h * 0.72) + ' ' + w + ',' + (h * 0.9) + '" fill="#1a1a0f"/>';
+    art += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (h * 0.32) + '" fill="#000" opacity="0.35"/>';
+    art += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (h * 0.32) + '" fill="none" stroke="#4ade80" stroke-width="2.5" opacity="0.9"/>';
+    art += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (h * 0.24) + '" fill="none" stroke="#4ade80" stroke-width="0.8" opacity="0.5"/>';
+    art += '<line x1="' + (cx - h * 0.36) + '" y1="' + cy + '" x2="' + (cx - h * 0.06) + '" y2="' + cy + '" stroke="#4ade80" stroke-width="2" opacity="0.9"/>';
+    art += '<line x1="' + (cx + h * 0.06) + '" y1="' + cy + '" x2="' + (cx + h * 0.36) + '" y2="' + cy + '" stroke="#4ade80" stroke-width="2" opacity="0.9"/>';
+    art += '<line x1="' + cx + '" y1="' + (cy - h * 0.36) + '" x2="' + cx + '" y2="' + (cy - h * 0.06) + '" stroke="#4ade80" stroke-width="2" opacity="0.9"/>';
+    art += '<line x1="' + cx + '" y1="' + (cy + h * 0.06) + '" x2="' + cx + '" y2="' + (cy + h * 0.36) + '" stroke="#4ade80" stroke-width="2" opacity="0.9"/>';
+    art += '<circle cx="' + cx + '" cy="' + cy + '" r="3" fill="#ef4444"/>';
+    art += '<circle cx="' + (w * 0.32) + '" cy="' + (h * 0.55) + '" r="6" fill="#0d0d0d"/>';
+    art += '<circle cx="' + (w * 0.32) + '" cy="' + (h * 0.55) + '" r="8" fill="none" stroke="#fbbf24" stroke-width="1.2" opacity="0.7"/>';
+    for (let i = 0; i < 4; i++) {
+      const ang = (i / 4) * Math.PI * 2 + 0.4;
+      art += '<line x1="' + (cx + Math.cos(ang) * h * 0.32) + '" y1="' + (cy + Math.sin(ang) * h * 0.32) + '" x2="' + (cx + Math.cos(ang) * h * 0.4) + '" y2="' + (cy + Math.sin(ang) * h * 0.4) + '" stroke="#4ade80" stroke-width="1.5"/>';
+    }
+  } else if (type === 'ball') {
+    const bx = w * 0.55, by = h * 0.62, r = h * 0.18;
+    art += '<rect x="0" y="' + (h * 0.85) + '" width="' + w + '" height="' + (h * 0.15) + '" fill="#052e0a"/>';
+    art += '<line x1="' + (w * 0.85) + '" y1="' + (h * 0.15) + '" x2="' + (w * 0.9) + '" y2="' + (h * 0.55) + '" stroke="#ffffff" stroke-width="3" opacity="0.85"/>';
+    art += '<path d="M ' + (w * 0.92) + ' ' + (h * 0.05) + ' L ' + (w * 0.78) + ' ' + (h * 0.05) + ' L ' + (w * 0.78) + ' ' + (h * 0.25) + ' L ' + (w * 0.98) + ' ' + (h * 0.25) + ' L ' + (w * 0.98) + ' ' + (h * 0.05) + ' Z" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.9"/>';
+    for (let i = 0; i < 5; i++) {
+      art += '<line x1="' + (w * 0.98 - i * 3) + '" y1="' + (h * 0.05 + i * 5) + '" x2="' + (w * 0.78 + i * 3) + '" y2="' + (h * 0.05 + i * 5) + '" stroke="#ffffff" stroke-width="1" opacity="0.6"/>';
+      art += '<line x1="' + (w * 0.98 - i * 3) + '" y1="' + (h * 0.25 - i * 5) + '" x2="' + (w * 0.78 + i * 3) + '" y2="' + (h * 0.25 - i * 5) + '" stroke="#ffffff" stroke-width="1" opacity="0.6"/>';
+    }
+    art += '<circle cx="' + bx + '" cy="' + by + '" r="' + r + '" fill="' + c2 + '"/>';
+    art += '<path d="M ' + (bx - r) + ' ' + by + ' Q ' + bx + ' ' + (by - r * 0.6) + ' ' + (bx + r) + ' ' + by + ' Q ' + bx + ' ' + (by + r * 0.6) + ' ' + (bx - r) + ' ' + by + '" fill="none" stroke="#1a1a1a" stroke-width="2"/>';
+    art += '<line x1="' + bx + '" y1="' + (by - r) + '" x2="' + bx + '" y2="' + (by + r) + '" stroke="#1a1a1a" stroke-width="2"/>';
+    art += '<line x1="' + (bx - r * 0.85) + '" y1="' + (by - r * 0.5) + '" x2="' + (bx + r * 0.85) + '" y2="' + (by + r * 0.5) + '" stroke="#1a1a1a" stroke-width="1.5" opacity="0.7"/>';
+    art += '<line x1="' + (bx - r * 0.85) + '" y1="' + (by + r * 0.5) + '" x2="' + (bx + r * 0.85) + '" y2="' + (by - r * 0.5) + '" stroke="#1a1a1a" stroke-width="1.5" opacity="0.7"/>';
+    art += '<path d="M ' + (bx - r * 1.4) + ' ' + by + ' Q ' + (bx - r * 1.6) + ' ' + (by - r * 0.4) + ' ' + (bx - r * 1.2) + ' ' + (by - r * 0.6) + '" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.5"/>';
+  } else if (type === 'puzzle') {
+    const cols = 4, rows = 3;
+    const gw = w * 0.7, gh = h * 0.55;
+    const gx = (w - gw) / 2, gy = (h - gh) / 2;
+    const cw = gw / cols, ch = gh / rows;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (r === 1 && c === 1) continue;
+        const colors = [c1, c2, c3, '#6ea8fe'];
+        const color = colors[(r * cols + c) % colors.length];
+        art += '<rect x="' + (gx + c * cw + 1) + '" y="' + (gy + r * ch + 1) + '" width="' + (cw - 2) + '" height="' + (ch - 2) + '" fill="' + color + '" rx="3" opacity="0.9"/>';
+        art += '<rect x="' + (gx + c * cw + 1) + '" y="' + (gy + r * ch + 1) + '" width="' + (cw - 2) + '" height="' + (ch - 2) + '" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.3" rx="3"/>';
+      }
+    }
+    art += '<rect x="' + (gx + cw + 1) + '" y="' + (gy + ch + 1) + '" width="' + (cw - 2) + '" height="' + (ch - 2) + '" fill="#1a1a2a" stroke="#ffffff" stroke-width="2" stroke-dasharray="3 3" rx="3"/>';
+    art += '<text x="' + (gx + cw * 1.5) + '" y="' + (gy + ch * 1.5 + 5) + '" text-anchor="middle" font-size="16" fill="#6e7589" font-family="monospace">?</text>';
+    art += '<circle cx="' + (w * 0.85) + '" cy="' + (h * 0.25) + '" r="' + (h * 0.06) + '" fill="#fbbf24" opacity="0.9"/>';
+    art += '<text x="' + (w * 0.85) + '" y="' + (h * 0.25 + 5) + '" text-anchor="middle" font-size="14" fill="#1a1000" font-weight="900">★</text>';
+  } else if (type === 'tower') {
+    const baseY = h * 0.9;
+    const bw = w * 0.35, bh = h * 0.08;
+    const bx = (w - bw) / 2;
+    art += '<rect x="' + (bx - 10) + '" y="' + (baseY - 4) + '" width="' + (bw + 20) + '" height="6" fill="#1a1a2a"/>';
+    for (let i = 0; i < 6; i++) {
+      const c = [c1, c2, c3][i % 3];
+      const shift = (hashString('t' + i + hash) % 30) - 15;
+      art += '<rect x="' + (bx + shift) + '" y="' + (baseY - (i + 1) * bh - 4) + '" width="' + bw + '" height="' + (bh - 2) + '" fill="' + c + '" rx="2"/>';
+      art += '<rect x="' + (bx + shift) + '" y="' + (baseY - (i + 1) * bh - 4) + '" width="' + bw + '" height="' + (bh - 2) + '" fill="none" stroke="#ffffff" stroke-width="0.8" opacity="0.3" rx="2"/>';
+    }
+    art += '<rect x="' + (bx + 40) + '" y="' + (baseY - 7 * bh - 10) + '" width="' + bw + '" height="' + (bh - 2) + '" fill="#fbbf24" rx="2" transform="rotate(-12 ' + (bx + 40 + bw / 2) + ' ' + (baseY - 7 * bh - 10 + bh / 2) + ')"/>';
+    art += '<line x1="' + (bx + 40) + '" y1="' + (baseY - 7 * bh - 10) + '" x2="' + (bx + 20) + '" y2="' + (baseY - 7 * bh - 40) + '" stroke="#ffffff" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>';
+    art += '<line x1="' + (bx + 40 + bw) + '" y1="' + (baseY - 7 * bh - 10) + '" x2="' + (bx + 60 + bw) + '" y2="' + (baseY - 7 * bh - 40) + '" stroke="#ffffff" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>';
+  } else if (type === 'racing') {
+    art += '<rect x="0" y="0" width="' + w + '" height="' + h + '" fill="#2a2a2a"/>';
+    const roadX = w * 0.15, roadW = w * 0.7;
+    art += '<rect x="' + roadX + '" y="0" width="' + roadW + '" height="' + h + '" fill="#3a3a3a"/>';
+    art += '<rect x="' + (roadX - 6) + '" y="0" width="6" height="' + h + '" fill="#1a1a1a"/>';
+    art += '<rect x="' + (roadX + roadW) + '" y="0" width="6" height="' + h + '" fill="#1a1a1a"/>';
+    for (let i = 0; i < 8; i++) {
+      const y = (i / 8) * h;
+      art += '<rect x="' + (w / 2 - 3) + '" y="' + y + '" width="6" height="' + (h * 0.08) + '" fill="#fbbf24"/>';
+    }
+    const cx1 = w * 0.35, cy1 = h * 0.7;
+    art += '<rect x="' + (cx1 - 24) + '" y="' + (cy1 - 40) + '" width="48" height="80" fill="' + c3 + '" rx="8"/>';
+    art += '<rect x="' + (cx1 - 18) + '" y="' + (cy1 - 30) + '" width="36" height="30" fill="#1a1a1a" rx="4"/>';
+    art += '<rect x="' + (cx1 - 22) + '" y="' + (cy1 + 15) + '" width="44" height="20" fill="#1a1a1a" rx="4"/>';
+    art += '<rect x="' + (cx1 - 22) + '" y="' + (cy1 - 40) + '" width="44" height="6" fill="#fbbf24"/>';
+    const cx2 = w * 0.65, cy2 = h * 0.35;
+    art += '<rect x="' + (cx2 - 24) + '" y="' + (cy2 - 40) + '" width="48" height="80" fill="#4ade80" rx="8"/>';
+    art += '<rect x="' + (cx2 - 18) + '" y="' + (cy2 - 30) + '" width="36" height="30" fill="#1a1a1a" rx="4"/>';
+    art += '<rect x="' + (cx2 - 22) + '" y="' + (cy2 + 15) + '" width="44" height="20" fill="#1a1a1a" rx="4"/>';
+    for (let i = 0; i < 5; i++) {
+      art += '<line x1="' + (cx1 - 30 - i * 4) + '" y1="' + (cy1 + 20 + i * 5) + '" x2="' + (cx1 - 60 - i * 8) + '" y2="' + (cy1 + 20 + i * 5) + '" stroke="#ffffff" stroke-width="1.5" opacity="' + (0.6 - i * 0.1) + '"/>';
+    }
+  } else if (type === 'fighting') {
+    const groundY = h * 0.82;
+    art += '<rect x="0" y="' + groundY + '" width="' + w + '" height="' + (h - groundY) + '" fill="#2a1010"/>';
+    const p1x = w * 0.28;
+    art += '<circle cx="' + p1x + '" cy="' + (groundY - 60) + '" r="12" fill="' + c1 + '"/>';
+    art += '<rect x="' + (p1x - 10) + '" y="' + (groundY - 48) + '" width="20" height="34" fill="' + c1 + '" rx="3"/>';
+    art += '<rect x="' + (p1x - 8) + '" y="' + (groundY - 14) + '" width="6" height="16" fill="' + c1 + '"/>';
+    art += '<rect x="' + (p1x + 2) + '" y="' + (groundY - 14) + '" width="6" height="16" fill="' + c1 + '"/>';
+    art += '<rect x="' + (p1x + 10) + '" y="' + (groundY - 44) + '" width="18" height="6" fill="' + c1 + '" rx="2"/>';
+    const p2x = w * 0.72;
+    art += '<circle cx="' + p2x + '" cy="' + (groundY - 60) + '" r="12" fill="' + c3 + '"/>';
+    art += '<rect x="' + (p2x - 10) + '" y="' + (groundY - 48) + '" width="20" height="34" fill="' + c3 + '" rx="3"/>';
+    art += '<rect x="' + (p2x - 8) + '" y="' + (groundY - 14) + '" width="6" height="16" fill="' + c3 + '"/>';
+    art += '<rect x="' + (p2x + 2) + '" y="' + (groundY - 14) + '" width="6" height="16" fill="' + c3 + '"/>';
+    art += '<rect x="' + (p2x - 28) + '" y="' + (groundY - 44) + '" width="18" height="6" fill="' + c3 + '" rx="2"/>';
+    const mx = w * 0.5, my = groundY - 55;
+    for (let i = 0; i < 8; i++) {
+      const ang = (i / 8) * Math.PI * 2;
+      art += '<line x1="' + (mx + Math.cos(ang) * 8) + '" y1="' + (my + Math.sin(ang) * 8) + '" x2="' + (mx + Math.cos(ang) * 22) + '" y2="' + (my + Math.sin(ang) * 22) + '" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>';
+    }
+    art += '<circle cx="' + mx + '" cy="' + my + '" r="6" fill="#fbbf24"/>';
+    art += '<text x="' + mx + '" y="' + (my + 4) + '" text-anchor="middle" font-size="10" fill="#1a1000" font-weight="900">!</text>';
+  } else if (type === 'rpg') {
+    art += '<rect x="0" y="0" width="' + w + '" height="' + h + '" fill="#0a0a1a"/>';
+    for (let i = 0; i < 30; i++) {
+      const sx = hashString('r' + i + hash) % w;
+      const sy = hashString('s' + i + hash) % (h * 0.5);
+      art += '<circle cx="' + sx + '" cy="' + sy + '" r="0.8" fill="#a5d6ff" opacity="0.5"/>';
+    }
+    art += '<rect x="0" y="' + (h * 0.85) + '" width="' + w + '" height="' + (h * 0.15) + '" fill="#1a1a0f"/>';
+    const hx = w * 0.35, hy = h * 0.55;
+    art += '<circle cx="' + hx + '" cy="' + (hy - 50) + '" r="14" fill="#fbbf24"/>';
+    art += '<rect x="' + (hx - 12) + '" y="' + (hy - 36) + '" width="24" height="40" fill="#a371f7" rx="3"/>';
+    art += '<rect x="' + (hx - 10) + '" y="' + (hy + 4) + '" width="8" height="22" fill="#6ea8fe"/>';
+    art += '<rect x="' + (hx + 2) + '" y="' + (hy + 4) + '" width="8" height="22" fill="#6ea8fe"/>';
+    art += '<rect x="' + (hx + 14) + '" y="' + (hy - 30) + '" width="4" height="50" fill="#e5e7eb" rx="1"/>';
+    art += '<rect x="' + (hx + 10) + '" y="' + (hy - 36) + '" width="12" height="10" fill="#fbbf24" rx="1"/>';
+    art += '<rect x="' + (hx + 12) + '" y="' + (hy - 4) + '" width="8" height="4" fill="#4a2a10"/>';
+    const ex = w * 0.72, ey = h * 0.62;
+    art += '<circle cx="' + ex + '" cy="' + (ey - 40) + '" r="12" fill="#1a0a0a"/>';
+    art += '<circle cx="' + (ex - 4) + '" cy="' + (ey - 42) + '" r="2" fill="#ef4444"/>';
+    art += '<circle cx="' + (ex + 4) + '" cy="' + (ey - 42) + '" r="2" fill="#ef4444"/>';
+    art += '<rect x="' + (ex - 14) + '" y="' + (ey - 28) + '" width="28" height="36" fill="#2a1010" rx="3"/>';
+    art += '<rect x="' + (ex - 10) + '" y="' + (ey + 8) + '" width="8" height="18" fill="#1a0a0a"/>';
+    art += '<rect x="' + (ex + 2) + '" y="' + (ey + 8) + '" width="8" height="18" fill="#1a0a0a"/>';
+    art += '<rect x="' + (w * 0.15) + '" y="' + (h * 0.15) + '" width="' + (w * 0.2) + '" height="8" fill="#1a1a2a" rx="2"/>';
+    art += '<rect x="' + (w * 0.15) + '" y="' + (h * 0.15) + '" width="' + (w * 0.16) + '" height="8" fill="#4ade80" rx="2"/>';
+    art += '<rect x="' + (w * 0.15) + '" y="' + (h * 0.15 + 12) + '" width="' + (w * 0.2) + '" height="6" fill="#1a1a2a" rx="2"/>';
+    art += '<rect x="' + (w * 0.15) + '" y="' + (h * 0.15 + 12) + '" width="' + (w * 0.12) + '" height="6" fill="#6ea8fe" rx="2"/>';
+    art += '<rect x="' + (w * 0.65) + '" y="' + (h * 0.15) + '" width="' + (w * 0.2) + '" height="8" fill="#1a1a2a" rx="2"/>';
+    art += '<rect x="' + (w * 0.65) + '" y="' + (h * 0.15) + '" width="' + (w * 0.14) + '" height="8" fill="#ef4444" rx="2"/>';
+  } else if (type === 'fishing') {
+    const surfY = h * 0.4;
+    art += '<rect x="0" y="0" width="' + w + '" height="' + surfY + '" fill="#0a1a2a"/>';
+    art += '<rect x="0" y="' + surfY + '" width="' + w + '" height="' + (h - surfY) + '" fill="#062a3a"/>';
+    for (let i = 0; i < 6; i++) {
+      const wy = surfY + i * 8;
+      art += '<path d="M 0 ' + wy + ' Q ' + (w * 0.25) + ' ' + (wy - 4) + ' ' + (w * 0.5) + ' ' + wy + ' T ' + w + ' ' + wy + '" fill="none" stroke="#4af" stroke-width="1" opacity="' + (0.5 - i * 0.06) + '"/>';
+    }
+    art += '<line x1="' + (w * 0.75) + '" y1="0" x2="' + (w * 0.75) + '" y2="' + (h * 0.55) + '" stroke="#ffffff" stroke-width="1" opacity="0.5"/>';
+    art += '<path d="M ' + (w * 0.75) + ' ' + (h * 0.55) + ' q 0 12 -4 18" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.7"/>';
+    art += '<circle cx="' + (w * 0.73) + '" cy="' + (h * 0.72) + '" r="4" fill="none" stroke="#a5d6ff" stroke-width="1.5"/>';
+    const fx = w * 0.3, fy = h * 0.68;
+    art += '<ellipse cx="' + fx + '" cy="' + fy + '" rx="34" ry="14" fill="#a5d6ff" opacity="0.85"/>';
+    art += '<polygon points="' + (fx + 34) + ',' + fy + ' ' + (fx + 52) + ',' + (fy - 10) + ' ' + (fx + 52) + ',' + (fy + 10) + '" fill="#a5d6ff" opacity="0.85"/>';
+    art += '<circle cx="' + (fx + 14) + '" cy="' + (fy - 3) + '" r="2.5" fill="#0a1a2a"/>';
+    art += '<path d="M ' + (fx + 8) + ' ' + (fy + 6) + ' q 4 -3 8 0" fill="none" stroke="#0a1a2a" stroke-width="1"/>';
+    art += '<circle cx="' + (fx - 8) + '" cy="' + (fy - 6) + '" r="5" fill="none" stroke="#a5d6ff" stroke-width="1.5"/>';
+    const fx2 = w * 0.55, fy2 = h * 0.62;
+    art += '<ellipse cx="' + fx2 + '" cy="' + fy2 + '" rx="20" ry="9" fill="#4af" opacity="0.75"/>';
+    art += '<polygon points="' + (fx2 + 20) + ',' + fy2 + ' ' + (fx2 + 32) + ',' + (fy2 - 6) + ' ' + (fx2 + 32) + ',' + (fy2 + 6) + '" fill="#4af" opacity="0.75"/>';
+    art += '<circle cx="' + (fx2 + 8) + '" cy="' + (fy2 - 2) + '" r="1.6" fill="#0a1a2a"/>';
+    art += '<circle cx="' + (w * 0.85) + '" cy="' + (h * 0.2) + '" r="' + (h * 0.06) + '" fill="#fbbf24" opacity="0.9"/>';
+    art += '<line x1="' + (w * 0.85 - 8) + '" y1="' + (h * 0.18) + '" x2="' + (w * 0.85 + 8) + '" y2="' + (h * 0.18) + '" stroke="#1a1000" stroke-width="2"/>';
+    art += '<line x1="' + (w * 0.85) + '" y1="' + (h * 0.16) + '" x2="' + (w * 0.85) + '" y2="' + (h * 0.24) + '" stroke="#1a1000" stroke-width="2"/>';
+  } else if (type === 'farm') {
+    art += '<rect x="0" y="0" width="' + w + '" height="' + (h * 0.4) + '" fill="#4af" opacity="0.5"/>';
+    art += '<rect x="0" y="' + (h * 0.4) + '" width="' + w + '" height="' + (h * 0.6) + '" fill="#5a3a1a"/>';
+    const rowCount = 5;
+    for (let i = 0; i < rowCount; i++) {
+      const y = h * 0.45 + i * ((h * 0.5) / rowCount);
+      art += '<rect x="0" y="' + y + '" width="' + w + '" height="4" fill="#3a2a10"/>';
+      for (let j = 0; j < 6; j++) {
+        const px = w * 0.08 + j * (w * 0.16);
+        const plantColors = ['#4ade80', '#22c55e', '#a3e635'];
+        art += '<line x1="' + px + '" y1="' + (y + 2) + '" x2="' + px + '" y2="' + (y - 12) + '" stroke="#2a5a1a" stroke-width="2"/>';
+        art += '<ellipse cx="' + px + '" cy="' + (y - 14) + '" rx="7" ry="5" fill="' + plantColors[j % 3] + '"/>';
+      }
+    }
+    const bx = w * 0.78, by = h * 0.25;
+    art += '<rect x="' + (bx - 30) + '" y="' + by + '" width="60" height="40" fill="#8b3a1a"/>';
+    art += '<polygon points="' + (bx - 36) + ',' + by + ' ' + (bx + 36) + ',' + by + ' ' + bx + ',' + (by - 22) + '" fill="#a52a1a"/>';
+    art += '<rect x="' + (bx - 8) + '" y="' + (by + 16) + '" width="16" height="24" fill="#3a1a0a"/>';
+    art += '<line x1="' + (bx - 20) + '" y1="' + (by + 10) + '" x2="' + (bx - 8) + '" y2="' + (by + 10) + '" stroke="#ffffff" stroke-width="1.5"/>';
+    art += '<line x1="' + (bx - 20) + '" y1="' + (by + 10) + '" x2="' + (bx - 14) + '" y2="' + (by + 4) + '" stroke="#ffffff" stroke-width="1.5"/>';
+    art += '<line x1="' + (bx - 20) + '" y1="' + (by + 10) + '" x2="' + (bx - 14) + '" y2="' + (by + 16) + '" stroke="#ffffff" stroke-width="1.5"/>';
+  } else if (type === 'card') {
+    const cx = w * 0.5, cy = h * 0.55;
+    const cw = 60, ch = 84;
+    const suits = ['♠', '♥', '♦', '♣'];
+    const offsets = [
+      { x: -30, y: -10, rot: -12, color: '#1a1a2a', symbol: '#4ade80' },
+      { x: 0, y: 0, rot: 0, color: '#ffffff', symbol: '#ef4444' },
+      { x: 30, y: -10, rot: 12, color: '#1a1a2a', symbol: '#ef4444' }
+    ];
+    offsets.forEach((o, i) => {
+      art += '<g transform="translate(' + (cx + o.x) + ' ' + (cy + o.y) + ') rotate(' + o.rot + ')">';
+      art += '<rect x="' + (-cw / 2) + '" y="' + (-ch / 2) + '" width="' + cw + '" height="' + ch + '" rx="6" fill="' + o.color + '" stroke="#0a0a1a" stroke-width="1.5"/>';
+      if (o.color === '#ffffff') art += '<rect x="' + (-cw / 2 + 3) + '" y="' + (-ch / 2 + 3) + '" width="' + (cw - 6) + '" height="' + (ch - 6) + '" rx="4" fill="none" stroke="#e5e7eb" stroke-width="1"/>';
+      art += '<text x="' + (-cw / 2 + 8) + '" y="' + (-ch / 2 + 18) + '" font-size="14" font-weight="900" fill="' + o.symbol + '">A</text>';
+      art += '<text x="' + (-cw / 2 + 8) + '" y="' + (-ch / 2 + 32) + '" font-size="12" fill="' + o.symbol + '">' + suits[i % 4] + '</text>';
+      art += '<text x="' + (cw / 2 - 8) + '" y="' + (ch / 2 - 8) + '" text-anchor="end" font-size="12" fill="' + o.symbol + '">' + suits[i % 4] + '</text>';
+      art += '<text x="0" y="6" text-anchor="middle" font-size="26" fill="' + o.symbol + '">' + suits[i % 4] + '</text>';
+      art += '</g>';
+    });
+    art += '<circle cx="' + (w * 0.15) + '" cy="' + (h * 0.2) + '" r="' + (h * 0.07) + '" fill="#fbbf24" opacity="0.9"/>';
+    art += '<text x="' + (w * 0.15) + '" y="' + (h * 0.2 + 5) + '" text-anchor="middle" font-size="14" fill="#1a1000" font-weight="900">★</text>';
+  } else if (type === 'platformer') {
     const groundY = h * 0.8;
     art += '<rect x="0" y="' + groundY + '" width="' + w + '" height="' + (h - groundY) + '" fill="' + c3 + '"/>';
     art += '<rect x="' + (w * 0.55) + '" y="' + (groundY - 30) + '" width="60" height="12" fill="' + c3 + '"/>';
@@ -1768,13 +2013,6 @@ function renderScene(type, w, h, p, hash, slots, world) {
     art += '<rect x="20" y="' + (h / 2 - 40) + '" width="10" height="80" fill="' + c1 + '" rx="4"/>';
     art += '<rect x="' + (w - 30) + '" y="' + (h / 2 - 40) + '" width="10" height="80" fill="' + c2 + '" rx="4"/>';
     art += '<circle cx="' + (w * 0.6) + '" cy="' + (h * 0.5) + '" r="10" fill="#fff"/>';
-  } else if (type === 'race') {
-    art += '<rect x="' + (w * 0.15) + '" y="0" width="' + (w * 0.7) + '" height="' + h + '" fill="#333"/>';
-    for (let i = 0; i < 8; i++) {
-      art += '<rect x="' + (w / 2 - 3) + '" y="' + (i * 30) + '" width="6" height="15" fill="#fff"/>';
-    }
-    art += '<rect x="' + (w * 0.3) + '" y="' + (h * 0.75) + '" width="40" height="30" fill="' + c1 + '" rx="4"/>';
-    art += '<rect x="' + (w * 0.6) + '" y="' + (h * 0.25) + '" width="40" height="30" fill="' + c2 + '" rx="4"/>';
   } else if (type === 'asteroids') {
     for (let i = 0; i < 40; i++) {
       const sx = (hashString('a' + i + hash) % w);
