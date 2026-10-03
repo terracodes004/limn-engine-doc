@@ -1,4 +1,4 @@
-
+let TCJSgameGameArea;
 let TCJSgameVariable = {
   fileLoaded: true,
 }
@@ -42,6 +42,7 @@ class Display {
       display.camera.x,
       display.camera.y,
     );
+    TCJSgameGameArea = TCJSgameVariable.TCJSgameGameArea;
     this.clearMargin = [width * width, height * height];
     this.mapWidth = this.canvas.width;
     this.mapHeight = this.canvas.height;
@@ -1459,6 +1460,7 @@ Display.prototype.perform = function () {
       display.camera.x,
       display.camera.y,
     );
+    TCJSgameGameArea = TCJSgameVariable.TCJSgameGameArea;
     this.interval = ani();
     display.timing = 0;
     this.mapWidth = this.canvas.width;
@@ -2108,4 +2110,3 @@ move.sound = {
 
   console.log("[limn-click-patch] Installed.");
 })();
-TCJSgameGameArea = TCJSgameVariable.TCJSgameGameArea
