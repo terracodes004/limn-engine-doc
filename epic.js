@@ -2108,3 +2108,4 @@ move.sound = {
 
   console.log("[limn-click-patch] Installed.");
 })();
+TCJSgameGameArea = TCJSgameVariable.TCJSgameGameArea
