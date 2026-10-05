@@ -428,9 +428,16 @@
   .field textarea {
     resize: vertical;
     min-height: 90px;
-    font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    font-size: 12.5px;
-    line-height: 1.55;
+    font-family: inherit;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  .field-hint {
+    font-size: 11.5px;
+    color: var(--text-2);
+    margin-top: 6px;
+    line-height: 1.4;
   }
 
   .swatch-field {
@@ -1076,6 +1083,8 @@
     width: 100%;
     height: 100%;
     transform-origin: center center;
+    transition: transform 0.15s ease;
+    will-change: transform;
   }
 
   .dialog-frame-wrap iframe {
@@ -1093,20 +1102,54 @@
     display: flex;
     gap: var(--s-2);
     z-index: 400500;
+    align-items: center;
   }
 
   .dialog-controls button {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     background: rgba(24,27,38,0.95);
     color: var(--text-0);
     border: 1px solid var(--border-2);
     border-radius: var(--radius);
     cursor: pointer;
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
+
+  .dialog-controls button:hover {
+    background: var(--bg-4);
+    border-color: var(--border-3);
+  }
+
+  .dialog-controls button:active { transform: scale(0.96); }
+
+  .dialog-zoom-display {
+    padding: 0 14px;
+    height: 44px;
+    min-width: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(24,27,38,0.95);
+    color: var(--text-0);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .dialog-zoom-display:hover { background: var(--bg-4); border-color: var(--border-3); }
 
   .console-sheet {
     position: fixed;
@@ -1291,6 +1334,8 @@
     .asset-icon { width: 32px; height: 32px; font-size: 15px; }
     .asset-body { padding: 0 var(--s-3) var(--s-3); }
     .build-card { padding: var(--s-4); }
+    .dialog-controls button { width: 40px; height: 40px; font-size: 16px; }
+    .dialog-zoom-display { height: 40px; min-width: 64px; font-size: 12px; }
   }
 </style>
 </head>
@@ -1368,6 +1413,13 @@
         <select id="templateSelect"></select>
       </div>
       <div id="templateFields"></div>
+
+      <div class="field" style="margin-top:16px">
+        <label for="gameDescription">Description (optional)</label>
+        <textarea id="gameDescription" rows="3" maxlength="200" placeholder="Tell people what your game is about..."></textarea>
+        <div class="field-hint">Shown on the arcade page when you publish. Max 200 characters.</div>
+      </div>
+
       <button class="btn btn-primary" id="buildApply" type="button">Apply to editor</button>
     </div>
   </div>
@@ -1488,10 +1540,10 @@
     </div>
   </div>
   <div class="dialog-controls">
-    <button id="zoomOutBtn" type="button">−</button>
-    <button id="zoomDisplay" type="button">100%</button>
-    <button id="zoomInBtn" type="button">+</button>
-    <button id="fsBtn" type="button">⛶</button>
+    <button id="zoomOutBtn" type="button" title="Zoom out">−</button>
+    <button class="dialog-zoom-display" id="zoomDisplay" type="button" title="Reset zoom">100%</button>
+    <button id="zoomInBtn" type="button" title="Zoom in">+</button>
+    <button id="fsBtn" type="button" title="Fullscreen">⛶</button>
   </div>
 </dialog>
 
@@ -1534,6 +1586,48 @@ function setCode(text) {
   component.setValue(String(text == null ? "" : text));
 }
 
+function getDescription() {
+  const el = document.getElementById("gameDescription");
+  return el ? el.value.trim() : "";
+}
+
+function setDescription(value) {
+  const el = document.getElementById("gameDescription");
+  if (el) el.value = value || "";
+  if (!window.currentConfig) window.currentConfig = {};
+  window.currentConfig.description = value || "";
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) {}
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "0";
+    ta.style.left = "0";
+    ta.style.width = "1px";
+    ta.style.height = "1px";
+    ta.style.opacity = "0";
+    ta.style.pointerEvents = "none";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) {
+    return false;
+  }
+}
+
 async function bootLimn() {
   const mount = document.getElementById("limn-editor-mount");
   if (!mount) return;
@@ -1567,6 +1661,9 @@ async function bootLimn() {
     component._menu.hideFab();
   }
 
+  component.publish = publishGame;
+  component.share = shareGame;
+
   function fit() {
     const w = mount.clientWidth || 0;
     const h = mount.clientHeight || 0;
@@ -1588,6 +1685,201 @@ async function bootLimn() {
 
   window.__limnEditor = component;
   window.__editor = component;
+}
+
+async function getActiveUser() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session ? session.user : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function publishGame() {
+  const user = await getActiveUser();
+  const code = getCode().trim();
+
+  if (!code) {
+    toast("Nothing to publish", "warning");
+    return;
+  }
+
+  const activeDoc = component && component.editor ? component.editor.activeDoc : null;
+  let title = activeDoc ? activeDoc.name.replace(/\.[^.]+$/, "") : "Untitled";
+  if (title === "*Untitled*" || !title) title = "Untitled";
+
+  const description = getDescription();
+
+  const config = window.currentConfig || {};
+  config.title = title;
+  config.description = description;
+  config.assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
+  window.currentConfig = config;
+
+  const engineVersion = "v4";
+  const engineCode = window.__v4t || "";
+
+  if (!engineCode) {
+    toast("Engine still loading…", "warning");
+    return;
+  }
+
+  const editSlug = localStorage.getItem("limn_edit_slug");
+
+  if (editSlug) {
+    const { error } = await supabase
+      .from("games")
+      .update({
+        code: code,
+        config: config,
+        engine_version: engineVersion,
+        engine_code: engineCode,
+        description: description || null
+      })
+      .eq("slug", editSlug);
+
+    if (error) {
+      toast("Update failed: " + error.message, "error");
+      return;
+    }
+
+    localStorage.removeItem("limn_edit_slug");
+
+    const playUrl = window.location.origin + "/arcade/game.html?slug=" + editSlug;
+    await copyText(playUrl);
+    toast("Game updated! Link copied", "success", 3000);
+    return;
+  }
+
+  const slug = (title.toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 30) || "game") + "-" + Math.random().toString(36).slice(2, 6);
+
+  const { data, error } = await supabase
+    .from("games")
+    .insert([{
+      slug: slug,
+      title: title,
+      author_id: user ? user.id : null,
+      author_name: user ? (user.email || "anonymous") : "anonymous",
+      config: config,
+      code: code,
+      engine_version: engineVersion,
+      engine_code: engineCode,
+      description: description || null
+    }])
+    .select("slug")
+    .single();
+
+  if (error) {
+    toast("Publish failed: " + error.message, "error");
+    return;
+  }
+
+  const playUrl = window.location.origin + "/arcade/game.html?slug=" + data.slug;
+  await copyText(playUrl);
+  window.history.pushState({}, "", "?edit=" + data.slug);
+  localStorage.setItem("limn_edit_slug", data.slug);
+  toast("Published! Link copied", "success", 3000);
+}
+
+async function shareGame() {
+  const user = await getActiveUser();
+  const docs = component && component.editor ? component.editor.documents.items : [];
+
+  const files = {};
+  const filenames = [];
+  for (const doc of docs) {
+    files[doc.name] = doc.getValue();
+    filenames.push(doc.name);
+  }
+
+  const payload = JSON.stringify({
+    files: files,
+    filesName: filenames,
+    assets: (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" }
+  });
+
+  const { data, error } = await supabase
+    .from("snippets")
+    .insert([{ code: payload }])
+    .select("id")
+    .single();
+
+  if (error) {
+    toast("Share failed: " + error.message, "error");
+    return;
+  }
+
+  const shareUrl = window.location.origin + "/editor/limn-demo.html?id=" + data.id;
+  await copyText(shareUrl);
+  toast("Share link copied", "success", 3000);
+}
+
+async function loadPublishedGame() {
+  const params = new URLSearchParams(window.location.search);
+  const editSlug = params.get("edit");
+  const snippetId = params.get("id");
+
+  if (editSlug) {
+    localStorage.setItem("limn_edit_slug", editSlug);
+    try {
+      const { data, error } = await supabase
+        .from("games")
+        .select("title, description, code, config, engine_version")
+        .eq("slug", editSlug)
+        .maybeSingle();
+
+      if (!error && data) {
+        if (data.code) {
+          setCode(data.code);
+        }
+        if (data.config) {
+          window.currentConfig = data.config;
+          if (data.config.assets) {
+            const head = document.getElementById("assetHead");
+            const css = document.getElementById("assetCss");
+            const scripts = document.getElementById("assetScripts");
+            if (head) head.value = data.config.assets.head || "";
+            if (css) css.value = data.config.assets.css || "";
+            if (scripts) scripts.value = data.config.assets.scripts || "";
+          }
+        }
+        if (data.description) setDescription(data.description);
+        toast("Loaded " + (data.title || editSlug), "success");
+      }
+    } catch (e) {}
+    return;
+  }
+
+  if (snippetId) {
+    try {
+      const { data, error } = await supabase
+        .from("snippets")
+        .select("code")
+        .eq("id", snippetId)
+        .single();
+
+      if (!error && data) {
+        const parsed = JSON.parse(data.code);
+        if (parsed.files && parsed.filesName && parsed.filesName.length > 0) {
+          const firstFile = parsed.filesName[0];
+          setCode(parsed.files[firstFile] || "");
+          if (parsed.assets) {
+            const head = document.getElementById("assetHead");
+            const css = document.getElementById("assetCss");
+            const scripts = document.getElementById("assetScripts");
+            if (head) head.value = parsed.assets.head || "";
+            if (css) css.value = parsed.assets.css || "";
+            if (scripts) scripts.value = parsed.assets.scripts || "";
+          }
+          toast("Loaded shared project", "success");
+        }
+      }
+    } catch (e) {}
+  }
 }
 
 function initTabs() {
@@ -1794,6 +2086,21 @@ function initAssetsPanel() {
   load();
 }
 
+function initDescription() {
+  const el = document.getElementById("gameDescription");
+  if (!el) return;
+
+  if (!window.currentConfig) window.currentConfig = {};
+  if (window.currentConfig.description) {
+    el.value = window.currentConfig.description;
+  }
+
+  el.addEventListener("input", () => {
+    if (!window.currentConfig) window.currentConfig = {};
+    window.currentConfig.description = el.value.trim();
+  });
+}
+
 function initBuildPanel() {
   const fieldsEl = document.getElementById("templateFields");
   const selectEl = document.getElementById("templateSelect");
@@ -1919,7 +2226,12 @@ function initBuildPanel() {
     const cfg = readValues();
     if (tpl.config) {
       try {
-        window.currentConfig = tpl.config(cfg);
+        const built = tpl.config(cfg);
+        const desc = window.currentConfig && window.currentConfig.description;
+        const assets = window.currentConfig && window.currentConfig.assets;
+        window.currentConfig = built || {};
+        if (desc) window.currentConfig.description = desc;
+        if (assets) window.currentConfig.assets = assets;
       } catch (e) {}
     }
     const code = tpl.generate(cfg);
@@ -1944,34 +2256,60 @@ function initRun() {
   const frame = document.getElementById("gameFrame");
   const wrap = document.getElementById("dialogFrameWrap");
   const zoomDisplay = document.getElementById("zoomDisplay");
+  const zoomInBtn = document.getElementById("zoomInBtn");
+  const zoomOutBtn = document.getElementById("zoomOutBtn");
+  const fsBtn = document.getElementById("fsBtn");
   if (!runBtn || !dialog) return;
 
-  let zoom = 1;
+  const ZOOM_MIN = 0.3;
+  const ZOOM_MAX = 3;
+  const ZOOM_STEP = 0.1;
+  let zoomLevel = 1;
 
   function applyZoom() {
-    wrap.style.transform = zoom === 1 ? "" : "scale(" + zoom + ")";
-    zoomDisplay.textContent = Math.round(zoom * 100) + "%";
+    if (zoomLevel === 1) {
+      wrap.style.transform = "";
+    } else {
+      wrap.style.transform = "scale(" + zoomLevel + ")";
+    }
+    zoomDisplay.textContent = Math.round(zoomLevel * 100) + "%";
   }
 
-  document.getElementById("zoomInBtn").addEventListener("click", () => {
-    zoom = Math.min(3, zoom + 0.1);
+  function setZoom(level) {
+    zoomLevel = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, +level.toFixed(2)));
     applyZoom();
-  });
+  }
 
-  document.getElementById("zoomOutBtn").addEventListener("click", () => {
-    zoom = Math.max(0.3, zoom - 0.1);
+  function resetZoom() {
+    zoomLevel = 1;
     applyZoom();
-  });
+  }
 
-  zoomDisplay.addEventListener("click", () => {
-    zoom = 1;
-    applyZoom();
-  });
+  if (zoomInBtn) {
+    zoomInBtn.addEventListener("click", () => setZoom(zoomLevel + ZOOM_STEP));
+  }
 
-  document.getElementById("fsBtn").addEventListener("click", () => {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else if (wrap.requestFullscreen) wrap.requestFullscreen();
-  });
+  if (zoomOutBtn) {
+    zoomOutBtn.addEventListener("click", () => setZoom(zoomLevel - ZOOM_STEP));
+  }
+
+  if (zoomDisplay) {
+    zoomDisplay.addEventListener("click", resetZoom);
+  }
+
+  if (fsBtn) {
+    fsBtn.addEventListener("click", async () => {
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+          return;
+        }
+        if (wrap.requestFullscreen) {
+          await wrap.requestFullscreen();
+        }
+      } catch (err) {}
+    });
+  }
 
   dialogClose.addEventListener("click", () => {
     if (document.fullscreenElement) document.exitFullscreen();
@@ -1996,10 +2334,14 @@ function initRun() {
     const assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
     const html = window.buildGameHTML(engine, code, assets);
     if (!dialog.hasAttribute("open")) dialog.showModal();
+    resetZoom();
     frame.srcdoc = html;
   }
 
   runBtn.addEventListener("click", run);
+
+  window.__setPreviewZoom = setZoom;
+  window.__resetPreviewZoom = resetZoom;
 }
 
 function initMenuButton() {
@@ -2019,7 +2361,7 @@ function initMenuButton() {
 
     if (!component || !component._menu) {
       if (window.__logToConsole) {
-        window.__logToConsole("error", ["Menu not ready — component._menu is " + (component ? "null" : "component is null")]);
+        window.__logToConsole("error", ["Menu not ready"]);
       }
       return;
     }
@@ -2477,6 +2819,7 @@ function initConsole() {
 initTabs();
 initBarToggle();
 initAssetsPanel();
+initDescription();
 initBuildPanel();
 initRun();
 initMenuButton();
@@ -2485,6 +2828,33 @@ initConsole();
 await bootLimn();
 
 initFilesDrawer();
+await loadPublishedGame();
+
+document.addEventListener("keydown", (e) => {
+  const t = e.target;
+  const tag = t && t.tagName ? t.tagName.toLowerCase() : "";
+  if (tag === "input" || tag === "textarea" || (t && t.isContentEditable)) return;
+
+  const dialog = document.getElementById("runDialog");
+  if (!dialog || !dialog.hasAttribute("open")) return;
+
+  if (!window.__setPreviewZoom) return;
+
+  if (e.key === "+" || e.key === "=") {
+    e.preventDefault();
+    window.__setPreviewZoom((parseFloat(document.getElementById("zoomDisplay").textContent) / 100) + 0.1);
+  } else if (e.key === "-" || e.key === "_") {
+    e.preventDefault();
+    window.__setPreviewZoom((parseFloat(document.getElementById("zoomDisplay").textContent) / 100) - 0.1);
+  } else if (e.key === "0") {
+    e.preventDefault();
+    window.__resetPreviewZoom();
+  } else if (e.key === "f" || e.key === "F") {
+    e.preventDefault();
+    const b = document.getElementById("fsBtn");
+    if (b) b.click();
+  }
+});
 </script>
 </body>
 </html>
