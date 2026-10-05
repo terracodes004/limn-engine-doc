@@ -1684,6 +1684,99 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let component = null;
 
+const previewBlobs = [];
+
+function revokePreviewBlobs() {
+  while (previewBlobs.length) {
+    const url = previewBlobs.pop();
+    try { URL.revokeObjectURL(url); } catch (e) {}
+  }
+}
+
+function makeBlobUrl(content, mime) {
+  const blob = new Blob([content], { type: (mime || "text/plain") + ";charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  previewBlobs.push(url);
+  return url;
+}
+
+function mimeFor(name) {
+  const n = (name || "").toLowerCase();
+  if (n.endsWith(".js") || n.endsWith(".mjs")) return "text/javascript";
+  if (n.endsWith(".css")) return "text/css";
+  if (n.endsWith(".html") || n.endsWith(".htm")) return "text/html";
+  if (n.endsWith(".json")) return "application/json";
+  if (n.endsWith(".svg")) return "image/svg+xml";
+  if (n.endsWith(".png")) return "image/png";
+  if (n.endsWith(".jpg") || n.endsWith(".jpeg")) return "image/jpeg";
+  if (n.endsWith(".gif")) return "image/gif";
+  if (n.endsWith(".webp")) return "image/webp";
+  if (n.endsWith(".woff")) return "font/woff";
+  if (n.endsWith(".woff2")) return "font/woff2";
+  return "text/plain";
+}
+
+function escapeRegExp(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function buildFileMap(entryName) {
+  const map = {};
+  if (!component || !component.editor || !component.editor.documents) return map;
+
+  const items = component.editor.documents.items || [];
+  for (const doc of items) {
+    if (doc.name === entryName) continue;
+    const url = makeBlobUrl(doc.getValue(), mimeFor(doc.name));
+    map[doc.name] = url;
+  }
+  return map;
+}
+
+function rewriteRelativeUrls(html, fileMap) {
+  let out = html;
+
+  const names = Object.keys(fileMap);
+  names.sort((a, b) => b.length - a.length);
+
+  for (const name of names) {
+    const url = fileMap[name];
+    const esc = escapeRegExp(name);
+    const reDouble = new RegExp('(src|href)\\s*=\\s*"(' + esc + ')"', "g");
+    const reSingle = new RegExp("(src|href)\\s*=\\s*'(" + esc + ")'", "g");
+    out = out.replace(reDouble, '$1="' + url + '"');
+    out = out.replace(reSingle, "$1='" + url + "'");
+  }
+
+  return out;
+}
+
+function ensureBase(html, baseHref) {
+  const baseTag = '<base href="' + baseHref + '">';
+  if (/<base\s/i.test(html)) return html;
+  if (/<head[^>]*>/i.test(html)) {
+    return html.replace(/<head([^>]*)>/i, "<head$1>" + baseTag);
+  }
+  if (/<html[^>]*>/i.test(html)) {
+    return html.replace(/<html([^>]*)>/i, "<html$1><head>" + baseTag + "</head>");
+  }
+  return baseTag + html;
+}
+
+function getActiveDoc() {
+  if (!component || !component.editor) return null;
+  return component.editor.activeDoc || null;
+}
+
+function findEntryDoc() {
+  if (!component || !component.editor || !component.editor.documents) return null;
+  const items = component.editor.documents.items || [];
+  for (const doc of items) {
+    if (/^index\.html?$/i.test(doc.name)) return doc;
+  }
+  return null;
+}
+
 function toast(msg, kind) {
   const c = document.getElementById("toastContainer");
   if (!c) return;
@@ -1848,15 +1941,18 @@ async function getActiveUser() {
 
 async function publishGame() {
   const user = await getActiveUser();
-  const code = getCode().trim();
+  const entry = findEntryDoc();
+  const active = getActiveDoc();
+
+  const targetDoc = entry || active;
+  const code = targetDoc ? targetDoc.getValue().trim() : "";
 
   if (!code) {
     toast("Nothing to publish", "warning");
     return;
   }
 
-  const activeDoc = component && component.editor ? component.editor.activeDoc : null;
-  let title = activeDoc ? activeDoc.name.replace(/\.[^.]+$/, "") : "Untitled";
+  let title = targetDoc ? targetDoc.name.replace(/\.[^.]+$/, "") : "Untitled";
   if (title === "*Untitled*" || !title) title = "Untitled";
 
   const description = getDescription();
@@ -1981,9 +2077,18 @@ async function loadPublishedGame() {
 
       if (!error && data) {
         const parsed = JSON.parse(data.code);
+
         if (parsed.files && parsed.filesName && parsed.filesName.length > 0) {
-          const firstFile = parsed.filesName[0];
-          setCode(parsed.files[firstFile] || "");
+          const editor = component.editor;
+          editor.documents.items.length = 0;
+          editor.documents.activeIndex = -1;
+
+          for (const name of parsed.filesName) {
+            editor.documents.add({ name: name, value: parsed.files[name] || "" });
+          }
+
+          if (component._onDocumentsChange) component._onDocumentsChange();
+
           if (parsed.assets) {
             const head = document.getElementById("assetHead");
             const css = document.getElementById("assetCss");
@@ -1992,6 +2097,7 @@ async function loadPublishedGame() {
             if (css) css.value = parsed.assets.css || "";
             if (scripts) scripts.value = parsed.assets.scripts || "";
           }
+
           toast("Loaded shared project", "success");
         }
       }
@@ -2568,6 +2674,11 @@ function initRun() {
   dialogClose.addEventListener("click", () => {
     if (document.fullscreenElement) document.exitFullscreen();
     dialog.close();
+    revokePreviewBlobs();
+  });
+
+  dialog.addEventListener("close", () => {
+    revokePreviewBlobs();
   });
 
   function run() {
@@ -2575,21 +2686,50 @@ function initRun() {
       toast("Preview builder not loaded", "error");
       return;
     }
+
+    revokePreviewBlobs();
+
+    const entryDoc = findEntryDoc();
+    const activeDoc = getActiveDoc();
+
+    if (entryDoc) {
+      const fileMap = buildFileMap(entryDoc.name);
+      const baseHref = window.location.origin + "/editor/";
+
+      let html = entryDoc.getValue();
+      html = ensureBase(html, baseHref);
+      html = rewriteRelativeUrls(html, fileMap);
+
+      const url = makeBlobUrl(html, "text/html");
+
+      if (!dialog.hasAttribute("open")) dialog.showModal();
+      resetZoom();
+      frame.removeAttribute("srcdoc");
+      frame.src = url;
+      return;
+    }
+
     const code = getCode();
     if (!code.trim()) {
       toast("Nothing to run", "warning");
       return;
     }
+
     const engine = window.__v4t || "";
     if (!engine) {
       toast("Engine still loading…", "warning");
       return;
     }
+
     const assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
     const html = window.buildGameHTML(engine, code, assets);
+
+    const url = makeBlobUrl(html, "text/html");
+
     if (!dialog.hasAttribute("open")) dialog.showModal();
     resetZoom();
-    frame.srcdoc = html;
+    frame.removeAttribute("srcdoc");
+    frame.src = url;
   }
 
   runBtn.addEventListener("click", run);
