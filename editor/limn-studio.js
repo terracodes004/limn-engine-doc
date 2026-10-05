@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 const { LimnEditorComponent } = await import("./limn-bridge.js");
 
 const SUPABASE_URL = "https://pjtpesdhjfvcidfkxord.supabase.co";
@@ -30,47 +30,67 @@ function setCode(text) {
   component.setValue(String(text == null ? "" : text));
 }
 
+function dbg(msg) {
+  if (window.__dbg) window.__dbg(msg, "ok");
+}
+
 async function bootLimn() {
-  const mount = document.getElementById("limn-editor-mount");
+  try {
+    dbg("bootLimn: start");
 
-  const dummy = document.createElement("canvas");
-  dummy.id = "gameCanvas";
-  dummy.style.display = "none";
-  document.body.appendChild(dummy);
+    const mount = document.getElementById("limn-editor-mount");
+    dbg("bootLimn: mount=" + (mount ? "found" : "MISSING"));
 
-  component = new LimnEditorComponent({
-    x: 0, y: 0,
-    width: mount.clientWidth || window.innerWidth,
-    height: mount.clientHeight || (window.innerHeight - 54),
-    value: "// Limn Studio\n// Switch to Build to pick a template.\n",
-    name: "main.js",
-    fontSize: 14,
-    tabSize: 2,
-    supabase: supabase,
-  });
+    const dummy = document.createElement("canvas");
+    dummy.id = "gameCanvas";
+    dummy.style.display = "none";
+    document.body.appendChild(dummy);
 
-  await component.attach({ canvas: dummy });
+    dbg("bootLimn: creating component…");
+    component = new LimnEditorComponent({
+      x: 0, y: 0,
+      width: mount.clientWidth || window.innerWidth,
+      height: mount.clientHeight || (window.innerHeight - 54),
+      value: "// Limn Studio\n// Switch to Build to pick a template.\n",
+      name: "main.js",
+      fontSize: 14,
+      tabSize: 2,
+      supabase: supabase,
+    });
+    dbg("bootLimn: component created");
 
-  function fit() {
-    const w = mount.clientWidth || 0;
-    const h = mount.clientHeight || 0;
-    if (w > 0 && h > 0) component.resize(w, h);
+    dbg("bootLimn: attaching…");
+    await component.attach({ canvas: dummy });
+    dbg("bootLimn: attached");
+
+    function fit() {
+      const w = mount.clientWidth || 0;
+      const h = mount.clientHeight || 0;
+      if (w > 0 && h > 0) component.resize(w, h);
+    }
+    fit();
+    window.addEventListener("resize", fit);
+    setTimeout(fit, 150);
+    setTimeout(fit, 500);
+
+    component.focus();
+
+    (function loop() {
+      if (!component) return;
+      component.update();
+      requestAnimationFrame(loop);
+    })();
+
+    window.__limnEditor = component;
+    window.__editor = component;
+    dbg("bootLimn: done, __editor set");
+  } catch (err) {
+    const b = document.createElement("div");
+    b.style.cssText = "position:fixed;top:70px;left:8px;right:8px;background:#400;color:#f88;font:11px monospace;padding:10px;border-radius:8px;z-index:999999;white-space:pre-wrap;";
+    b.textContent = "bootLimn died:\n" + (err && err.message ? err.message : err) + "\n" +
+      (err && err.stack ? err.stack.split("\n").slice(0, 4).join("\n") : "");
+    document.body.appendChild(b);
   }
-  fit();
-  window.addEventListener("resize", fit);
-  setTimeout(fit, 150);
-  setTimeout(fit, 500);
-
-  component.focus();
-
-  (function loop() {
-    if (!component) return;
-    component.update();
-    requestAnimationFrame(loop);
-  })();
-
-  window.__limnEditor = component;
-  window.__editor = component;
 }
 
 function initBuildPanel() {
@@ -362,17 +382,13 @@ function initMenu() {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
+  dbg("DOMContentLoaded");
   initTabs();
   initAssetsPanel();
   initRun();
   initBarToggle();
-  try {
-    await bootLimn();
-    initBuildPanel();
-    initMenu();
-    console.log("[limn-studio] ready");
-  } catch (err) {
-    console.error("[limn-studio] boot failed:", err);
-    toast("Editor boot failed: " + err.message, "error");
-  }
+  await bootLimn();
+  initBuildPanel();
+  initMenu();
+  dbg("all init complete");
 });
