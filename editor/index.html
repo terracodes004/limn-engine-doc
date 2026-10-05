@@ -372,6 +372,34 @@
     color: var(--accent);
   }
 
+  .limn-tabs-run {
+    width: 40px;
+    height: 100%;
+    border: none;
+    background: transparent;
+    color: var(--accent);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .limn-tabs-run:hover {
+    background: rgba(110, 168, 254, 0.12);
+    color: #9fc4ff;
+  }
+
+  .limn-tabs-run:active {
+    background: rgba(110, 168, 254, 0.2);
+  }
+
   #codeSection, #buildSection, #assetsSection {
     position: fixed;
     top: 60px;
@@ -1419,6 +1447,7 @@
     .build-card { padding: var(--s-4); }
     .dialog-controls button { width: 40px; height: 40px; font-size: 16px; }
     .dialog-zoom-display { height: 40px; min-width: 64px; font-size: 12px; }
+    .limn-tabs-run { width: 44px; font-size: 15px; }
   }
 </style>
 </head>
@@ -1752,6 +1781,8 @@ async function bootLimn() {
   component.publish = publishGame;
   component.share = shareGame;
 
+  injectRunButtonIntoTabs();
+
   function fit() {
     const w = mount.clientWidth || 0;
     const h = mount.clientHeight || 0;
@@ -1771,6 +1802,39 @@ async function bootLimn() {
 
   window.__limnEditor = component;
   window.__editor = component;
+}
+
+function injectRunButtonIntoTabs() {
+  if (!component || !component._tabs || !component._tabs._el) return;
+
+  const bar = component._tabs._el;
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "limn-tabs-run";
+  btn.title = "Run game";
+  btn.setAttribute("aria-label", "Run game");
+  btn.textContent = "▶";
+
+  let lastFire = 0;
+  const fire = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    }
+    const now = Date.now();
+    if (now - lastFire < 400) return;
+    lastFire = now;
+    const runBtn = document.getElementById("runBtn");
+    if (runBtn) runBtn.click();
+  };
+
+  btn.addEventListener("mousedown", (e) => e.preventDefault());
+  btn.addEventListener("touchend", fire, { passive: false });
+  btn.addEventListener("click", fire);
+
+  bar.appendChild(btn);
 }
 
 async function getActiveUser() {
@@ -2108,7 +2172,7 @@ function initPullToRefresh() {
     setPull(damped);
   }, { passive: true, capture: true });
 
-  document.addEventListener("touchend", (e) => {
+  document.addEventListener("touchend", () => {
     if (!tracking) return;
     tracking = false;
 
