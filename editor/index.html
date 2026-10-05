@@ -1581,189 +1581,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let component = null;
 
-const previewBlobs = [];
-
-function revokePreviewBlobs() {
-  while (previewBlobs.length) {
-    const url = previewBlobs.pop();
-    try { URL.revokeObjectURL(url); } catch (e) {}
-  }
-}
-
-function makeBlobUrl(content, mime) {
-  const blob = new Blob([content], { type: (mime || "text/plain") + ";charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  previewBlobs.push(url);
-  return url;
-}
-
-function mimeFor(name) {
-  const n = (name || "").toLowerCase();
-  if (n.endsWith(".js") || n.endsWith(".mjs")) return "text/javascript";
-  if (n.endsWith(".css")) return "text/css";
-  if (n.endsWith(".html") || n.endsWith(".htm")) return "text/html";
-  if (n.endsWith(".json")) return "application/json";
-  if (n.endsWith(".svg")) return "image/svg+xml";
-  return "text/plain";
-}
-
-function escapeRegExp(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function buildFileMap(entryName, includeNames) {
-  const map = {};
-  if (!component || !component.editor || !component.editor.documents) return map;
-
-  const items = component.editor.documents.items || [];
-  for (const doc of items) {
-    if (doc.name === entryName) continue;
-    if (includeNames && !includeNames.has(doc.name)) continue;
-    const url = makeBlobUrl(doc.getValue(), mimeFor(doc.name));
-    map[doc.name] = url;
-  }
-  return map;
-}
-
-function rewriteRelativeUrls(html, fileMap) {
-  let out = html;
-  const names = Object.keys(fileMap);
-  names.sort((a, b) => b.length - a.length);
-
-  for (const name of names) {
-    const url = fileMap[name];
-    const esc = escapeRegExp(name);
-    const reDouble = new RegExp('(src|href)\\s*=\\s*"(' + esc + ')"', "g");
-    const reSingle = new RegExp("(src|href)\\s*=\\s*'(" + esc + ")'", "g");
-    out = out.replace(reDouble, '$1="' + url + '"');
-    out = out.replace(reSingle, "$1='" + url + "'");
-  }
-
-  return out;
-}
-
-function missingNameFor(attrValue, openNames) {
-  if (!attrValue) return null;
-  if (/^(?:[a-z]+:)?\/\//i.test(attrValue)) return null;
-  if (attrValue.startsWith("data:")) return null;
-  if (attrValue.startsWith("blob:")) return null;
-  if (attrValue.startsWith("#")) return null;
-  if (attrValue.startsWith("/")) return null;
-  const clean = attrValue.replace(/^\.\//, "");
-  if (openNames.has(clean)) return null;
-  return clean;
-}
-
-function replaceMissingDeps(html, openNames) {
-  const attrRe = /(src|href)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
-  let out = "";
-  let lastIndex = 0;
-  let m;
-
-  while ((m = attrRe.exec(html)) !== null) {
-    const full = m[0];
-    const attr = m[1];
-    const value = m[2] != null ? m[2] : m[3];
-
-    const missing = missingNameFor(value, openNames);
-    if (!missing) continue;
-
-    const start = m.index;
-    const end = m.index + full.length;
-
-    if (attr === "src") {
-      const rep =
-        'data-missing-src="' + missing.replace(/"/g, "&quot;") + '" ' +
-        'src="data:text/javascript;charset=utf-8,' +
-        encodeURIComponent(
-          'console.error("Limn preview: no open document named \\"' + missing + '\\". Check the filename matches a tab in the editor.");'
-        ) + '"';
-      out += html.slice(lastIndex, start) + rep;
-    } else {
-      const rep =
-        'data-missing-href="' + missing.replace(/"/g, "&quot;") + '" ' +
-        'href="data:text/css;charset=utf-8,' +
-        encodeURIComponent(
-          '/* Limn preview: no open document named "' + missing + '". */'
-        ) + '"';
-      out += html.slice(lastIndex, start) + rep;
-    }
-
-    lastIndex = end;
-  }
-
-  out += html.slice(lastIndex);
-  return out;
-}
-
-function ensureBase(html, baseHref) {
-  const baseTag = '<base href="' + baseHref + '">';
-  if (/<base\s/i.test(html)) return html;
-  if (/<head[^>]*>/i.test(html)) {
-    return html.replace(/<head([^>]*)>/i, "<head$1>" + baseTag);
-  }
-  if (/<html[^>]*>/i.test(html)) {
-    return html.replace(/<html([^>]*)>/i, "<html$1><head>" + baseTag + "</head>");
-  }
-  return baseTag + html;
-}
-
-function injectEngineIfMissing(html) {
-  if (/epic\.js|tcjsgame-v2\.js|tcjsgame-v3\.js/.test(html)) return html;
-  const tag = '<script src="/editor/epic.js"><\/script>';
-  if (/<head[^>]*>/i.test(html)) {
-    return html.replace(/<head([^>]*)>/i, '<head$1>' + tag);
-  }
-  if (/<body[^>]*>/i.test(html)) {
-    return html.replace(/<body([^>]*)>/i, '<body$1>' + tag);
-  }
-  return tag + html;
-}
-
-function getActiveDoc() {
-  if (!component || !component.editor) return null;
-  return component.editor.activeDoc || null;
-}
-
-function findEntryDoc() {
-  if (!component || !component.editor || !component.editor.documents) return null;
-  const items = component.editor.documents.items || [];
-
-  for (const doc of items) {
-    if (/^index\.html?$/i.test(doc.name)) return doc;
-  }
-
-  const active = getActiveDoc();
-  if (active && /\.html?$/i.test(active.name)) return active;
-
-  return null;
-}
-
-function collectDependencyNames(html) {
-  const names = new Set();
-  const attrRe = /(?:src|href)\s*=\s*(?:"([^"]+)"|'([^']+)')/g;
-  let m;
-  while ((m = attrRe.exec(html)) !== null) {
-    const v = m[1] || m[2] || "";
-    if (!v) continue;
-    if (/^(?:[a-z]+:)?\/\//i.test(v)) continue;
-    if (v.startsWith("data:")) continue;
-    if (v.startsWith("#")) continue;
-    if (v.startsWith("blob:")) continue;
-    if (v.startsWith("/")) continue;
-    names.add(v.replace(/^\.\//, ""));
-  }
-  return names;
-}
-
-function openDocumentNames() {
-  const names = new Set();
-  if (!component || !component.editor || !component.editor.documents) return names;
-  const items = component.editor.documents.items || [];
-  for (const doc of items) names.add(doc.name);
-  return names;
-}
-
 function toast(msg, kind) {
   const c = document.getElementById("toastContainer");
   if (!c) return;
@@ -1966,18 +1783,15 @@ async function getActiveUser() {
 
 async function publishGame() {
   const user = await getActiveUser();
-  const entry = findEntryDoc();
-  const active = getActiveDoc();
-
-  const targetDoc = entry || active;
-  const code = targetDoc ? targetDoc.getValue().trim() : "";
+  const activeDoc = component && component.editor ? component.editor.activeDoc : null;
+  const code = activeDoc ? activeDoc.getValue().trim() : "";
 
   if (!code) {
     toast("Nothing to publish", "warning");
     return;
   }
 
-  let title = targetDoc ? targetDoc.name.replace(/\.[^.]+$/, "") : "Untitled";
+  let title = activeDoc ? activeDoc.name.replace(/\.[^.]+$/, "") : "Untitled";
   if (title === "*Untitled*" || !title) title = "Untitled";
 
   const description = getDescription();
@@ -1986,25 +1800,6 @@ async function publishGame() {
   config.title = title;
   config.description = description;
   config.assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
-
-  if (entry && /\.html?$/i.test(entry.name)) {
-    const deps = collectDependencyNames(code);
-    const files = {};
-    files[entry.name] = code;
-    const items = component.editor.documents.items || [];
-    for (const doc of items) {
-      if (doc.name === entry.name) continue;
-      if (deps.has(doc.name)) {
-        files[doc.name] = doc.getValue();
-      }
-    }
-    config.files = files;
-    config.entry = entry.name;
-  } else {
-    delete config.files;
-    delete config.entry;
-  }
-
   window.currentConfig = config;
 
   const engineVersion = "v4";
@@ -2092,19 +1887,7 @@ async function loadPublishedGame() {
         .maybeSingle();
 
       if (!error && data) {
-        if (data.config && data.config.files && data.config.entry) {
-          const editor = component.editor;
-          editor.documents.items.length = 0;
-          editor.documents.activeIndex = -1;
-
-          const names = Object.keys(data.config.files);
-          for (const name of names) {
-            editor.documents.add({ name: name, value: data.config.files[name] || "" });
-          }
-          if (component._onDocumentsChange) component._onDocumentsChange();
-        } else if (data.code) {
-          setCode(data.code);
-        }
+        if (data.code) setCode(data.code);
         if (data.config) {
           window.currentConfig = data.config;
           if (data.config.assets) {
@@ -2730,44 +2513,11 @@ function initRun() {
   dialogClose.addEventListener("click", () => {
     if (document.fullscreenElement) document.exitFullscreen();
     dialog.close();
-    revokePreviewBlobs();
-  });
-
-  dialog.addEventListener("close", () => {
-    revokePreviewBlobs();
   });
 
   function run() {
     if (typeof window.buildGameHTML !== "function") {
       toast("Preview builder not loaded", "error");
-      return;
-    }
-
-    revokePreviewBlobs();
-
-    const entryDoc = findEntryDoc();
-
-    if (entryDoc) {
-      const html0 = entryDoc.getValue();
-      const deps = collectDependencyNames(html0);
-      const openNames = openDocumentNames();
-
-      const fileMap = buildFileMap(entryDoc.name, deps);
-
-      const baseHref = window.location.origin + "/editor/";
-
-      let html = html0;
-      html = ensureBase(html, baseHref);
-      html = injectEngineIfMissing(html);
-      html = rewriteRelativeUrls(html, fileMap);
-      html = replaceMissingDeps(html, openNames);
-
-      const url = makeBlobUrl(html, "text/html");
-
-      if (!dialog.hasAttribute("open")) dialog.showModal();
-      resetZoom();
-      frame.removeAttribute("srcdoc");
-      frame.src = url;
       return;
     }
 
@@ -2785,12 +2535,11 @@ function initRun() {
 
     const assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
     const html = window.buildGameHTML(engine, code, assets);
-    const url = makeBlobUrl(html, "text/html");
 
     if (!dialog.hasAttribute("open")) dialog.showModal();
     resetZoom();
-    frame.removeAttribute("srcdoc");
-    frame.src = url;
+    frame.removeAttribute("src");
+    frame.srcdoc = html;
   }
 
   runBtn.addEventListener("click", run);
