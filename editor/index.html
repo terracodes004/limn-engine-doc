@@ -26,8 +26,14 @@
     --success: #4ade80;
     --warning: #fbbf24;
     --danger: #f87171;
-    --radius: 10px;
-    --radius-lg: 14px;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --s-1: 4px;
+    --s-2: 8px;
+    --s-3: 12px;
+    --s-4: 16px;
+    --s-5: 24px;
+    --s-6: 32px;
   }
 
   * { box-sizing: border-box; }
@@ -39,6 +45,7 @@
     color: var(--text-0);
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     font-size: 14px;
+    line-height: 1.5;
     height: 100vh;
     overflow: hidden;
     -webkit-text-size-adjust: 100%;
@@ -54,7 +61,7 @@
     left: -10vw;
     width: 60vw;
     height: 60vh;
-    background: radial-gradient(circle, rgba(110,168,254,0.08), transparent 60%);
+    background: radial-gradient(circle, rgba(110,168,254,0.06), transparent 60%);
     pointer-events: none;
     z-index: 0;
   }
@@ -66,7 +73,7 @@
     right: -10vw;
     width: 60vw;
     height: 60vh;
-    background: radial-gradient(circle, rgba(163,113,247,0.06), transparent 60%);
+    background: radial-gradient(circle, rgba(163,113,247,0.05), transparent 60%);
     pointer-events: none;
     z-index: 0;
   }
@@ -88,6 +95,9 @@
     100% { background-position: 0% 50%; }
   }
 
+  .limn-toolbar { display: flex !important; }
+  .limn-toolbar.hidden { display: none !important; }
+
   body.not-code #limn-editor-mount,
   body.not-code #gameCanvas {
     display: none !important;
@@ -101,9 +111,9 @@
     height: 60px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 0 10px;
-    background: linear-gradient(180deg, rgba(18,20,29,0.98), rgba(13,15,22,0.98));
+    gap: var(--s-2);
+    padding: 0 var(--s-3);
+    background: rgba(13,15,22,0.98);
     border-bottom: 1px solid var(--border);
     z-index: 200000;
     padding-top: env(safe-area-inset-top, 0);
@@ -117,13 +127,13 @@
   .brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--s-3);
     flex-shrink: 0;
   }
 
   .brand-mark {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     position: relative;
     display: flex;
     align-items: center;
@@ -134,28 +144,27 @@
   .brand-mark::before {
     content: "";
     position: absolute;
-    inset: -6px;
-    border-radius: 16px;
+    inset: -5px;
+    border-radius: 14px;
     background: conic-gradient(from 0deg, #6ea8fe, #a371f7, #ec4899, #fbbf24, #4ade80, #6ea8fe);
     animation: logo-spin 6s linear infinite;
-    filter: blur(8px);
-    opacity: 0.85;
+    filter: blur(7px);
+    opacity: 0.75;
     z-index: 0;
   }
 
   .brand-mark::after {
     content: "";
     position: absolute;
-    inset: -2px;
-    border-radius: 14px;
+    inset: -1px;
+    border-radius: 10px;
     background: linear-gradient(135deg, #6ea8fe, #a371f7, #ec4899);
     background-size: 200% 200%;
     animation: logo-ring 4s ease infinite;
     z-index: 1;
     box-shadow:
-      0 0 20px rgba(110,168,254,0.7),
-      0 0 40px rgba(163,113,247,0.5),
-      0 0 60px rgba(236,72,153,0.35);
+      0 0 16px rgba(110,168,254,0.55),
+      0 0 28px rgba(163,113,247,0.35);
   }
 
   .brand-mark img {
@@ -164,7 +173,7 @@
     width: 34px;
     height: 34px;
     object-fit: contain;
-    border-radius: 9px;
+    border-radius: 8px;
     background: var(--bg-0);
     padding: 3px;
     animation: logo-hue 8s ease-in-out infinite;
@@ -173,29 +182,29 @@
   .brand-text {
     display: flex;
     flex-direction: column;
-    line-height: 1.1;
+    line-height: 1.15;
   }
 
   .brand-name {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.4px;
     color: var(--text-0);
   }
 
   .brand-sub {
-    font-size: 9.5px;
-    font-weight: 500;
-    letter-spacing: 2px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1.8px;
     color: var(--text-2);
-    margin-top: 2px;
+    margin-top: 1px;
   }
 
   .spacer { flex: 1; }
 
   .tabswitch {
     display: flex;
-    gap: 3px;
+    gap: 2px;
     background: var(--bg-1);
     border: 1px solid var(--border);
     border-radius: 999px;
@@ -207,21 +216,25 @@
     background: transparent;
     border: none;
     color: var(--text-1);
-    padding: 7px 12px;
+    padding: 6px 14px;
     border-radius: 999px;
     cursor: pointer;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 600;
     font-family: inherit;
+    letter-spacing: 0.2px;
     white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    transition: background 0.15s, color 0.15s;
   }
 
+  .tabswitch button:hover { color: var(--text-0); }
+
   .tabswitch button.active {
-    background: linear-gradient(135deg, #6ea8fe, #a371f7);
-    color: #fff;
-    box-shadow: 0 2px 10px rgba(110,168,254,0.4);
+    background: var(--bg-3);
+    color: var(--text-0);
+    box-shadow: inset 0 0 0 1px var(--border-2);
   }
 
   .icon-btn {
@@ -230,9 +243,9 @@
     padding: 0;
     background: transparent;
     border: 1px solid var(--border-2);
-    border-radius: 10px;
+    border-radius: var(--radius);
     color: var(--text-1);
-    font-size: 15px;
+    font-size: 14px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -240,9 +253,22 @@
     flex-shrink: 0;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
   }
 
-  .icon-btn:active { background: var(--bg-2); }
+  .icon-btn:hover {
+    background: var(--bg-2);
+    border-color: var(--border-3);
+    color: var(--text-0);
+  }
+
+  .icon-btn:active { background: var(--bg-3); }
+
+  .icon-btn.active {
+    background: var(--bg-3);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
 
   .show-btn {
     position: fixed;
@@ -251,17 +277,18 @@
     width: 34px;
     height: 34px;
     padding: 0;
-    background: rgba(18,20,29,0.9);
+    background: rgba(18,20,29,0.95);
     border: 1px solid var(--border-2);
-    border-radius: 10px;
+    border-radius: var(--radius);
     color: var(--text-1);
-    font-size: 15px;
+    font-size: 14px;
     cursor: pointer;
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 200001;
     backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   .show-btn.visible { display: flex; }
@@ -284,7 +311,7 @@
 
   #codeSection {
     background: transparent;
-    z-index: 1000;
+    z-index: 10;
     overflow: hidden;
     pointer-events: none;
   }
@@ -292,7 +319,7 @@
   #codeSection > * { pointer-events: auto; }
 
   #buildSection, #assetsSection {
-    z-index: 2000;
+    z-index: 50000;
   }
 
   body.bar-hidden #codeSection,
@@ -312,85 +339,131 @@
   #gameCanvas { display: none; }
 
   .panel-wrap {
-    max-width: 720px;
+    max-width: 760px;
     margin: 0 auto;
-    padding: 24px 20px 90px;
+    padding: var(--s-5) var(--s-4) 100px;
   }
 
-  .panel-card {
+  .panel-head {
+    margin: 0 0 var(--s-5);
+  }
+
+  .panel-head h1 {
+    margin: 0 0 var(--s-1);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    color: var(--text-0);
+  }
+
+  .panel-head p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.5;
+  }
+
+  .panel-section-title {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-weight: 700;
+    color: var(--text-2);
+    margin: 0 0 var(--s-3);
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+  }
+
+  .panel-section-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .build-card {
     background: var(--bg-1);
     border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 22px;
-    margin-bottom: 16px;
+    border-radius: var(--radius-lg);
+    padding: var(--s-5);
   }
 
-  .panel-card h2 { margin: 0 0 6px 0; font-size: 17px; font-weight: 700; }
+  .field { margin-bottom: var(--s-4); }
 
-  .panel-card .sub { margin: 0 0 18px 0; color: var(--text-2); font-size: 12.5px; }
-
-  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
 
   .field label {
     display: block;
-    font-size: 11px;
+    font-size: 10.5px;
     text-transform: uppercase;
     letter-spacing: 1px;
     color: var(--text-2);
     font-weight: 700;
-    margin-bottom: 6px;
+    margin-bottom: var(--s-2);
   }
 
   .field select,
   .field input[type="text"],
   .field textarea {
     width: 100%;
-    padding: 12px 14px;
+    padding: 10px 12px;
     background: var(--bg-0);
     color: var(--text-0);
     border: 1px solid var(--border-2);
-    border-radius: 10px;
-    font-size: 14px;
+    border-radius: var(--radius);
+    font-size: 13.5px;
     font-family: inherit;
     outline: none;
-  }
-
-  .field textarea {
-    resize: vertical;
-    min-height: 100px;
-    font-family: ui-monospace, monospace;
-    font-size: 12.5px;
-    line-height: 1.55;
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
 
   .field select:focus,
   .field input:focus,
-  .field textarea:focus { border-color: var(--accent); }
+  .field textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(110,168,254,0.18);
+  }
+
+  .field textarea {
+    resize: vertical;
+    min-height: 90px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
 
   .swatch-field {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
+    gap: var(--s-3);
+    padding: var(--s-2) var(--s-3);
     background: var(--bg-0);
     border: 1px solid var(--border-2);
-    border-radius: 10px;
+    border-radius: var(--radius);
+  }
+
+  .swatch-field:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(110,168,254,0.18);
   }
 
   .swatch-input {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     padding: 0;
     border: none;
-    border-radius: 9px;
+    border-radius: var(--radius);
     cursor: pointer;
     flex-shrink: 0;
+    background: transparent;
   }
 
   .swatch-hex {
     flex: 1;
-    font-family: ui-monospace, monospace;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
     font-size: 13px;
+    letter-spacing: 0.4px;
     color: var(--text-0);
     background: transparent;
     border: none;
@@ -400,8 +473,12 @@
   }
 
   .btn {
-    padding: 12px 18px;
-    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-2);
+    padding: 10px 16px;
+    border-radius: var(--radius);
     border: 1px solid var(--border-2);
     background: var(--bg-2);
     color: var(--text-0);
@@ -411,14 +488,516 @@
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    transition: background 0.12s, border-color 0.12s, transform 0.08s;
   }
 
+  .btn:hover { background: var(--bg-3); border-color: var(--border-3); }
+  .btn:active { transform: scale(0.99); }
+
   .btn-primary {
-    background: linear-gradient(135deg, #6ea8fe, #a371f7);
-    border: none;
-    color: #fff;
-    box-shadow: 0 4px 16px rgba(110,168,254,0.35);
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #06121f;
     width: 100%;
+    margin-top: var(--s-4);
+  }
+
+  .btn-primary:hover {
+    background: #7fb5ff;
+    border-color: #7fb5ff;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--text-2);
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .btn-ghost:hover {
+    background: var(--bg-2);
+    color: var(--text-0);
+    border-color: transparent;
+  }
+
+  .assets-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+  }
+
+  .asset-row {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+
+  .asset-row.open {
+    border-color: var(--border-3);
+  }
+
+  .asset-header {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    width: 100%;
+    padding: var(--s-4);
+    background: transparent;
+    border: none;
+    color: var(--text-0);
+    font-family: inherit;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-height: 64px;
+  }
+
+  .asset-header:hover { background: var(--bg-2); }
+
+  .asset-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+    background: var(--bg-3);
+    border: 1px solid var(--border-2);
+    color: var(--text-1);
+  }
+
+  .asset-row[data-kind="head"] .asset-icon { color: var(--accent); }
+  .asset-row[data-kind="css"] .asset-icon { color: #22d3ee; }
+  .asset-row[data-kind="scripts"] .asset-icon { color: var(--warning); }
+
+  .asset-meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .asset-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-0);
+    letter-spacing: 0.1px;
+  }
+
+  .asset-desc {
+    font-size: 12px;
+    color: var(--text-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .asset-status {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    flex-shrink: 0;
+  }
+
+  .asset-badge {
+    font-size: 10.5px;
+    font-weight: 600;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--bg-3);
+    border: 1px solid var(--border-2);
+    color: var(--text-2);
+    letter-spacing: 0.3px;
+  }
+
+  .asset-badge.has-content {
+    color: var(--success);
+    border-color: rgba(74,222,128,0.3);
+    background: rgba(74,222,128,0.06);
+  }
+
+  .asset-chevron {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-2);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+
+  .asset-row.open .asset-chevron { transform: rotate(90deg); }
+
+  .asset-body {
+    display: none;
+    padding: 0 var(--s-4) var(--s-4);
+    border-top: 1px solid var(--border);
+    background: var(--bg-0);
+  }
+
+  .asset-row.open .asset-body { display: block; }
+
+  .asset-body-inner {
+    padding-top: var(--s-4);
+  }
+
+  .asset-body textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--bg-1);
+    color: var(--text-0);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius);
+    font-family: ui-monospace, "SF Mono", Menlo, "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+    resize: vertical;
+    min-height: 120px;
+    outline: none;
+    tab-size: 2;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .asset-body textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(110,168,254,0.18);
+  }
+
+  .asset-body textarea::placeholder { color: var(--text-3); }
+
+  .asset-body-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    margin-top: var(--s-3);
+  }
+
+  .asset-body-actions .spacer { flex: 1; }
+
+  .assets-footer {
+    margin-top: var(--s-5);
+    padding: var(--s-3) 0;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    font-size: 12px;
+    color: var(--text-2);
+  }
+
+  .files-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 220000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .files-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .files-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(340px, 88vw);
+    background: var(--bg-1);
+    border-right: 1px solid var(--border-2);
+    box-shadow: 16px 0 48px rgba(0,0,0,0.6);
+    z-index: 220001;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
+  }
+
+  .files-drawer.open {
+    transform: translateX(0);
+  }
+
+  .files-header {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-4) var(--s-4) var(--s-3);
+    padding-top: calc(var(--s-4) + env(safe-area-inset-top, 0));
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .files-title {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .files-title-main {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text-0);
+  }
+
+  .files-title-sub {
+    font-size: 11px;
+    color: var(--text-2);
+    font-weight: 500;
+  }
+
+  .files-close {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius);
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-1);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+
+  .files-close:hover {
+    background: var(--bg-2);
+    border-color: var(--border-2);
+    color: var(--text-0);
+  }
+
+  .files-actions {
+    padding: var(--s-3) var(--s-4);
+    display: flex;
+    gap: var(--s-2);
+    flex-shrink: 0;
+  }
+
+  .files-action {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-2);
+    padding: 10px 12px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius);
+    color: var(--text-0);
+    font-size: 12.5px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: background 0.12s, border-color 0.12s;
+  }
+
+  .files-action:hover {
+    background: var(--bg-3);
+    border-color: var(--border-3);
+  }
+
+  .files-action-icon {
+    font-size: 14px;
+    opacity: 0.9;
+  }
+
+  .files-section-title {
+    padding: var(--s-3) var(--s-4) var(--s-2);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-weight: 700;
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    flex-shrink: 0;
+  }
+
+  .files-section-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .files-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 var(--s-3) var(--s-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-1);
+  }
+
+  .files-empty {
+    padding: var(--s-6) var(--s-4);
+    text-align: center;
+    color: var(--text-3);
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+
+  .files-empty-icon {
+    display: block;
+    font-size: 32px;
+    opacity: 0.4;
+    margin-bottom: var(--s-2);
+  }
+
+  .files-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: 10px 10px 10px 12px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-height: 52px;
+    transition: background 0.12s, border-color 0.12s;
+  }
+
+  .files-row:hover {
+    background: var(--bg-2);
+    border-color: var(--border);
+  }
+
+  .files-row.active {
+    background: var(--bg-3);
+    border-color: var(--border-2);
+  }
+
+  .files-row.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  .files-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+    background: var(--bg-3);
+    border: 1px solid var(--border-2);
+    color: var(--text-1);
+  }
+
+  .files-badge.js   { color: #f7df1e; border-color: rgba(247,223,30,0.35); background: rgba(247,223,30,0.06); }
+  .files-badge.html { color: #e34c26; border-color: rgba(227,76,38,0.35); background: rgba(227,76,38,0.06); }
+  .files-badge.css  { color: #2965f1; border-color: rgba(41,101,241,0.35); background: rgba(41,101,241,0.06); }
+  .files-badge.json { color: #a3aac0; border-color: rgba(163,170,192,0.35); background: rgba(163,170,192,0.06); }
+  .files-badge.md   { color: #6ea8fe; border-color: rgba(110,168,254,0.35); background: rgba(110,168,254,0.06); }
+
+  .files-meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .files-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-0);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .files-dirty {
+    color: var(--warning);
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .files-sub {
+    font-size: 11px;
+    color: var(--text-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .files-row-actions {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .files-row-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-2);
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+
+  .files-row-btn:hover {
+    background: var(--bg-4);
+    color: var(--text-0);
+    border-color: var(--border-2);
+  }
+
+  .files-row-btn.danger:hover {
+    color: var(--danger);
+    border-color: rgba(248,113,113,0.3);
+    background: rgba(248,113,113,0.08);
   }
 
   .toast-container {
@@ -427,22 +1006,22 @@
     right: 16px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--s-2);
     z-index: 300000;
     pointer-events: none;
   }
 
   .toast {
-    padding: 11px 16px;
+    padding: 10px 14px;
     background: var(--bg-2);
     border: 1px solid var(--border-2);
-    border-left: 3px solid var(--accent);
-    border-radius: 10px;
+    border-left: 2px solid var(--accent);
+    border-radius: var(--radius);
     color: var(--text-0);
-    font-size: 13px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    font-size: 12.5px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
     pointer-events: auto;
-    max-width: 380px;
+    max-width: 340px;
   }
 
   .toast.success { border-left-color: var(--success); }
@@ -478,9 +1057,9 @@
     background: rgba(24,27,38,0.95);
     color: #fff;
     border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 12px;
+    border-radius: var(--radius);
     cursor: pointer;
-    font-size: 17px;
+    font-size: 16px;
   }
 
   .dialog-stage {
@@ -512,7 +1091,7 @@
     bottom: 20px;
     right: 20px;
     display: flex;
-    gap: 8px;
+    gap: var(--s-2);
     z-index: 400500;
   }
 
@@ -523,11 +1102,146 @@
     background: rgba(24,27,38,0.95);
     color: var(--text-0);
     border: 1px solid var(--border-2);
-    border-radius: 12px;
+    border-radius: var(--radius);
     cursor: pointer;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 600;
   }
+
+  .console-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 42vh;
+    min-height: 220px;
+    background: #000;
+    border-top: 1px solid var(--border-2);
+    z-index: 210000;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12.5px;
+    box-shadow: 0 -12px 40px rgba(0,0,0,0.6);
+  }
+
+  .console-sheet.open { transform: translateY(0); }
+
+  .console-header {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    padding: 8px 12px;
+    background: #0a0a0a;
+    border-bottom: 1px solid #1a1a1a;
+    color: #6e7589;
+    flex-shrink: 0;
+  }
+
+  .console-title {
+    color: var(--text-0);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.4px;
+  }
+
+  .console-count { color: var(--text-2); font-size: 11px; }
+
+  .console-spacer { flex: 1; }
+
+  .console-hbtn {
+    background: transparent;
+    border: 1px solid #232936;
+    color: #6e7589;
+    padding: 4px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .console-hbtn:hover {
+    color: var(--text-0);
+    border-color: var(--border-3);
+    background: #141821;
+  }
+
+  .console-hbtn.active {
+    color: var(--accent);
+    border-color: rgba(110,168,254,0.5);
+    background: rgba(110,168,254,0.08);
+  }
+
+  .console-logs {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 14px;
+    color: #cbd5e1;
+    white-space: pre-wrap;
+    line-height: 1.55;
+  }
+
+  .log-line {
+    padding: 2px 0 2px 8px;
+    border-left: 2px solid transparent;
+    margin-left: -8px;
+    word-break: break-word;
+  }
+
+  .log-line.log-info    { color: #94a3b8; border-left-color: #334155; }
+  .log-line.log-log     { color: #cbd5e1; border-left-color: #475569; }
+  .log-line.log-warn    { color: #fcd34d; border-left-color: #f59e0b; background: rgba(251,191,36,0.05); }
+  .log-line.log-error   { color: #fca5a5; border-left-color: #dc2626; background: rgba(248,113,113,0.06); }
+  .log-line.log-result  { color: #7dd3fc; border-left-color: #0ea5e9; }
+  .log-line.log-input   { color: #a78bfa; border-left-color: #8b5cf6; }
+
+  .log-prefix { color: #64748b; margin-right: 6px; font-weight: 500; user-select: none; }
+  .log-time   { color: #475569; margin-right: 8px; font-size: 11px; user-select: none; }
+
+  .log-stack {
+    display: block;
+    color: #9ca3af;
+    font-size: 11.5px;
+    margin-top: 4px;
+    margin-left: 8px;
+    padding-left: 10px;
+    border-left: 1px solid #334155;
+    white-space: pre-wrap;
+  }
+
+  .console-input-row {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: 8px 14px;
+    background: #0a0a0a;
+    border-top: 1px solid #1a1a1a;
+    flex-shrink: 0;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0));
+  }
+
+  .console-chevron {
+    color: #22c55e;
+    font-weight: 700;
+    user-select: none;
+  }
+
+  #consoleReplInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #cbd5e1;
+    font-family: inherit;
+    font-size: 12.5px;
+    padding: 4px 0;
+  }
+
+  #consoleReplInput::placeholder { color: #475569; }
 
   body.game-open .brand-mark::before,
   body.game-open .brand-mark::after,
@@ -541,13 +1255,21 @@
     display: none !important;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .brand-mark::before,
+    .brand-mark::after,
+    .brand-mark img {
+      animation: none !important;
+    }
+  }
+
   @media (max-width: 900px) {
     .brand-mark::before { display: none; }
     .brand-mark::after {
       background: linear-gradient(135deg, #6ea8fe, #a371f7);
       animation: none;
       filter: none;
-      box-shadow: 0 0 12px rgba(110, 168, 254, 0.6);
+      box-shadow: 0 0 10px rgba(110, 168, 254, 0.5);
     }
     .brand-mark img {
       animation: none;
@@ -557,12 +1279,18 @@
 
   @media (max-width: 640px) {
     .brand-sub { display: none; }
-    .brand-mark { width: 34px; height: 34px; }
-    .brand-mark::before { inset: -4px; border-radius: 13px; }
-    .brand-mark::after { inset: -1px; border-radius: 11px; }
-    .brand-mark img { width: 30px; height: 30px; border-radius: 8px; }
-    .brand-name { font-size: 13px; letter-spacing: 1px; }
-    .brand { gap: 8px; }
+    .brand-mark { width: 32px; height: 32px; }
+    .brand-mark::before { inset: -3px; border-radius: 12px; }
+    .brand-mark::after { inset: 0; border-radius: 8px; }
+    .brand-mark img { width: 30px; height: 30px; border-radius: 7px; }
+    .brand-name { font-size: 12px; letter-spacing: 1px; }
+    .brand { gap: var(--s-2); }
+    .panel-wrap { padding: var(--s-4) var(--s-3) 100px; }
+    .panel-head h1 { font-size: 18px; }
+    .asset-header { padding: var(--s-3); min-height: 60px; }
+    .asset-icon { width: 32px; height: 32px; font-size: 15px; }
+    .asset-body { padding: 0 var(--s-3) var(--s-3); }
+    .build-card { padding: var(--s-4); }
   }
 </style>
 </head>
@@ -585,12 +1313,41 @@
     <button id="tabAssets" type="button">Assets</button>
   </div>
   <div class="spacer"></div>
+  <button class="icon-btn" id="filesBtn" type="button" title="Files">📁</button>
   <button class="icon-btn" id="runBtn" type="button" title="Run">▶</button>
+  <button class="icon-btn" id="consoleBtn" type="button" title="Console">🖥</button>
   <button class="icon-btn" id="menuBtn" type="button" title="Menu">⋮</button>
   <button class="icon-btn" id="hideBtn" type="button" title="Hide bar">▲</button>
 </div>
 
 <button class="show-btn" id="showBtn" type="button" title="Show bar">▼</button>
+
+<div class="files-backdrop" id="filesBackdrop"></div>
+
+<aside class="files-drawer" id="filesDrawer" aria-hidden="true">
+  <div class="files-header">
+    <div class="files-title">
+      <div class="files-title-main">Workspace</div>
+      <div class="files-title-sub" id="filesCount">0 files open</div>
+    </div>
+    <button class="files-close" id="filesClose" type="button" aria-label="Close">✕</button>
+  </div>
+
+  <div class="files-actions">
+    <button class="files-action" id="filesNew" type="button">
+      <span class="files-action-icon">＋</span>
+      <span>New</span>
+    </button>
+    <button class="files-action" id="filesOpen" type="button">
+      <span class="files-action-icon">📂</span>
+      <span>Open</span>
+    </button>
+  </div>
+
+  <div class="files-section-title">Open files</div>
+
+  <div class="files-list" id="filesList"></div>
+</aside>
 
 <section id="codeSection">
   <div id="limn-editor-mount"></div>
@@ -598,11 +1355,16 @@
 
 <section id="buildSection">
   <div class="panel-wrap">
-    <div class="panel-card">
-      <h2>Build</h2>
-      <p class="sub">Pick a template, customize colors, then tap Apply.</p>
+    <div class="panel-head">
+      <h1>Build</h1>
+      <p>Pick a template, tune its colors, then apply it to the editor.</p>
+    </div>
+
+    <div class="panel-section-title">Template</div>
+
+    <div class="build-card">
       <div class="field">
-        <label for="templateSelect">Template</label>
+        <label for="templateSelect">Game type</label>
         <select id="templateSelect"></select>
       </div>
       <div id="templateFields"></div>
@@ -613,23 +1375,110 @@
 
 <section id="assetsSection">
   <div class="panel-wrap">
-    <div class="panel-card">
-      <h2>Head HTML</h2>
-      <p class="sub">Raw tags injected inside &lt;head&gt;.</p>
-      <textarea id="assetHead" placeholder="&lt;link rel=&quot;stylesheet&quot; href=&quot;...&quot;&gt;"></textarea>
+    <div class="panel-head">
+      <h1>Assets</h1>
+      <p>Inject HTML, CSS, and external scripts into the game's page. Applied on the next Run or Save.</p>
     </div>
-    <div class="panel-card">
-      <h2>Extra CSS</h2>
-      <p class="sub">Injected as a &lt;style&gt; block.</p>
-      <textarea id="assetCss" placeholder="body { background: #000; }"></textarea>
+
+    <div class="panel-section-title">Injected into the game page</div>
+
+    <div class="assets-accordion" id="assetsAccordion">
+
+      <div class="asset-row" data-kind="head" id="assetRowHead">
+        <button class="asset-header" type="button" aria-expanded="false" data-toggle="head">
+          <span class="asset-icon">◈</span>
+          <span class="asset-meta">
+            <span class="asset-name">Head HTML</span>
+            <span class="asset-desc">Raw tags injected inside &lt;head&gt;</span>
+          </span>
+          <span class="asset-status">
+            <span class="asset-badge" data-badge="head">empty</span>
+            <span class="asset-chevron">›</span>
+          </span>
+        </button>
+        <div class="asset-body">
+          <div class="asset-body-inner">
+            <textarea id="assetHead" spellcheck="false" placeholder="&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Inter&quot;&gt;&#10;&lt;meta name=&quot;theme-color&quot; content=&quot;#0a0a0a&quot;&gt;"></textarea>
+            <div class="asset-body-actions">
+              <button class="btn btn-ghost" type="button" data-clear="head">Clear</button>
+              <span class="spacer"></span>
+              <span class="asset-desc" data-count="head"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="asset-row" data-kind="css" id="assetRowCss">
+        <button class="asset-header" type="button" aria-expanded="false" data-toggle="css">
+          <span class="asset-icon">◐</span>
+          <span class="asset-meta">
+            <span class="asset-name">Extra CSS</span>
+            <span class="asset-desc">Injected as a &lt;style&gt; block in the head</span>
+          </span>
+          <span class="asset-status">
+            <span class="asset-badge" data-badge="css">empty</span>
+            <span class="asset-chevron">›</span>
+          </span>
+        </button>
+        <div class="asset-body">
+          <div class="asset-body-inner">
+            <textarea id="assetCss" spellcheck="false" placeholder="body { background: linear-gradient(135deg, #0a0a1e, #150a2a); }&#10;canvas { box-shadow: 0 20px 60px rgba(110,168,254,0.3); }"></textarea>
+            <div class="asset-body-actions">
+              <button class="btn btn-ghost" type="button" data-clear="css">Clear</button>
+              <span class="spacer"></span>
+              <span class="asset-desc" data-count="css"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="asset-row" data-kind="scripts" id="assetRowScripts">
+        <button class="asset-header" type="button" aria-expanded="false" data-toggle="scripts">
+          <span class="asset-icon">⬡</span>
+          <span class="asset-meta">
+            <span class="asset-name">External Scripts</span>
+            <span class="asset-desc">One URL per line · loaded before the engine</span>
+          </span>
+          <span class="asset-status">
+            <span class="asset-badge" data-badge="scripts">empty</span>
+            <span class="asset-chevron">›</span>
+          </span>
+        </button>
+        <div class="asset-body">
+          <div class="asset-body-inner">
+            <textarea id="assetScripts" spellcheck="false" placeholder="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js&#10;https://cdn.example.com/my-library.js"></textarea>
+            <div class="asset-body-actions">
+              <button class="btn btn-ghost" type="button" data-clear="scripts">Clear</button>
+              <span class="spacer"></span>
+              <span class="asset-desc" data-count="scripts"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
-    <div class="panel-card">
-      <h2>External Scripts</h2>
-      <p class="sub">One URL per line.</p>
-      <textarea id="assetScripts" placeholder="https://cdn.example.com/lib.js"></textarea>
+
+    <div class="assets-footer">
+      <span>Changes take effect on the next Run or Save.</span>
     </div>
   </div>
 </section>
+
+<div class="console-sheet" id="consoleSheet" aria-hidden="true">
+  <div class="console-header">
+    <span class="console-title">Console</span>
+    <span class="console-count" id="consoleCount">0 messages</span>
+    <span class="console-spacer"></span>
+    <button class="console-hbtn" id="consoleClearBtn" type="button">Clear</button>
+    <button class="console-hbtn active" id="consoleAutoscroll" type="button">Auto-scroll</button>
+    <button class="console-hbtn" id="consoleCloseBtn" type="button" aria-label="Close console">✕</button>
+  </div>
+  <div class="console-logs" id="editor-console-logs"></div>
+  <div class="console-input-row">
+    <span class="console-chevron">&gt;</span>
+    <input type="text" id="consoleReplInput" placeholder="Type an expression and press Enter (e.g. player.x)" autocomplete="off" spellcheck="false">
+  </div>
+</div>
 
 <dialog id="runDialog">
   <button class="dialog-close" id="dialogClose" type="button">✕</button>
@@ -706,11 +1555,17 @@ async function bootLimn() {
     supabase: supabase,
   });
 
+  component._touch = true;
+
   await component.attach({ canvas: dummy });
 
   if (component._appbar) component._appbar.hide();
   if (component._tabs) component._tabs.hide();
   if (component._breadcrumb) component._breadcrumb.hide();
+
+  if (component._menu) {
+    component._menu.hideFab();
+  }
 
   function fit() {
     const w = mount.clientWidth || 0;
@@ -797,6 +1652,24 @@ function initAssetsPanel() {
   const scripts = document.getElementById("assetScripts");
   if (!head || !css || !scripts) return;
 
+  const rows = {
+    head: document.getElementById("assetRowHead"),
+    css: document.getElementById("assetRowCss"),
+    scripts: document.getElementById("assetRowScripts"),
+  };
+
+  const badgeEls = {
+    head: document.querySelector('[data-badge="head"]'),
+    css: document.querySelector('[data-badge="css"]'),
+    scripts: document.querySelector('[data-badge="scripts"]'),
+  };
+
+  const countEls = {
+    head: document.querySelector('[data-count="head"]'),
+    css: document.querySelector('[data-count="css"]'),
+    scripts: document.querySelector('[data-count="scripts"]'),
+  };
+
   function ensure() {
     if (!window.currentConfig) window.currentConfig = {};
     if (!window.currentConfig.assets) {
@@ -805,11 +1678,52 @@ function initAssetsPanel() {
     return window.currentConfig.assets;
   }
 
+  function refreshBadges() {
+    const a = ensure();
+
+    const headTrim = (a.head || "").trim();
+    const headTags = headTrim ? (headTrim.match(/<[a-zA-Z]/g) || []).length : 0;
+    if (headTags > 0) {
+      badgeEls.head.textContent = headTags + (headTags === 1 ? " tag" : " tags");
+      badgeEls.head.classList.add("has-content");
+    } else {
+      badgeEls.head.textContent = "empty";
+      badgeEls.head.classList.remove("has-content");
+    }
+
+    const cssTrim = (a.css || "").trim();
+    const cssRules = cssTrim ? (cssTrim.match(/\{/g) || []).length : 0;
+    if (cssRules > 0) {
+      badgeEls.css.textContent = cssRules + (cssRules === 1 ? " rule" : " rules");
+      badgeEls.css.classList.add("has-content");
+    } else {
+      badgeEls.css.textContent = "empty";
+      badgeEls.css.classList.remove("has-content");
+    }
+
+    const scriptsLines = (a.scripts || "")
+      .split("\n")
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+    if (scriptsLines.length > 0) {
+      badgeEls.scripts.textContent = scriptsLines.length + (scriptsLines.length === 1 ? " url" : " urls");
+      badgeEls.scripts.classList.add("has-content");
+    } else {
+      badgeEls.scripts.textContent = "empty";
+      badgeEls.scripts.classList.remove("has-content");
+    }
+
+    if (countEls.head) countEls.head.textContent = headTrim ? (headTrim.length + " chars") : "";
+    if (countEls.css) countEls.css.textContent = cssTrim ? (cssTrim.length + " chars") : "";
+    if (countEls.scripts) countEls.scripts.textContent = scriptsLines.length ? (scriptsLines.length + " script" + (scriptsLines.length === 1 ? "" : "s")) : "";
+  }
+
   function load() {
     const a = ensure();
     head.value = a.head || "";
     css.value = a.css || "";
     scripts.value = a.scripts || "";
+    refreshBadges();
   }
 
   function save() {
@@ -817,7 +1731,56 @@ function initAssetsPanel() {
     a.head = head.value;
     a.css = css.value;
     a.scripts = scripts.value;
+    refreshBadges();
   }
+
+  Object.keys(rows).forEach(key => {
+    const row = rows[key];
+    const header = row.querySelector(".asset-header");
+
+    let lastFire = 0;
+    const fire = (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      }
+      const now = Date.now();
+      if (now - lastFire < 300) return;
+      lastFire = now;
+
+      const isOpen = row.classList.contains("open");
+
+      Object.keys(rows).forEach(k => {
+        rows[k].classList.remove("open");
+        const h = rows[k].querySelector(".asset-header");
+        if (h) h.setAttribute("aria-expanded", "false");
+      });
+
+      if (!isOpen) {
+        row.classList.add("open");
+        header.setAttribute("aria-expanded", "true");
+        const ta = row.querySelector("textarea");
+        if (ta) setTimeout(() => ta.focus(), 80);
+      }
+    };
+
+    header.addEventListener("mousedown", (e) => e.preventDefault());
+    header.addEventListener("touchend", fire, { passive: false });
+    header.addEventListener("click", fire);
+  });
+
+  document.querySelectorAll("[data-clear]").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const key = btn.dataset.clear;
+      const target = key === "head" ? head : key === "css" ? css : scripts;
+      if (!target.value) return;
+      target.value = "";
+      save();
+      toast("Cleared " + key, "warning");
+    });
+  });
 
   head.addEventListener("input", save);
   css.addEventListener("input", save);
@@ -1043,15 +2006,472 @@ function initMenuButton() {
   const menuBtn = document.getElementById("menuBtn");
   if (!menuBtn) return;
 
-  menuBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  let lastFire = 0;
+  const fire = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    }
+    const now = Date.now();
+    if (now - lastFire < 400) return;
+    lastFire = now;
+
     if (!component || !component._menu) {
-      toast("Menu not ready", "warning");
+      if (window.__logToConsole) {
+        window.__logToConsole("error", ["Menu not ready — component._menu is " + (component ? "null" : "component is null")]);
+      }
       return;
     }
     component._menu.toggle();
+  };
+
+  menuBtn.addEventListener("mousedown", fire);
+  menuBtn.addEventListener("touchend", fire, { passive: false });
+  menuBtn.addEventListener("click", fire);
+}
+
+function initFilesDrawer() {
+  const drawer = document.getElementById("filesDrawer");
+  const backdrop = document.getElementById("filesBackdrop");
+  const listEl = document.getElementById("filesList");
+  const countEl = document.getElementById("filesCount");
+  const closeBtn = document.getElementById("filesClose");
+  const openBtn = document.getElementById("filesBtn");
+  const newBtn = document.getElementById("filesNew");
+  const openFileBtn = document.getElementById("filesOpen");
+
+  if (!drawer || !backdrop || !listEl || !openBtn) return;
+
+  function extOf(name) {
+    if (!name) return "";
+    const dot = name.lastIndexOf(".");
+    if (dot === -1) return "";
+    return name.slice(dot + 1).toLowerCase();
+  }
+
+  function badgeClass(name) {
+    const ext = extOf(name);
+    if (ext === "js" || ext === "mjs" || ext === "cjs" || ext === "jsx") return "js";
+    if (ext === "html" || ext === "htm") return "html";
+    if (ext === "css") return "css";
+    if (ext === "json") return "json";
+    if (ext === "md" || ext === "markdown") return "md";
+    return "";
+  }
+
+  function badgeLabel(name) {
+    const ext = extOf(name);
+    if (!ext) return "FILE";
+    if (ext.length <= 3) return ext.toUpperCase();
+    return ext.slice(0, 3).toUpperCase();
+  }
+
+  function isOpen() {
+    return drawer.classList.contains("open");
+  }
+
+  function openDrawer() {
+    renderList();
+    drawer.classList.add("open");
+    backdrop.classList.add("open");
+    drawer.setAttribute("aria-hidden", "false");
+    openBtn.classList.add("active");
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove("open");
+    backdrop.classList.remove("open");
+    drawer.setAttribute("aria-hidden", "true");
+    openBtn.classList.remove("active");
+  }
+
+  function toggleDrawer() {
+    if (isOpen()) closeDrawer();
+    else openDrawer();
+  }
+
+  function renderList() {
+    if (!component || !component.editor || !component.editor.documents) {
+      listEl.innerHTML = '<div class="files-empty"><span class="files-empty-icon">📁</span>Editor not ready yet.</div>';
+      if (countEl) countEl.textContent = "0 files open";
+      return;
+    }
+
+    const docs = component.editor.documents;
+    const items = docs.items || [];
+    const activeIndex = docs.activeIndex;
+
+    if (countEl) {
+      countEl.textContent = items.length + (items.length === 1 ? " file open" : " files open");
+    }
+
+    listEl.innerHTML = "";
+
+    if (items.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "files-empty";
+      empty.innerHTML = '<span class="files-empty-icon">📁</span>No files open.<br>Create one or open from device.';
+      listEl.appendChild(empty);
+      return;
+    }
+
+    items.forEach((doc, i) => {
+      const row = document.createElement("div");
+      row.className = "files-row" + (i === activeIndex ? " active" : "");
+
+      const badge = document.createElement("span");
+      badge.className = "files-badge " + badgeClass(doc.name);
+      badge.textContent = badgeLabel(doc.name);
+      row.appendChild(badge);
+
+      const meta = document.createElement("span");
+      meta.className = "files-meta";
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "files-name";
+      const nameText = document.createElement("span");
+      nameText.textContent = doc.name || "untitled";
+      nameEl.appendChild(nameText);
+      if (doc.dirty) {
+        const dot = document.createElement("span");
+        dot.className = "files-dirty";
+        dot.textContent = "●";
+        nameEl.appendChild(dot);
+      }
+      meta.appendChild(nameEl);
+
+      const sub = document.createElement("span");
+      sub.className = "files-sub";
+      const len = doc.getValue ? doc.getValue().length : 0;
+      sub.textContent = len + " chars";
+      meta.appendChild(sub);
+
+      row.appendChild(meta);
+
+      const actions = document.createElement("span");
+      actions.className = "files-row-actions";
+
+      const dl = document.createElement("button");
+      dl.type = "button";
+      dl.className = "files-row-btn";
+      dl.title = "Download";
+      dl.setAttribute("aria-label", "Download " + doc.name);
+      dl.textContent = "⬇";
+      dl.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        try {
+          const blob = new Blob([doc.getValue()], { type: "text/plain;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = doc.name || "untitled.txt";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 5000);
+          toast("Downloaded " + doc.name, "success");
+        } catch (err) {
+          toast("Download failed", "error");
+        }
+      });
+      actions.appendChild(dl);
+
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "files-row-btn danger";
+      del.title = "Close";
+      del.setAttribute("aria-label", "Close " + doc.name);
+      del.textContent = "✕";
+      del.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (doc.dirty && !confirm('Close "' + doc.name + '" without saving?')) return;
+        component.editor.closeDocument(doc.id);
+        if (component._onDocumentsChange) component._onDocumentsChange();
+        renderList();
+        toast("Closed " + doc.name, "info");
+      });
+      actions.appendChild(del);
+
+      row.appendChild(actions);
+
+      let lastFire = 0;
+      const select = (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+        }
+        const now = Date.now();
+        if (now - lastFire < 300) return;
+        lastFire = now;
+        try {
+          component.editor.switchToId(doc.id);
+          if (component._onDocumentsChange) component._onDocumentsChange();
+        } catch (err) {}
+        closeDrawer();
+      };
+
+      row.addEventListener("mousedown", (e) => e.preventDefault());
+      row.addEventListener("touchend", select, { passive: false });
+      row.addEventListener("click", select);
+
+      listEl.appendChild(row);
+    });
+  }
+
+  let lastOpenFire = 0;
+  const toggleFire = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    }
+    const now = Date.now();
+    if (now - lastOpenFire < 300) return;
+    lastOpenFire = now;
+    toggleDrawer();
+  };
+
+  openBtn.addEventListener("mousedown", toggleFire);
+  openBtn.addEventListener("touchend", toggleFire, { passive: false });
+  openBtn.addEventListener("click", toggleFire);
+
+  closeBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    closeDrawer();
   });
+
+  backdrop.addEventListener("click", (e) => {
+    e.preventDefault();
+    closeDrawer();
+  });
+
+  if (newBtn) {
+    newBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (component && component._newfile) {
+        component._newfile.open();
+        closeDrawer();
+      }
+    });
+  }
+
+  if (openFileBtn) {
+    openFileBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      if (component && component.openFile) {
+        await component.openFile();
+        renderList();
+        closeDrawer();
+      }
+    });
+  }
+
+  window.__renderFilesDrawer = renderList;
+
+  if (component && component._onDocumentsChange) {
+    const orig = component._onDocumentsChange.bind(component);
+    component._onDocumentsChange = function () {
+      orig();
+      if (isOpen()) renderList();
+    };
+  }
+}
+
+function initConsole() {
+  const sheet = document.getElementById("consoleSheet");
+  const toggleBtn = document.getElementById("consoleBtn");
+  const closeBtn = document.getElementById("consoleCloseBtn");
+  const logsEl = document.getElementById("editor-console-logs");
+  const replInput = document.getElementById("consoleReplInput");
+  const countEl = document.getElementById("consoleCount");
+  const clearBtn = document.getElementById("consoleClearBtn");
+  const autoscrollBtn = document.getElementById("consoleAutoscroll");
+  if (!sheet || !toggleBtn || !logsEl) return;
+
+  let messageCount = 0;
+  let autoscroll = true;
+  const MAX_LINES = 500;
+
+  function now() {
+    const d = new Date();
+    return String(d.getHours()).padStart(2, "0") + ":" +
+           String(d.getMinutes()).padStart(2, "0") + ":" +
+           String(d.getSeconds()).padStart(2, "0");
+  }
+
+  function formatValue(v) {
+    if (v === undefined) return "undefined";
+    if (v === null) return "null";
+    if (typeof v === "string") return v;
+    if (typeof v === "number" || typeof v === "boolean") return String(v);
+    if (typeof v === "function") return "[Function " + (v.name || "anonymous") + "]";
+    if (v instanceof Error) return v.name + ": " + v.message;
+    try { return JSON.stringify(v, null, 2); }
+    catch (e) { return String(v); }
+  }
+
+  function trim() {
+    while (logsEl.children.length > MAX_LINES) {
+      logsEl.removeChild(logsEl.firstChild);
+    }
+  }
+
+  function log(kind, args, stack) {
+    const line = document.createElement("div");
+    line.className = "log-line log-" + kind;
+
+    const time = document.createElement("span");
+    time.className = "log-time";
+    time.textContent = now();
+    line.appendChild(time);
+
+    const prefix = document.createElement("span");
+    prefix.className = "log-prefix";
+    prefix.textContent =
+      kind === "error" ? "✖" :
+      kind === "warn" ? "⚠" :
+      kind === "result" ? "←" :
+      kind === "input" ? "›" : "·";
+    line.appendChild(prefix);
+
+    const text = document.createElement("span");
+    text.textContent = Array.prototype.map.call(args, formatValue).join(" ");
+    line.appendChild(text);
+
+    if (stack) {
+      const stackEl = document.createElement("span");
+      stackEl.className = "log-stack";
+      const lines = String(stack).split("\n").slice(1, 4);
+      for (const s of lines) {
+        const t = s.trim();
+        if (!t) continue;
+        const span = document.createElement("span");
+        span.textContent = t + "\n";
+        stackEl.appendChild(span);
+      }
+      line.appendChild(stackEl);
+    }
+
+    logsEl.appendChild(line);
+    trim();
+    messageCount++;
+    if (countEl) countEl.textContent = messageCount + (messageCount === 1 ? " message" : " messages");
+    if (autoscroll) logsEl.scrollTop = logsEl.scrollHeight;
+  }
+
+  window.__logToConsole = log;
+
+  function open() {
+    sheet.classList.add("open");
+    sheet.setAttribute("aria-hidden", "false");
+  }
+
+  function close() {
+    sheet.classList.remove("open");
+    sheet.setAttribute("aria-hidden", "true");
+  }
+
+  function toggle() {
+    sheet.classList.contains("open") ? close() : open();
+  }
+
+  toggleBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggle();
+  });
+
+  if (closeBtn) closeBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    close();
+  });
+
+  if (clearBtn) clearBtn.addEventListener("click", () => {
+    logsEl.innerHTML = "";
+    messageCount = 0;
+    if (countEl) countEl.textContent = "0 messages";
+  });
+
+  if (autoscrollBtn) autoscrollBtn.addEventListener("click", () => {
+    autoscroll = !autoscroll;
+    autoscrollBtn.classList.toggle("active", autoscroll);
+  });
+
+  function getGameWindow() {
+    const frame = document.getElementById("gameFrame");
+    if (!frame) return null;
+    try { return frame.contentWindow; } catch (e) { return null; }
+  }
+
+  function tryEval(code) {
+    const win = getGameWindow();
+    if (!win) {
+      log("error", ["No game running. Press ▶ Run first, then type expressions here."]);
+      return;
+    }
+    try {
+      const result = win.eval(code);
+      log("result", [result]);
+    } catch (e) {
+      log("error", [e.name + ": " + e.message], e.stack);
+    }
+  }
+
+  if (replInput) {
+    const history = [];
+    let historyIdx = -1;
+
+    replInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const code = replInput.value.trim();
+        if (!code) return;
+        history.unshift(code);
+        historyIdx = -1;
+        replInput.value = "";
+        log("input", [code]);
+        tryEval(code);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!history.length) return;
+        historyIdx = Math.min(history.length - 1, historyIdx + 1);
+        replInput.value = history[historyIdx] || "";
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (!history.length) return;
+        historyIdx = Math.max(-1, historyIdx - 1);
+        replInput.value = historyIdx === -1 ? "" : history[historyIdx];
+      }
+    });
+  }
+
+  const pending = [];
+  let scheduled = false;
+
+  function flush() {
+    scheduled = false;
+    const batch = pending.splice(0, pending.length);
+    for (const m of batch) {
+      if (m.type === "console") log(m.kind || "log", m.args || [], m.stack);
+      else if (m.type === "error") log("error", [m.message], m.stack);
+    }
+  }
+
+  window.addEventListener("message", (e) => {
+    if (!e.data || typeof e.data !== "object") return;
+    if (e.data.type !== "console" && e.data.type !== "error") return;
+    pending.push(e.data);
+    if (!scheduled) {
+      scheduled = true;
+      requestAnimationFrame(flush);
+    }
+  });
+
+  log("info", ["Console ready. Press ▶ Run, then type expressions below."]);
 }
 
 initTabs();
@@ -1060,8 +2480,11 @@ initAssetsPanel();
 initBuildPanel();
 initRun();
 initMenuButton();
+initConsole();
 
 await bootLimn();
+
+initFilesDrawer();
 </script>
 </body>
 </html>
