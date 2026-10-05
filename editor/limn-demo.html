@@ -452,36 +452,64 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="/editor/build.js"></script>
-<script src="/editor/templates.js"></script>
-<script type="module" src="/editor/limn-studio.js"></script>
-
 <script>
   (function () {
-    function show(msg, cls) {
-      if (window.__dbg) window.__dbg(msg, cls);
-    }
+    function log(msg, cls) { if (window.__dbg) window.__dbg(msg, cls); }
 
-    setTimeout(function () {
-      show("=== 500ms ===");
-      show("buildGameHTML: " + typeof window.buildGameHTML);
-      show("LimnTemplates: " + (window.LimnTemplates ? Object.keys(window.LimnTemplates).length + " templates" : "none"));
-      show("__v4t length: " + (window.__v4t ? window.__v4t.length : "none"));
-      show("__v2t length: " + (window.__v2t ? window.__v2t.length : "none"));
-      show("__v3t length: " + (window.__v3t ? window.__v3t.length : "none"));
-      show("__enginesReady: " + window.__enginesReady);
-      show("__editor: " + typeof window.__editor);
-      show("__limnEditor: " + typeof window.__limnEditor);
-    }, 500);
+    log("loading templates.js, build.js, limn-studio.js via fetch…", "ok");
 
-    setTimeout(function () {
-      show("=== 2500ms ===");
-      show("buildGameHTML: " + typeof window.buildGameHTML);
-      show("__v4t length: " + (window.__v4t ? window.__v4t.length : "none"));
-      show("__enginesReady: " + window.__enginesReady);
-      show("__editor: " + typeof window.__editor);
-      show("__limnEditor: " + typeof window.__limnEditor);
-    }, 2500);
+    Promise.all([
+      fetch("/editor/templates.js").then(function (r) {
+        log("templates.js status=" + r.status + " type=" + (r.headers.get("content-type") || "?"));
+        return r.text();
+      }),
+      fetch("/editor/build.js").then(function (r) {
+        log("build.js status=" + r.status + " type=" + (r.headers.get("content-type") || "?"));
+        return r.text();
+      }),
+      fetch("/editor/limn-studio.js").then(function (r) {
+        log("limn-studio.js status=" + r.status + " type=" + (r.headers.get("content-type") || "?"));
+        return r.text();
+      })
+    ]).then(function (results) {
+      var templatesSrc = results[0];
+      var buildSrc = results[1];
+      var studioSrc = results[2];
+
+      log("evaluating templates.js…", "ok");
+      try { (0, eval)(templatesSrc); }
+      catch (e) { log("templates eval error: " + e.message); }
+
+      log("evaluating build.js…", "ok");
+      try { (0, eval)(buildSrc); }
+      catch (e) { log("build eval error: " + e.message); }
+
+      log("buildGameHTML=" + typeof window.buildGameHTML);
+      log("LimnTemplates=" + (window.LimnTemplates ? Object.keys(window.LimnTemplates).length : "none"));
+      log("__v4t length=" + (window.__v4t ? window.__v4t.length : "none"));
+
+      var patched = studioSrc;
+      patched = patched.replace(
+        "https://esm.sh/@supabase/supabase-js@2",
+        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
+      );
+      patched = patched.replace(
+        'await import("./limn-bridge.js")',
+        'await import("/editor/limn-bridge.js")'
+      );
+
+      log("evaluating limn-studio.js…", "ok");
+      var blob = new Blob([patched], { type: "application/javascript" });
+      var url = URL.createObjectURL(blob);
+      var s = document.createElement("script");
+      s.type = "module";
+      s.src = url;
+      s.onerror = function () { log("limn-studio.js module load FAILED"); };
+      s.onload = function () { log("limn-studio.js module loaded", "ok"); };
+      document.body.appendChild(s);
+    }).catch(function (e) {
+      log("FETCH FAILED: " + e.message);
+    });
   })();
 </script>
 
