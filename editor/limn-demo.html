@@ -35,36 +35,21 @@
       -webkit-text-size-adjust: 100%;
       -webkit-tap-highlight-color: transparent;
     }
-
     #debugBox {
-      position: fixed;
-      top: 60px;
-      left: 8px;
-      right: 8px;
-      max-height: 40vh;
-      overflow-y: auto;
-      background: rgba(20, 5, 5, 0.96);
-      color: #f88;
+      position: fixed; top: 60px; left: 8px; right: 8px;
+      max-height: 40vh; overflow-y: auto;
+      background: rgba(20, 5, 5, 0.96); color: #f88;
       font: 11px ui-monospace, monospace;
-      padding: 8px 10px;
-      border: 1px solid #a33;
-      border-radius: 8px;
-      z-index: 999999;
-      white-space: pre-wrap;
-      word-break: break-all;
+      padding: 8px 10px; border: 1px solid #a33; border-radius: 8px;
+      z-index: 999999; white-space: pre-wrap; word-break: break-all;
       display: none;
     }
     #debugBox.visible { display: block; }
     #debugBox .ok { color: #6f9; }
     #debugBox .warn { color: #fc6; }
-
     .topbar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 54px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      position: fixed; top: 0; left: 0; right: 0; height: 54px;
+      display: flex; align-items: center; gap: 10px;
       padding: 0 10px;
       background: linear-gradient(180deg, rgba(18,20,29,0.98), rgba(13,15,22,0.98));
       border-bottom: 1px solid var(--border);
@@ -72,259 +57,126 @@
       padding-top: env(safe-area-inset-top, 0);
       transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .topbar.hidden {
-      transform: translateY(calc(-100% - env(safe-area-inset-top, 0px)));
-    }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
+    .topbar.hidden { transform: translateY(calc(-100% - env(safe-area-inset-top, 0px))); }
+    .brand { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .brand-mark {
-      width: 34px; height: 34px;
-      border-radius: 10px;
+      width: 34px; height: 34px; border-radius: 10px;
       background: linear-gradient(135deg, #6ea8fe 0%, #a371f7 55%, #ec4899 100%);
       box-shadow: 0 0 16px rgba(110,168,254,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 15px;
-      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 15px; color: #fff;
     }
     .spacer { flex: 1; }
     .tabswitch {
-      display: flex;
-      gap: 3px;
-      background: var(--bg-1);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 3px;
-      flex-shrink: 0;
+      display: flex; gap: 3px;
+      background: var(--bg-1); border: 1px solid var(--border);
+      border-radius: 999px; padding: 3px; flex-shrink: 0;
     }
     .tabswitch button {
-      background: transparent;
-      border: none;
-      color: var(--text-1);
-      padding: 7px 12px;
-      border-radius: 999px;
-      cursor: pointer;
-      font-size: 12.5px;
-      font-weight: 600;
-      font-family: inherit;
-      white-space: nowrap;
+      background: transparent; border: none; color: var(--text-1);
+      padding: 7px 12px; border-radius: 999px; cursor: pointer;
+      font-size: 12.5px; font-weight: 600; font-family: inherit; white-space: nowrap;
     }
     .tabswitch button.active {
       background: linear-gradient(135deg, #6ea8fe, #a371f7);
-      color: #fff;
-      box-shadow: 0 2px 10px rgba(110,168,254,0.4);
+      color: #fff; box-shadow: 0 2px 10px rgba(110,168,254,0.4);
     }
     .icon-btn {
-      width: 34px; height: 34px;
-      padding: 0;
-      background: transparent;
-      border: 1px solid var(--border-2);
-      border-radius: 10px;
-      color: var(--text-1);
-      font-size: 15px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 34px; height: 34px; padding: 0;
+      background: transparent; border: 1px solid var(--border-2);
+      border-radius: 10px; color: var(--text-1); font-size: 15px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
     .icon-btn:active { background: var(--bg-2); }
-
     .show-btn {
-      position: fixed;
-      top: calc(env(safe-area-inset-top, 0px) + 8px);
-      right: 8px;
-      width: 34px; height: 34px;
-      padding: 0;
-      background: rgba(18,20,29,0.9);
-      border: 1px solid var(--border-2);
-      border-radius: 10px;
-      color: var(--text-1);
-      font-size: 15px;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 100001;
-      backdrop-filter: blur(12px);
+      position: fixed; top: calc(env(safe-area-inset-top, 0px) + 8px); right: 8px;
+      width: 34px; height: 34px; padding: 0;
+      background: rgba(18,20,29,0.9); border: 1px solid var(--border-2);
+      border-radius: 10px; color: var(--text-1); font-size: 15px;
+      cursor: pointer; display: none; align-items: center; justify-content: center;
+      z-index: 100001; backdrop-filter: blur(12px);
     }
     .show-btn.visible { display: flex; }
-
     #codeSection, #buildSection, #assetsSection {
-      position: fixed;
-      top: 54px;
-      left: 0; right: 0; bottom: 0;
+      position: fixed; top: 54px; left: 0; right: 0; bottom: 0;
       display: none;
       transition: top 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow-y: auto;
-      background: var(--bg-0);
+      overflow-y: auto; background: var(--bg-0);
     }
-    #codeSection.active, #buildSection.active, #assetsSection.active {
-      display: block;
-    }
-    body.bar-hidden #codeSection,
-    body.bar-hidden #buildSection,
-    body.bar-hidden #assetsSection {
-      top: 0;
-    }
-
-    #limn-editor-mount {
-      position: absolute;
-      inset: 0;
-      width: 100%; height: 100%;
-      background: #000;
-    }
+    #codeSection.active, #buildSection.active, #assetsSection.active { display: block; }
+    body.bar-hidden #codeSection, body.bar-hidden #buildSection, body.bar-hidden #assetsSection { top: 0; }
+    #limn-editor-mount { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; }
     #gameCanvas { display: none; }
-
-    .panel-wrap {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 24px 20px 90px;
-    }
+    .panel-wrap { max-width: 720px; margin: 0 auto; padding: 24px 20px 90px; }
     .panel-card {
-      background: var(--bg-1);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 22px;
-      margin-bottom: 16px;
+      background: var(--bg-1); border: 1px solid var(--border);
+      border-radius: 16px; padding: 22px; margin-bottom: 16px;
     }
-    .panel-card h2 {
-      margin: 0 0 6px 0;
-      font-size: 17px;
-      font-weight: 700;
-    }
-    .panel-card .sub {
-      margin: 0 0 18px 0;
-      color: var(--text-2);
-      font-size: 12.5px;
-    }
+    .panel-card h2 { margin: 0 0 6px 0; font-size: 17px; font-weight: 700; }
+    .panel-card .sub { margin: 0 0 18px 0; color: var(--text-2); font-size: 12.5px; }
     .field { margin-bottom: 16px; }
     .field label {
-      display: block;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-2);
-      font-weight: 700;
-      margin-bottom: 6px;
+      display: block; font-size: 11px; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--text-2); font-weight: 700; margin-bottom: 6px;
     }
     .field select, .field input[type="text"], .field textarea {
-      width: 100%;
-      padding: 12px 14px;
-      background: var(--bg-0);
-      color: var(--text-0);
-      border: 1px solid var(--border-2);
-      border-radius: 10px;
-      font-size: 14px;
-      font-family: inherit;
-      outline: none;
+      width: 100%; padding: 12px 14px;
+      background: var(--bg-0); color: var(--text-0);
+      border: 1px solid var(--border-2); border-radius: 10px;
+      font-size: 14px; font-family: inherit; outline: none;
     }
     .field textarea {
-      resize: vertical;
-      min-height: 100px;
-      font-family: ui-monospace, monospace;
-      font-size: 12.5px;
-      line-height: 1.55;
+      resize: vertical; min-height: 100px;
+      font-family: ui-monospace, monospace; font-size: 12.5px; line-height: 1.55;
     }
-    .field select:focus, .field input:focus, .field textarea:focus {
-      border-color: var(--accent);
-    }
+    .field select:focus, .field input:focus, .field textarea:focus { border-color: var(--accent); }
     .swatch-field {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 10px;
-      background: var(--bg-0);
-      border: 1px solid var(--border-2);
-      border-radius: 10px;
+      display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+      background: var(--bg-0); border: 1px solid var(--border-2); border-radius: 10px;
     }
-    .swatch-input {
-      width: 44px; height: 44px;
-      padding: 0; border: none;
-      border-radius: 9px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
+    .swatch-input { width: 44px; height: 44px; padding: 0; border: none; border-radius: 9px; cursor: pointer; flex-shrink: 0; }
     .swatch-hex {
-      flex: 1;
-      font-family: ui-monospace, monospace;
-      font-size: 13px;
-      color: var(--text-0);
-      background: transparent;
-      border: none;
-      outline: none;
-      text-transform: uppercase;
-      min-width: 0;
+      flex: 1; font-family: ui-monospace, monospace; font-size: 13px;
+      color: var(--text-0); background: transparent; border: none; outline: none;
+      text-transform: uppercase; min-width: 0;
     }
     .btn {
-      padding: 12px 18px;
-      border-radius: 10px;
-      border: 1px solid var(--border-2);
-      background: var(--bg-2);
-      color: var(--text-0);
-      font-size: 13px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
+      padding: 12px 18px; border-radius: 10px;
+      border: 1px solid var(--border-2); background: var(--bg-2); color: var(--text-0);
+      font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
     }
     .btn-primary {
       background: linear-gradient(135deg, #6ea8fe, #a371f7);
-      border: none;
-      color: #fff;
-      box-shadow: 0 4px 16px rgba(110,168,254,0.35);
-      width: 100%;
+      border: none; color: #fff;
+      box-shadow: 0 4px 16px rgba(110,168,254,0.35); width: 100%;
     }
-
     .toast-container {
-      position: fixed;
-      bottom: 90px; right: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      z-index: 9500;
-      pointer-events: none;
+      position: fixed; bottom: 90px; right: 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      z-index: 9500; pointer-events: none;
     }
     .toast {
-      padding: 11px 16px;
-      background: var(--bg-2);
-      border: 1px solid var(--border-2);
-      border-left: 3px solid var(--accent);
-      border-radius: 10px;
-      color: var(--text-0);
-      font-size: 13px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-      pointer-events: auto;
-      max-width: 380px;
+      padding: 11px 16px; background: var(--bg-2);
+      border: 1px solid var(--border-2); border-left: 3px solid var(--accent);
+      border-radius: 10px; color: var(--text-0); font-size: 13px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6); pointer-events: auto; max-width: 380px;
     }
     .toast.success { border-left-color: var(--success); }
     .toast.error { border-left-color: var(--danger); }
     .toast.warning { border-left-color: var(--warning); }
-
     dialog#runDialog {
-      width: 100vw; height: 100vh;
-      max-width: 100vw; max-height: 100vh;
-      padding: 0; margin: 0; border: 0;
-      background: #000; color: #fff;
-      position: fixed; inset: 0;
-      z-index: 9000;
-      overflow: hidden;
+      width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh;
+      padding: 0; margin: 0; border: 0; background: #000; color: #fff;
+      position: fixed; inset: 0; z-index: 9000; overflow: hidden;
     }
     dialog#runDialog::backdrop { background: #000; }
     .dialog-close {
       position: absolute; top: 16px; left: 16px; z-index: 9500;
       width: 40px; height: 40px; padding: 0;
-      background: rgba(24,27,38,0.95);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 17px;
+      background: rgba(24,27,38,0.95); color: #fff;
+      border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
+      cursor: pointer; font-size: 17px;
     }
     .dialog-stage {
       position: absolute; inset: 0;
@@ -339,13 +191,9 @@
     }
     .dialog-controls button {
       width: 42px; height: 42px; padding: 0;
-      background: rgba(24,27,38,0.95);
-      color: var(--text-0);
-      border: 1px solid var(--border-2);
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 18px;
-      font-weight: 600;
+      background: rgba(24,27,38,0.95); color: var(--text-0);
+      border: 1px solid var(--border-2); border-radius: 12px;
+      cursor: pointer; font-size: 18px; font-weight: 600;
     }
   </style>
 </head>
@@ -402,14 +250,11 @@
     <div class="panel-card">
       <h2>Build</h2>
       <p class="sub">Pick a template, customize colors, then tap Apply.</p>
-
       <div class="field">
         <label for="templateSelect">Template</label>
         <select id="templateSelect"></select>
       </div>
-
       <div id="templateFields"></div>
-
       <button class="btn btn-primary" id="buildApply" type="button">Apply to editor</button>
     </div>
   </div>
@@ -452,64 +297,46 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
+<script src="/editor/templates.js"></script>
+<script src="/editor/build.js"></script>
+
 <script>
   (function () {
     function log(msg, cls) { if (window.__dbg) window.__dbg(msg, cls); }
 
-    log("loading templates.js, build.js, limn-studio.js via fetch…", "ok");
+    setTimeout(function () {
+      log("after 300ms: buildGameHTML=" + typeof window.buildGameHTML);
+      log("after 300ms: LimnTemplates=" + (window.LimnTemplates ? Object.keys(window.LimnTemplates).length : "none"));
+      log("after 300ms: __v4t length=" + (window.__v4t ? window.__v4t.length : "none"));
 
-    Promise.all([
-      fetch("/editor/templates.js").then(function (r) {
-        log("templates.js status=" + r.status + " type=" + (r.headers.get("content-type") || "?"));
-        return r.text();
-      }),
-      fetch("/editor/build.js").then(function (r) {
-        log("build.js status=" + r.status + " type=" + (r.headers.get("content-type") || "?"));
-        return r.text();
-      }),
-      fetch("/editor/limn-studio.js").then(function (r) {
-        log("limn-studio.js status=" + r.status + " type=" + (r.headers.get("content-type") || "?"));
-        return r.text();
-      })
-    ]).then(function (results) {
-      var templatesSrc = results[0];
-      var buildSrc = results[1];
-      var studioSrc = results[2];
+      log("fetching limn-studio.js…", "ok");
+      fetch("/editor/limn-studio.js")
+        .then(function (r) { return r.text(); })
+        .then(function (studioSrc) {
+          var patched = studioSrc;
+          patched = patched.replace(
+            "https://esm.sh/@supabase/supabase-js@2",
+            "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
+          );
+          patched = patched.replace(
+            'await import("./limn-bridge.js")',
+            'await import("' + window.location.origin + '/editor/limn-bridge.js")'
+          );
 
-      log("evaluating templates.js…", "ok");
-      try { (0, eval)(templatesSrc); }
-      catch (e) { log("templates eval error: " + e.message); }
-
-      log("evaluating build.js…", "ok");
-      try { (0, eval)(buildSrc); }
-      catch (e) { log("build eval error: " + e.message); }
-
-      log("buildGameHTML=" + typeof window.buildGameHTML);
-      log("LimnTemplates=" + (window.LimnTemplates ? Object.keys(window.LimnTemplates).length : "none"));
-      log("__v4t length=" + (window.__v4t ? window.__v4t.length : "none"));
-
-      var patched = studioSrc;
-      patched = patched.replace(
-        "https://esm.sh/@supabase/supabase-js@2",
-        "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
-      );
-      patched = patched.replace(
-        'await import("./limn-bridge.js")',
-        'await import("/editor/limn-bridge.js")'
-      );
-
-      log("evaluating limn-studio.js…", "ok");
-      var blob = new Blob([patched], { type: "application/javascript" });
-      var url = URL.createObjectURL(blob);
-      var s = document.createElement("script");
-      s.type = "module";
-      s.src = url;
-      s.onerror = function () { log("limn-studio.js module load FAILED"); };
-      s.onload = function () { log("limn-studio.js module loaded", "ok"); };
-      document.body.appendChild(s);
-    }).catch(function (e) {
-      log("FETCH FAILED: " + e.message);
-    });
+          log("evaluating limn-studio.js via blob…", "ok");
+          var blob = new Blob([patched], { type: "application/javascript" });
+          var url = URL.createObjectURL(blob);
+          var s = document.createElement("script");
+          s.type = "module";
+          s.src = url;
+          s.onerror = function () { log("limn-studio.js blob load FAILED"); };
+          s.onload = function () { log("limn-studio.js blob loaded", "ok"); };
+          document.body.appendChild(s);
+        })
+        .catch(function (e) {
+          log("fetch failed: " + e.message);
+        });
+    }, 300);
   })();
 </script>
 
