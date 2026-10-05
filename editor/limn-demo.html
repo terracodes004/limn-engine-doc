@@ -529,6 +529,141 @@
     font-weight: 600;
   }
 
+  .console-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 42vh;
+    min-height: 220px;
+    background: #000;
+    border-top: 1px solid var(--border-2);
+    z-index: 210000;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    font-size: 12.5px;
+    box-shadow: 0 -12px 40px rgba(0,0,0,0.6);
+  }
+
+  .console-sheet.open { transform: translateY(0); }
+
+  .console-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #0a0a0a;
+    border-bottom: 1px solid #1a1a1a;
+    color: #6e7589;
+    flex-shrink: 0;
+  }
+
+  .console-title {
+    color: var(--text-0);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  .console-count { color: var(--text-2); font-size: 11px; }
+
+  .console-spacer { flex: 1; }
+
+  .console-hbtn {
+    background: transparent;
+    border: 1px solid #232936;
+    color: #6e7589;
+    padding: 4px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .console-hbtn:hover {
+    color: var(--text-0);
+    border-color: var(--border-3);
+    background: #141821;
+  }
+
+  .console-hbtn.active {
+    color: var(--accent);
+    border-color: rgba(110,168,254,0.5);
+    background: rgba(110,168,254,0.08);
+  }
+
+  .console-logs {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 14px;
+    color: #cbd5e1;
+    white-space: pre-wrap;
+    line-height: 1.55;
+  }
+
+  .log-line {
+    padding: 2px 0 2px 8px;
+    border-left: 2px solid transparent;
+    margin-left: -8px;
+    word-break: break-word;
+  }
+
+  .log-line.log-info    { color: #94a3b8; border-left-color: #334155; }
+  .log-line.log-log     { color: #cbd5e1; border-left-color: #475569; }
+  .log-line.log-warn    { color: #fcd34d; border-left-color: #f59e0b; background: rgba(251,191,36,0.05); }
+  .log-line.log-error   { color: #fca5a5; border-left-color: #dc2626; background: rgba(248,113,113,0.06); }
+  .log-line.log-result  { color: #7dd3fc; border-left-color: #0ea5e9; }
+  .log-line.log-input   { color: #a78bfa; border-left-color: #8b5cf6; }
+
+  .log-prefix { color: #64748b; margin-right: 6px; font-weight: 500; user-select: none; }
+  .log-time   { color: #475569; margin-right: 8px; font-size: 11px; user-select: none; }
+
+  .log-stack {
+    display: block;
+    color: #9ca3af;
+    font-size: 11.5px;
+    margin-top: 4px;
+    margin-left: 8px;
+    padding-left: 10px;
+    border-left: 1px solid #334155;
+    white-space: pre-wrap;
+  }
+
+  .console-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: #0a0a0a;
+    border-top: 1px solid #1a1a1a;
+    flex-shrink: 0;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0));
+  }
+
+  .console-chevron {
+    color: #22c55e;
+    font-weight: 700;
+    user-select: none;
+  }
+
+  #consoleReplInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #cbd5e1;
+    font-family: inherit;
+    font-size: 12.5px;
+    padding: 4px 0;
+  }
+
+  #consoleReplInput::placeholder { color: #475569; }
+
   body.game-open .brand-mark::before,
   body.game-open .brand-mark::after,
   body.game-open .brand-mark img {
@@ -586,6 +721,7 @@
   </div>
   <div class="spacer"></div>
   <button class="icon-btn" id="runBtn" type="button" title="Run">▶</button>
+  <button class="icon-btn" id="consoleBtn" type="button" title="Console">🖥</button>
   <button class="icon-btn" id="menuBtn" type="button" title="Menu">⋮</button>
   <button class="icon-btn" id="hideBtn" type="button" title="Hide bar">▲</button>
 </div>
@@ -630,6 +766,22 @@
     </div>
   </div>
 </section>
+
+<div class="console-sheet" id="consoleSheet" aria-hidden="true">
+  <div class="console-header">
+    <span class="console-title">Console</span>
+    <span class="console-count" id="consoleCount">0 messages</span>
+    <span class="console-spacer"></span>
+    <button class="console-hbtn" id="consoleClearBtn" type="button">Clear</button>
+    <button class="console-hbtn active" id="consoleAutoscroll" type="button">Auto-scroll</button>
+    <button class="console-hbtn" id="consoleCloseBtn" type="button" aria-label="Close console">✕</button>
+  </div>
+  <div class="console-logs" id="editor-console-logs"></div>
+  <div class="console-input-row">
+    <span class="console-chevron">&gt;</span>
+    <input type="text" id="consoleReplInput" placeholder="Type an expression and press Enter (e.g. player.x)" autocomplete="off" spellcheck="false">
+  </div>
+</div>
 
 <dialog id="runDialog">
   <button class="dialog-close" id="dialogClose" type="button">✕</button>
@@ -706,11 +858,22 @@ async function bootLimn() {
     supabase: supabase,
   });
 
+  component._touch = true;
+
   await component.attach({ canvas: dummy });
 
   if (component._appbar) component._appbar.hide();
   if (component._tabs) component._tabs.hide();
   if (component._breadcrumb) component._breadcrumb.hide();
+
+  if (component._menu) {
+    component._menu.hideFab();
+    const menu = component._menu;
+    if (menu._el && !menu._el.__limnStopProp) {
+      menu._el.__limnStopProp = true;
+      menu._el.addEventListener("click", (e) => e.stopPropagation());
+    }
+  }
 
   function fit() {
     const w = mount.clientWidth || 0;
@@ -1046,12 +1209,210 @@ function initMenuButton() {
   menuBtn.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!component || !component._menu) {
-      toast("Menu not ready", "warning");
+    if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    if (!component || !component._menu) return;
+    component._menu.toggle();
+  }, true);
+
+  menuBtn.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!component || !component._menu) return;
+    component._menu.toggle();
+  }, { capture: true, passive: false });
+}
+
+function initConsole() {
+  const sheet = document.getElementById("consoleSheet");
+  const toggleBtn = document.getElementById("consoleBtn");
+  const closeBtn = document.getElementById("consoleCloseBtn");
+  const logsEl = document.getElementById("editor-console-logs");
+  const replInput = document.getElementById("consoleReplInput");
+  const countEl = document.getElementById("consoleCount");
+  const clearBtn = document.getElementById("consoleClearBtn");
+  const autoscrollBtn = document.getElementById("consoleAutoscroll");
+  if (!sheet || !toggleBtn || !logsEl) return;
+
+  let messageCount = 0;
+  let autoscroll = true;
+  const MAX_LINES = 500;
+
+  function now() {
+    const d = new Date();
+    return String(d.getHours()).padStart(2, "0") + ":" +
+           String(d.getMinutes()).padStart(2, "0") + ":" +
+           String(d.getSeconds()).padStart(2, "0");
+  }
+
+  function formatValue(v) {
+    if (v === undefined) return "undefined";
+    if (v === null) return "null";
+    if (typeof v === "string") return v;
+    if (typeof v === "number" || typeof v === "boolean") return String(v);
+    if (typeof v === "function") return "[Function " + (v.name || "anonymous") + "]";
+    if (v instanceof Error) return v.name + ": " + v.message;
+    try { return JSON.stringify(v, null, 2); }
+    catch (e) { return String(v); }
+  }
+
+  function trim() {
+    while (logsEl.children.length > MAX_LINES) {
+      logsEl.removeChild(logsEl.firstChild);
+    }
+  }
+
+  function log(kind, args, stack) {
+    const line = document.createElement("div");
+    line.className = "log-line log-" + kind;
+
+    const time = document.createElement("span");
+    time.className = "log-time";
+    time.textContent = now();
+    line.appendChild(time);
+
+    const prefix = document.createElement("span");
+    prefix.className = "log-prefix";
+    prefix.textContent =
+      kind === "error" ? "✖" :
+      kind === "warn" ? "⚠" :
+      kind === "result" ? "←" :
+      kind === "input" ? "›" : "·";
+    line.appendChild(prefix);
+
+    const text = document.createElement("span");
+    text.textContent = Array.prototype.map.call(args, formatValue).join(" ");
+    line.appendChild(text);
+
+    if (stack) {
+      const stackEl = document.createElement("span");
+      stackEl.className = "log-stack";
+      const lines = String(stack).split("\n").slice(1, 4);
+      for (const s of lines) {
+        const t = s.trim();
+        if (!t) continue;
+        const span = document.createElement("span");
+        span.textContent = t + "\n";
+        stackEl.appendChild(span);
+      }
+      line.appendChild(stackEl);
+    }
+
+    logsEl.appendChild(line);
+    trim();
+    messageCount++;
+    if (countEl) countEl.textContent = messageCount + (messageCount === 1 ? " message" : " messages");
+    if (autoscroll) logsEl.scrollTop = logsEl.scrollHeight;
+  }
+
+  window.__logToConsole = log;
+
+  function open() {
+    sheet.classList.add("open");
+    sheet.setAttribute("aria-hidden", "false");
+  }
+
+  function close() {
+    sheet.classList.remove("open");
+    sheet.setAttribute("aria-hidden", "true");
+  }
+
+  function toggle() {
+    sheet.classList.contains("open") ? close() : open();
+  }
+
+  toggleBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggle();
+  });
+
+  if (closeBtn) closeBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    close();
+  });
+
+  if (clearBtn) clearBtn.addEventListener("click", () => {
+    logsEl.innerHTML = "";
+    messageCount = 0;
+    if (countEl) countEl.textContent = "0 messages";
+  });
+
+  if (autoscrollBtn) autoscrollBtn.addEventListener("click", () => {
+    autoscroll = !autoscroll;
+    autoscrollBtn.classList.toggle("active", autoscroll);
+  });
+
+  function getGameWindow() {
+    const frame = document.getElementById("gameFrame");
+    if (!frame) return null;
+    try { return frame.contentWindow; } catch (e) { return null; }
+  }
+
+  function tryEval(code) {
+    const win = getGameWindow();
+    if (!win) {
+      log("error", ["No game running. Press ▶ Run first, then type expressions here."]);
       return;
     }
-    component._menu.toggle();
+    try {
+      const result = win.eval(code);
+      log("result", [result]);
+    } catch (e) {
+      log("error", [e.name + ": " + e.message], e.stack);
+    }
+  }
+
+  if (replInput) {
+    const history = [];
+    let historyIdx = -1;
+
+    replInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const code = replInput.value.trim();
+        if (!code) return;
+        history.unshift(code);
+        historyIdx = -1;
+        replInput.value = "";
+        log("input", [code]);
+        tryEval(code);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!history.length) return;
+        historyIdx = Math.min(history.length - 1, historyIdx + 1);
+        replInput.value = history[historyIdx] || "";
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (!history.length) return;
+        historyIdx = Math.max(-1, historyIdx - 1);
+        replInput.value = historyIdx === -1 ? "" : history[historyIdx];
+      }
+    });
+  }
+
+  const pending = [];
+  let scheduled = false;
+
+  function flush() {
+    scheduled = false;
+    const batch = pending.splice(0, pending.length);
+    for (const m of batch) {
+      if (m.type === "console") log(m.kind || "log", m.args || [], m.stack);
+      else if (m.type === "error") log("error", [m.message], m.stack);
+    }
+  }
+
+  window.addEventListener("message", (e) => {
+    if (!e.data || typeof e.data !== "object") return;
+    if (e.data.type !== "console" && e.data.type !== "error") return;
+    pending.push(e.data);
+    if (!scheduled) {
+      scheduled = true;
+      requestAnimationFrame(flush);
+    }
   });
+
+  log("info", ["Console ready. Press ▶ Run, then type expressions below."]);
 }
 
 initTabs();
@@ -1060,6 +1421,7 @@ initAssetsPanel();
 initBuildPanel();
 initRun();
 initMenuButton();
+initConsole();
 
 await bootLimn();
 </script>
