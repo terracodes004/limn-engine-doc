@@ -12,23 +12,16 @@
       --bg-1: #0d0f16;
       --bg-2: #12141d;
       --bg-3: #181b26;
-      --bg-4: #1f2330;
       --border: #242938;
       --border-2: #2f3547;
-      --border-3: #3d4459;
       --text-0: #f0f3f8;
       --text-1: #a3aac0;
       --text-2: #6e7589;
-      --text-3: #4a5163;
       --accent: #6ea8fe;
       --accent-2: #a371f7;
-      --accent-3: #ec4899;
       --success: #4ade80;
-      --success-2: #22c55e;
       --warning: #fbbf24;
       --danger: #f87171;
-      --radius: 12px;
-      --radius-lg: 18px;
     }
     * { box-sizing: border-box; }
     html, body {
@@ -42,49 +35,22 @@
       -webkit-text-size-adjust: 100%;
       -webkit-tap-highlight-color: transparent;
     }
-    body::before {
-      content: "";
-      position: fixed;
-      top: -30vh; left: -10vw;
-      width: 60vw; height: 60vh;
-      background: radial-gradient(circle, rgba(110,168,254,0.08), transparent 60%);
-      pointer-events: none;
-      z-index: 0;
-    }
-    body::after {
-      content: "";
-      position: fixed;
-      bottom: -30vh; right: -10vw;
-      width: 60vw; height: 60vh;
-      background: radial-gradient(circle, rgba(163,113,247,0.06), transparent 60%);
-      pointer-events: none;
-      z-index: 0;
-    }
-    body.game-open::before,
-    body.game-open::after { display: none; }
-
-    @keyframes logo-hue {
-      0%   { filter: hue-rotate(0deg) brightness(1.1); }
-      50%  { filter: hue-rotate(90deg) brightness(1.35); }
-      100% { filter: hue-rotate(0deg) brightness(1.1); }
-    }
     @keyframes logo-spin {
-      0%   { transform: rotate(0deg); }
+      0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    @keyframes logo-hue {
+      0%, 100% { filter: hue-rotate(0deg) brightness(1.1); }
+      50% { filter: hue-rotate(90deg) brightness(1.35); }
+    }
     @keyframes logo-ring {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-
     .topbar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 54px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      position: fixed; top: 0; left: 0; right: 0; height: 54px;
+      display: flex; align-items: center; gap: 10px;
       padding: 0 10px;
       background: linear-gradient(180deg, rgba(18,20,29,0.98), rgba(13,15,22,0.98));
       border-bottom: 1px solid var(--border);
@@ -92,18 +58,13 @@
       padding-top: env(safe-area-inset-top, 0);
       transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .topbar.hidden {
-      transform: translateY(calc(-100% - env(safe-area-inset-top, 0px)));
-    }
-
+    .topbar.hidden { transform: translateY(calc(-100% - env(safe-area-inset-top, 0px))); }
     .brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      display: flex; align-items: center; gap: 10px;
       flex-shrink: 0;
     }
     .brand-mark {
-      width: 34px; height: 34px;
+      width: 36px; height: 36px;
       position: relative;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
@@ -112,53 +73,36 @@
       content: "";
       position: absolute;
       inset: -5px;
-      border-radius: 12px;
+      border-radius: 14px;
       background: conic-gradient(from 0deg, #6ea8fe, #a371f7, #ec4899, #fbbf24, #4ade80, #6ea8fe);
       animation: logo-spin 6s linear infinite;
       filter: blur(7px);
-      opacity: 0.85;
+      opacity: 0.75;
       z-index: 0;
     }
     .brand-mark::after {
       content: "";
       position: absolute;
       inset: -1px;
-      border-radius: 10px;
+      border-radius: 11px;
       background: linear-gradient(135deg, #6ea8fe, #a371f7, #ec4899);
       background-size: 200% 200%;
       animation: logo-ring 4s ease infinite;
       z-index: 1;
       box-shadow:
         0 0 16px rgba(110,168,254,0.6),
-        0 0 30px rgba(163,113,247,0.4);
+        0 0 32px rgba(163,113,247,0.4);
     }
     .brand-mark img {
       position: relative;
       z-index: 2;
-      width: 30px; height: 30px;
+      width: 34px; height: 34px;
       object-fit: contain;
-      border-radius: 8px;
-      background: var(--bg-0);
-      padding: 2px;
+      border-radius: 9px;
+      background: #08090d;
+      padding: 3px;
       animation: logo-hue 8s ease-in-out infinite;
     }
-    @media (max-width: 900px) {
-      .brand-mark::before { display: none; }
-      .brand-mark::after {
-        background: linear-gradient(135deg, #6ea8fe, #a371f7);
-        animation: none;
-        filter: none;
-        box-shadow: 0 0 10px rgba(110, 168, 254, 0.6);
-      }
-      .brand-mark img { animation: none; filter: none; }
-    }
-    body.game-open .brand-mark::before,
-    body.game-open .brand-mark::after,
-    body.game-open .brand-mark img {
-      animation: none !important;
-      filter: none !important;
-    }
-
     .spacer { flex: 1; }
     .tabswitch {
       display: flex; gap: 3px;
@@ -195,7 +139,6 @@
       z-index: 100001; backdrop-filter: blur(12px);
     }
     .show-btn.visible { display: flex; }
-
     #codeSection, #buildSection, #assetsSection {
       position: fixed; top: 54px; left: 0; right: 0; bottom: 0;
       display: none;
@@ -206,7 +149,6 @@
     body.bar-hidden #codeSection, body.bar-hidden #buildSection, body.bar-hidden #assetsSection { top: 0; }
     #limn-editor-mount { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; }
     #gameCanvas { display: none; }
-
     .panel-wrap { max-width: 720px; margin: 0 auto; padding: 24px 20px 90px; }
     .panel-card {
       background: var(--bg-1); border: 1px solid var(--border);
@@ -252,30 +194,92 @@
       border: none; color: #fff;
       box-shadow: 0 4px 16px rgba(110,168,254,0.35); width: 100%;
     }
-
+    .toast-container {
+      position: fixed; bottom: 90px; right: 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      z-index: 9500; pointer-events: none;
+    }
+    .toast {
+      padding: 11px 16px; background: var(--bg-2);
+      border: 1px solid var(--border-2); border-left: 3px solid var(--accent);
+      border-radius: 10px; color: var(--text-0); font-size: 13px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6); pointer-events: auto; max-width: 380px;
+    }
+    .toast.success { border-left-color: var(--success); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.warning { border-left-color: var(--warning); }
+    dialog#runDialog {
+      width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh;
+      padding: 0; margin: 0; border: 0; background: #000; color: #fff;
+      position: fixed; inset: 0; z-index: 9000; overflow: hidden;
+    }
+    dialog#runDialog::backdrop { background: #000; }
+    .dialog-close {
+      position: absolute; top: 16px; left: 16px; z-index: 9500;
+      width: 40px; height: 40px; padding: 0;
+      background: rgba(24,27,38,0.95); color: #fff;
+      border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
+      cursor: pointer; font-size: 17px;
+    }
+    .dialog-stage {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; background: #000;
+    }
+    .dialog-frame-wrap { width: 100%; height: 100%; transform-origin: center center; }
+    .dialog-frame-wrap iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
+    .dialog-controls {
+      position: absolute; bottom: 20px; right: 20px;
+      display: flex; gap: 8px; z-index: 9500;
+    }
+    .dialog-controls button {
+      width: 42px; height: 42px; padding: 0;
+      background: rgba(24,27,38,0.95); color: var(--text-0);
+      border: 1px solid var(--border-2); border-radius: 12px;
+      cursor: pointer; font-size: 18px; font-weight: 600;
+    }
     .console-section {
       position: fixed;
-      left: 0; right: 0; bottom: 0;
-      z-index: 99800;
-      display: none;
-      padding: 0 8px 8px 8px;
-      background: linear-gradient(180deg, transparent, rgba(0,0,0,0.5));
-      padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+      left: 0; right: 0;
+      bottom: 0;
+      z-index: 500;
+      pointer-events: none;
     }
-    body.console-open .console-section { display: block; }
-    .console-window {
-      background: #000;
-      border: 1px solid var(--border-2);
-      border-radius: 14px;
+    .console-section details {
+      pointer-events: auto;
+      background: rgba(13,15,22,0.98);
+      border-top: 1px solid var(--border);
+      max-height: 55vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 -8px 40px rgba(0,0,0,0.7);
-      max-height: 50vh;
     }
+    .console-section summary {
+      cursor: pointer;
+      padding: 10px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-1);
+      user-select: none;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .console-section summary::-webkit-details-marker { display: none; }
+    .console-section summary::before {
+      content: "▸";
+      display: inline-block;
+      transition: transform 0.2s;
+      color: var(--accent);
+    }
+    .console-section details[open] summary::before { transform: rotate(90deg); }
     .console-toolbar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
       background: #0a0a0a;
       border-bottom: 1px solid #1a1a1a;
       font-size: 11px;
@@ -284,26 +288,21 @@
     }
     .console-toolbar-btn {
       background: transparent;
-      border: 1px solid #232936;
+      border: 1px solid var(--border-2);
       color: var(--text-2);
-      padding: 4px 12px;
-      border-radius: 6px;
+      padding: 3px 10px;
+      border-radius: 5px;
       cursor: pointer;
       font-size: 11px;
       font-family: inherit;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
+      margin-left: 6px;
     }
-    .console-toolbar-btn.active {
-      color: var(--accent);
-      border-color: rgba(110,168,254,0.5);
-      background: rgba(110,168,254,0.08);
-    }
-    #editor-console-logs {
+    .console-toolbar-btn.active { color: var(--accent); border-color: var(--accent); }
+    #consoleLogs {
       background: #000;
       font-family: ui-monospace, monospace;
-      min-height: 100px;
-      max-height: 40vh;
+      min-height: 120px;
+      max-height: 30vh;
       padding: 10px 14px;
       overflow-y: auto;
       white-space: pre-wrap;
@@ -312,32 +311,14 @@
       color: #cbd5e1;
       flex: 1;
     }
-    .log-line {
-      padding: 2px 0;
-      word-break: break-word;
-      border-left: 2px solid transparent;
-      padding-left: 8px;
-      margin-left: -8px;
-    }
+    .log-line { padding: 2px 0; border-left: 2px solid transparent; padding-left: 8px; margin-left: -8px; }
     .log-line.log-info    { color: #94a3b8; border-left-color: #334155; }
     .log-line.log-log     { color: #cbd5e1; border-left-color: #475569; }
     .log-line.log-warn    { color: #fcd34d; border-left-color: #f59e0b; background: rgba(251,191,36,0.05); }
     .log-line.log-error   { color: #fca5a5; border-left-color: #dc2626; background: rgba(248,113,113,0.06); }
     .log-line.log-result  { color: #7dd3fc; border-left-color: #0ea5e9; }
     .log-line.log-input   { color: #a78bfa; border-left-color: #8b5cf6; }
-    .log-line.log-success { color: #86efac; border-left-color: #16a34a; }
-    .log-prefix {
-      color: #64748b;
-      margin-right: 6px;
-      font-weight: 500;
-      user-select: none;
-    }
-    .log-time {
-      color: #475569;
-      margin-right: 8px;
-      font-size: 10.5px;
-      user-select: none;
-    }
+    .log-time { color: #475569; margin-right: 8px; font-size: 10px; }
     .console-input-row {
       display: flex;
       align-items: center;
@@ -346,107 +327,15 @@
       background: #0a0a0a;
       border-top: 1px solid #1a1a1a;
     }
-    .console-chevron {
-      color: #22c55e;
-      font-family: ui-monospace, monospace;
-      font-size: 13px;
-      font-weight: 700;
-      user-select: none;
-    }
+    .console-chevron { color: #22c55e; font-family: ui-monospace, monospace; font-weight: 700; font-size: 13px; }
     #consoleReplInput {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
+      flex: 1; background: transparent; border: none; outline: none;
       color: #cbd5e1;
       font-family: ui-monospace, monospace;
       font-size: 12.5px;
       padding: 4px 0;
     }
     #consoleReplInput::placeholder { color: #475569; }
-
-    .toast-container {
-      position: fixed;
-      bottom: 90px; right: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      z-index: 99900;
-      pointer-events: none;
-    }
-    .toast {
-      padding: 11px 16px;
-      background: var(--bg-2);
-      border: 1px solid var(--border-2);
-      border-left: 3px solid var(--accent);
-      border-radius: 10px;
-      color: var(--text-0);
-      font-size: 13px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-      pointer-events: auto;
-      max-width: 380px;
-    }
-    .toast.success { border-left-color: var(--success); }
-    .toast.error { border-left-color: var(--danger); }
-    .toast.warning { border-left-color: var(--warning); }
-
-    dialog#runDialog {
-      width: 100vw; height: 100vh;
-      max-width: 100vw; max-height: 100vh;
-      padding: 0; margin: 0; border: 0;
-      background: #000; color: #fff;
-      position: fixed; inset: 0;
-      z-index: 99950;
-      overflow: hidden;
-    }
-    dialog#runDialog::backdrop { background: #000; }
-    .dialog-close {
-      position: absolute; top: 16px; left: 16px; z-index: 99960;
-      width: 40px; height: 40px; padding: 0;
-      background: rgba(24,27,38,0.95); color: #fff;
-      border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
-      cursor: pointer; font-size: 17px;
-      display: flex; align-items: center; justify-content: center;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-    .dialog-stage {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      overflow: hidden; background: #000;
-    }
-    .dialog-frame-wrap {
-      width: 100%; height: 100%;
-      transform-origin: center center;
-      transition: transform 0.15s ease;
-    }
-    .dialog-frame-wrap iframe {
-      width: 100%; height: 100%; border: 0; display: block; background: #000;
-    }
-    .dialog-controls {
-      position: absolute; bottom: 24px; right: 24px;
-      display: flex; gap: 10px; z-index: 99960;
-    }
-    .dialog-controls button {
-      width: 42px; height: 42px; padding: 0;
-      background: rgba(24,27,38,0.95); color: var(--text-0);
-      border: 1px solid var(--border-2); border-radius: 12px;
-      cursor: pointer; font-size: 18px; font-weight: 600;
-      display: flex; align-items: center; justify-content: center;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-    .dialog-zoom-display {
-      min-width: 68px;
-      font-family: ui-monospace, monospace;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    @media (max-width: 900px) {
-      .topbar { padding: 12px 10px; gap: 8px; }
-      .icon-btn { width: 32px; height: 32px; font-size: 14px; }
-    }
   </style>
 </head>
 <body>
@@ -454,7 +343,7 @@
 <div class="topbar" id="topbar">
   <div class="brand">
     <div class="brand-mark">
-      <img src="/editor/logo.png" alt="L" />
+      <img src="/editor/logo.png" alt="Limn" onerror="this.style.display='none'">
     </div>
   </div>
   <div class="tabswitch">
@@ -464,7 +353,6 @@
   </div>
   <div class="spacer"></div>
   <button class="icon-btn" id="runBtn" type="button" title="Run">▶</button>
-  <button class="icon-btn" id="consoleBtn" type="button" title="Console">▤</button>
   <button class="icon-btn" id="menuBtn" type="button" title="Menu">⋮</button>
   <button class="icon-btn" id="hideBtn" type="button" title="Hide bar">▲</button>
 </div>
@@ -510,24 +398,6 @@
   </div>
 </section>
 
-<section class="console-section">
-  <div class="console-window">
-    <div class="console-toolbar">
-      <span id="consoleCount">0 messages</span>
-      <div style="display:flex;gap:6px;">
-        <button class="console-toolbar-btn" id="consoleClearBtn" type="button">Clear</button>
-        <button class="console-toolbar-btn active" id="consoleAutoscroll" type="button">Auto-scroll</button>
-        <button class="console-toolbar-btn" id="consoleCloseBtn" type="button">✕</button>
-      </div>
-    </div>
-    <div id="editor-console-logs"></div>
-    <div class="console-input-row">
-      <span class="console-chevron">&gt;</span>
-      <input type="text" id="consoleReplInput" placeholder="evaluate in the running game" autocomplete="off" spellcheck="false" />
-    </div>
-  </div>
-</section>
-
 <dialog id="runDialog">
   <button class="dialog-close" id="dialogClose" type="button">✕</button>
   <div class="dialog-stage">
@@ -537,13 +407,31 @@
   </div>
   <div class="dialog-controls">
     <button id="zoomOutBtn" type="button">−</button>
-    <button id="zoomDisplay" class="dialog-zoom-display" type="button">100%</button>
+    <button id="zoomDisplay" type="button">100%</button>
     <button id="zoomInBtn" type="button">+</button>
     <button id="fsBtn" type="button">⛶</button>
   </div>
 </dialog>
 
 <div class="toast-container" id="toastContainer"></div>
+
+<div class="console-section" id="consoleSection">
+  <details id="consoleDetails">
+    <summary>Console</summary>
+    <div class="console-toolbar">
+      <span id="consoleCount">0 messages</span>
+      <div>
+        <button class="console-toolbar-btn" id="consoleClearBtn" type="button">Clear</button>
+        <button class="console-toolbar-btn active" id="consoleAutoscroll" type="button">Auto-scroll</button>
+      </div>
+    </div>
+    <div id="consoleLogs"></div>
+    <div class="console-input-row">
+      <span class="console-chevron">&gt;</span>
+      <input type="text" id="consoleReplInput" placeholder="Type an expression and press Enter" autocomplete="off" spellcheck="false">
+    </div>
+  </details>
+</div>
 
 <script src="/editor/templates.js"></script>
 <script src="/editor/build.js"></script>
@@ -589,14 +477,12 @@
     return doc ? doc.name : "";
   }
 
-  function isHtmlFile() {
-    const n = activeFileName().toLowerCase();
-    return n.endsWith(".html") || n.endsWith(".htm");
+  function isHtmlFile(name) {
+    return /\.html?$/i.test(name || "");
   }
 
-  function isMarkdownFile() {
-    const n = activeFileName().toLowerCase();
-    return n.endsWith(".md") || n.endsWith(".markdown");
+  function externalizeRelativeUrls(html) {
+    return html;
   }
 
   async function bootLimn() {
@@ -869,21 +755,6 @@
     renderFields();
   }
 
-  function buildPreviewHtml() {
-    const code = getCode();
-    if (!code.trim()) return null;
-
-    if (isHtmlFile()) {
-      return code;
-    }
-
-    const engine = window.__v4t || "";
-    if (!engine) return null;
-
-    const assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
-    return window.buildGameHTML(engine, code, assets);
-  }
-
   function initRun() {
     const runBtn = document.getElementById("runBtn");
     const dialog = document.getElementById("runDialog");
@@ -908,26 +779,37 @@
     dialogClose.addEventListener("click", () => {
       if (document.fullscreenElement) document.exitFullscreen();
       dialog.close();
-      document.body.classList.remove("game-open");
     });
 
-    dialog.addEventListener("close", () => {
-      document.body.classList.remove("game-open");
-    });
+    function buildPreviewHTML() {
+      const code = getCode();
+      const name = activeFileName();
+
+      if (isHtmlFile(name)) {
+        return code;
+      }
+
+      if (!window.__v4t) return null;
+      const assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
+      return window.buildGameHTML(window.__v4t, code, assets);
+    }
 
     function run() {
+      if (typeof window.buildGameHTML !== "function") {
+        toast("Preview builder not loaded", "error");
+        return;
+      }
       const code = getCode();
       if (!code.trim()) {
         toast("Nothing to run", "warning");
         return;
       }
-      const html = buildPreviewHtml();
-      if (html === null) {
+      const html = buildPreviewHTML();
+      if (!html) {
         toast("Engine still loading…", "warning");
         return;
       }
       if (!dialog.hasAttribute("open")) dialog.showModal();
-      document.body.classList.add("game-open");
       frame.srcdoc = html;
     }
 
@@ -937,7 +819,8 @@
   function initMenu() {
     const menuBtn = document.getElementById("menuBtn");
     if (!menuBtn) return;
-    menuBtn.addEventListener("click", () => {
+    menuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
       if (component && component._menu && typeof component._menu.toggle === "function") {
         component._menu.toggle();
       }
@@ -945,16 +828,15 @@
   }
 
   function initConsole() {
-    const logsEl = document.getElementById("editor-console-logs");
-    const replInput = document.getElementById("consoleReplInput");
+    const details = document.getElementById("consoleDetails");
+    const logs = document.getElementById("consoleLogs");
     const countEl = document.getElementById("consoleCount");
     const clearBtn = document.getElementById("consoleClearBtn");
     const autoscrollBtn = document.getElementById("consoleAutoscroll");
-    const closeBtn = document.getElementById("consoleCloseBtn");
-    const consoleBtn = document.getElementById("consoleBtn");
-    if (!logsEl) return;
+    const replInput = document.getElementById("consoleReplInput");
+    const frame = document.getElementById("gameFrame");
 
-    let messageCount = 0;
+    let count = 0;
     let autoscroll = true;
 
     function now() {
@@ -974,51 +856,28 @@
       try { return JSON.stringify(v, null, 2); } catch (e) { return String(v); }
     }
 
-    function appendLog(kind, args, stack) {
+    function log(kind, args) {
       const line = document.createElement("div");
       line.className = "log-line log-" + kind;
       const time = document.createElement("span");
       time.className = "log-time";
       time.textContent = now();
       line.appendChild(time);
-      const prefix = document.createElement("span");
-      prefix.className = "log-prefix";
-      prefix.textContent = kind === "error" ? "✖" : kind === "warn" ? "⚠" : kind === "result" ? "←" : kind === "input" ? "›" : kind === "success" ? "✓" : "·";
-      line.appendChild(prefix);
       const text = document.createElement("span");
       text.textContent = Array.prototype.map.call(args, formatValue).join(" ");
       line.appendChild(text);
-      if (stack) {
-        const s = document.createElement("span");
-        s.className = "log-stack";
-        s.style.cssText = "display:block;color:#9ca3af;font-size:11px;margin-top:4px;padding-left:8px;border-left:1px solid #334155;white-space:pre-wrap;";
-        s.textContent = String(stack).split("\n").slice(0, 3).join("\n");
-        line.appendChild(s);
-      }
-      logsEl.appendChild(line);
-      while (logsEl.children.length > 500) logsEl.removeChild(logsEl.firstChild);
-      messageCount++;
-      if (countEl) countEl.textContent = messageCount + (messageCount === 1 ? " message" : " messages");
-      if (autoscroll) logsEl.scrollTop = logsEl.scrollHeight;
+      logs.appendChild(line);
+      while (logs.children.length > 500) logs.removeChild(logs.firstChild);
+      count++;
+      if (countEl) countEl.textContent = count + " message" + (count === 1 ? "" : "s");
+      if (autoscroll) logs.scrollTop = logs.scrollHeight;
     }
 
-    function openConsole() {
-      document.body.classList.add("console-open");
-      setTimeout(() => { logsEl.scrollTop = logsEl.scrollHeight; }, 100);
-    }
-    function closeConsole() {
-      document.body.classList.remove("console-open");
-    }
-
-    consoleBtn.addEventListener("click", () => {
-      if (document.body.classList.contains("console-open")) closeConsole();
-      else openConsole();
-    });
-    closeBtn.addEventListener("click", closeConsole);
+    window.__logToConsole = log;
 
     clearBtn.addEventListener("click", () => {
-      logsEl.innerHTML = "";
-      messageCount = 0;
+      logs.innerHTML = "";
+      count = 0;
       if (countEl) countEl.textContent = "0 messages";
     });
 
@@ -1027,46 +886,33 @@
       autoscrollBtn.classList.toggle("active", autoscroll);
     });
 
-    function getFrame() {
-      const f = document.getElementById("gameFrame");
-      try { return f.contentWindow; } catch (e) { return null; }
-    }
-
-    function tryEval(code) {
-      const win = getFrame();
-      if (!win) {
-        appendLog("error", ["No game running. Press ▶ first."]);
-        return;
-      }
-      try {
-        const r = win.eval(code);
-        appendLog("result", [r]);
-      } catch (e) {
-        appendLog("error", [e.name + ": " + e.message]);
-      }
-    }
-
-    replInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        const code = replInput.value.trim();
-        if (!code) return;
-        replInput.value = "";
-        appendLog("input", [code]);
-        tryEval(code);
-      }
-    });
-
     window.addEventListener("message", (e) => {
       if (!e.data || typeof e.data !== "object") return;
       if (e.data.type === "console") {
-        appendLog(e.data.kind || "log", e.data.args || [], e.data.stack);
+        log(e.data.kind || "log", e.data.args || []);
       } else if (e.data.type === "error") {
-        appendLog("error", [e.data.message], e.data.stack);
+        log("error", [e.data.message]);
       }
     });
 
-    appendLog("info", ["Console ready. Press ▶ Run to start."]);
+    replInput.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const code = replInput.value.trim();
+      if (!code) return;
+      replInput.value = "";
+      log("input", [code]);
+      try {
+        const win = frame.contentWindow;
+        if (!win) { log("error", ["No game running"]); return; }
+        const result = win.eval(code);
+        log("result", [result]);
+      } catch (err) {
+        log("error", [err.name + ": " + err.message]);
+      }
+    });
+
+    log("info", ["Console ready. Press ▶ Run to start."]);
   }
 
   initTabs();
