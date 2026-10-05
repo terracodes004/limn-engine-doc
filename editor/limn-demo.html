@@ -88,6 +88,10 @@
     100% { background-position: 0% 50%; }
   }
 
+  /* Force the Limn toolbar to show on all screen sizes */
+  .limn-toolbar { display: flex !important; }
+  .limn-toolbar.hidden { display: none !important; }
+
   body.not-code #limn-editor-mount,
   body.not-code #gameCanvas {
     display: none !important;
@@ -284,7 +288,7 @@
 
   #codeSection {
     background: transparent;
-    z-index: 1000;
+    z-index: 10;
     overflow: hidden;
     pointer-events: none;
   }
@@ -292,7 +296,7 @@
   #codeSection > * { pointer-events: auto; }
 
   #buildSection, #assetsSection {
-    z-index: 2000;
+    z-index: 50000;
   }
 
   body.bar-hidden #codeSection,
@@ -868,11 +872,6 @@ async function bootLimn() {
 
   if (component._menu) {
     component._menu.hideFab();
-    const menu = component._menu;
-    if (menu._el && !menu._el.__limnStopProp) {
-      menu._el.__limnStopProp = true;
-      menu._el.addEventListener("click", (e) => e.stopPropagation());
-    }
   }
 
   function fit() {
@@ -1206,20 +1205,29 @@ function initMenuButton() {
   const menuBtn = document.getElementById("menuBtn");
   if (!menuBtn) return;
 
-  menuBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-    if (!component || !component._menu) return;
-    component._menu.toggle();
-  }, true);
+  let lastFire = 0;
+  const fire = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    }
+    const now = Date.now();
+    if (now - lastFire < 400) return;
+    lastFire = now;
 
-  menuBtn.addEventListener("touchend", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!component || !component._menu) return;
+    if (!component || !component._menu) {
+      if (window.__logToConsole) {
+        window.__logToConsole("error", ["Menu not ready — component._menu is " + (component ? "null" : "component is null")]);
+      }
+      return;
+    }
     component._menu.toggle();
-  }, { capture: true, passive: false });
+  };
+
+  menuBtn.addEventListener("mousedown", fire);
+  menuBtn.addEventListener("touchend", fire, { passive: false });
+  menuBtn.addEventListener("click", fire);
 }
 
 function initConsole() {
@@ -1424,6 +1432,17 @@ initMenuButton();
 initConsole();
 
 await bootLimn();
+
+setTimeout(() => {
+  if (!window.__logToConsole) return;
+  window.__logToConsole("info", [
+    "Boot check — _touch: " + (component ? component._touch : "?"),
+    "toolbar: " + (component && component._toolbar ? "mounted, display=" + (component._toolbar._el ? getComputedStyle(component._toolbar._el).display : "no _el") : "null"),
+    "menu: " + (component && component._menu ? "ok" : "null"),
+    "canvas: " + (component && component._canvas ? (component._canvas.width + "x" + component._canvas.height) : "null"),
+    "mount: " + (document.getElementById("limn-editor-mount") ? (document.getElementById("limn-editor-mount").clientWidth + "x" + document.getElementById("limn-editor-mount").clientHeight) : "null"),
+  ]);
+}, 800);
 </script>
 </body>
 </html>
