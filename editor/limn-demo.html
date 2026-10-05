@@ -35,13 +35,26 @@
       -webkit-text-size-adjust: 100%;
       -webkit-tap-highlight-color: transparent;
     }
+    body.not-code .limn-appbar,
+    body.not-code .limn-tabs,
+    body.not-code .limn-statusbar,
+    body.not-code .limn-breadcrumb,
+    body.not-code .limn-toolbar,
+    body.not-code .limn-minimap,
+    body.not-code .limn-fab,
+    body.not-code .limn-menu,
+    body.not-code .limn-searchbar,
+    body.not-code #limn-editor-mount,
+    body.not-code #gameCanvas {
+      display: none !important;
+    }
     .topbar {
       position: fixed; top: 0; left: 0; right: 0; height: 54px;
       display: flex; align-items: center; gap: 10px;
       padding: 0 10px;
       background: linear-gradient(180deg, rgba(18,20,29,0.98), rgba(13,15,22,0.98));
       border-bottom: 1px solid var(--border);
-      z-index: 100000;
+      z-index: 200000;
       padding-top: env(safe-area-inset-top, 0);
       transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -87,7 +100,7 @@
       background: rgba(18,20,29,0.9); border: 1px solid var(--border-2);
       border-radius: 10px; color: var(--text-1); font-size: 15px;
       cursor: pointer; display: none; align-items: center; justify-content: center;
-      z-index: 100001; backdrop-filter: blur(12px);
+      z-index: 200001; backdrop-filter: blur(12px);
     }
     .show-btn.visible { display: flex; }
     #codeSection, #buildSection, #assetsSection {
@@ -95,13 +108,13 @@
       display: none;
       transition: top 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       overflow-y: auto; background: var(--bg-0);
-      -webkit-overflow-scrolling: touch;
+      z-index: 150000;
     }
     #codeSection.active, #buildSection.active, #assetsSection.active { display: block; }
     body.bar-hidden #codeSection, body.bar-hidden #buildSection, body.bar-hidden #assetsSection { top: 0; }
     #limn-editor-mount { position: absolute; inset: 0; width: 100%; height: 100%; background: #000; }
     #gameCanvas { display: none; }
-    .panel-wrap { max-width: 720px; margin: 0 auto; padding: 24px 20px 120px; }
+    .panel-wrap { max-width: 720px; margin: 0 auto; padding: 24px 20px 90px; }
     .panel-card {
       background: var(--bg-1); border: 1px solid var(--border);
       border-radius: 16px; padding: 22px; margin-bottom: 16px;
@@ -149,7 +162,7 @@
     .toast-container {
       position: fixed; bottom: 90px; right: 16px;
       display: flex; flex-direction: column; gap: 8px;
-      z-index: 9500; pointer-events: none;
+      z-index: 300000; pointer-events: none;
     }
     .toast {
       padding: 11px 16px; background: var(--bg-2);
@@ -163,11 +176,11 @@
     dialog#runDialog {
       width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh;
       padding: 0; margin: 0; border: 0; background: #000; color: #fff;
-      position: fixed; inset: 0; z-index: 9000; overflow: hidden;
+      position: fixed; inset: 0; z-index: 400000; overflow: hidden;
     }
     dialog#runDialog::backdrop { background: #000; }
     .dialog-close {
-      position: absolute; top: 16px; left: 16px; z-index: 9500;
+      position: absolute; top: 16px; left: 16px; z-index: 400500;
       width: 40px; height: 40px; padding: 0;
       background: rgba(24,27,38,0.95); color: #fff;
       border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
@@ -182,7 +195,7 @@
     .dialog-frame-wrap iframe { width: 100%; height: 100%; border: 0; display: block; background: #000; }
     .dialog-controls {
       position: absolute; bottom: 20px; right: 20px;
-      display: flex; gap: 8px; z-index: 9500;
+      display: flex; gap: 8px; z-index: 400500;
     }
     .dialog-controls button {
       width: 42px; height: 42px; padding: 0;
@@ -190,16 +203,56 @@
       border: 1px solid var(--border-2); border-radius: 12px;
       cursor: pointer; font-size: 18px; font-weight: 600;
     }
+    /* Top-right menu popup */
+    .topmenu-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 210000;
+      display: none;
+    }
+    .topmenu-backdrop.open { display: block; }
+    .topmenu {
+      position: fixed; top: 60px; right: 10px;
+      width: 260px;
+      background: var(--bg-2);
+      border: 1px solid var(--border-2);
+      border-radius: 14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+      padding: 6px;
+      z-index: 210001;
+      display: none;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .topmenu.open { display: block; }
+    .topmenu button {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; padding: 11px 12px;
+      background: transparent; border: none;
+      color: var(--text-0); font-size: 13.5px; font-family: inherit;
+      text-align: left; border-radius: 8px; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .topmenu button:hover, .topmenu button:active { background: var(--bg-3); }
+    .topmenu .tm-icon {
+      width: 22px; text-align: center;
+      flex-shrink: 0; font-size: 15px;
+    }
+    .topmenu .tm-divider {
+      height: 1px; background: var(--border);
+      margin: 6px 4px;
+    }
   </style>
 </head>
-<body>
+<body class="not-code">
 
 <div class="topbar" id="topbar">
   <div class="brand">
     <div class="brand-mark">L</div>
   </div>
   <div class="tabswitch">
-    <button id="tabCode" class="active" type="button">Code</button>
+    <button id="tabCode" type="button">Code</button>
     <button id="tabBuild" type="button">Build</button>
     <button id="tabAssets" type="button">Assets</button>
   </div>
@@ -211,7 +264,26 @@
 
 <button class="show-btn" id="showBtn" type="button" title="Show bar">▼</button>
 
-<section id="codeSection" class="active">
+<div class="topmenu-backdrop" id="topmenuBackdrop"></div>
+<div class="topmenu" id="topmenu">
+  <button id="tmSave" type="button"><span class="tm-icon">💾</span> Save</button>
+  <button id="tmLoad" type="button"><span class="tm-icon">☁</span> Load from cloud</button>
+  <button id="tmPublish" type="button"><span class="tm-icon">🚀</span> Publish</button>
+  <div class="tm-divider"></div>
+  <button id="tmGoto" type="button"><span class="tm-icon">→</span> Go to line</button>
+  <button id="tmFind" type="button"><span class="tm-icon">🔍</span> Find &amp; replace</button>
+  <button id="tmFormat" type="button"><span class="tm-icon">⤸</span> Format code</button>
+  <button id="tmComment" type="button"><span class="tm-icon">💬</span> Toggle comment</button>
+  <div class="tm-divider"></div>
+  <button id="tmWrap" type="button"><span class="tm-icon">↵</span> Toggle word wrap</button>
+  <button id="tmMinimap" type="button"><span class="tm-icon">▤</span> Toggle minimap</button>
+  <button id="tmTheme" type="button"><span class="tm-icon">🎨</span> Cycle theme</button>
+  <div class="tm-divider"></div>
+  <button id="tmBuild" type="button"><span class="tm-icon">⚙️</span> Build</button>
+  <button id="tmAssets" type="button"><span class="tm-icon">🔌</span> Assets</button>
+</div>
+
+<section id="codeSection">
   <div id="limn-editor-mount"></div>
 </section>
 
@@ -362,14 +434,16 @@
       [codeSection, buildSection, assetsSection].forEach(s => s.classList.remove("active"));
 
       if (which === "code") {
+        document.body.classList.remove("not-code");
         tabCode.classList.add("active");
         codeSection.classList.add("active");
         setTimeout(() => window.dispatchEvent(new Event("resize")), 30);
-        setTimeout(() => window.dispatchEvent(new Event("resize")), 200);
       } else if (which === "build") {
+        document.body.classList.add("not-code");
         tabBuild.classList.add("active");
         buildSection.classList.add("active");
       } else if (which === "assets") {
+        document.body.classList.add("not-code");
         tabAssets.classList.add("active");
         assetsSection.classList.add("active");
       }
@@ -378,6 +452,8 @@
     tabCode.addEventListener("click", () => show("code"));
     tabBuild.addEventListener("click", () => show("build"));
     tabAssets.addEventListener("click", () => show("assets"));
+
+    show("code");
   }
 
   function initBarToggle() {
@@ -407,23 +483,38 @@
     const scripts = document.getElementById("assetScripts");
     if (!head || !css || !scripts) return;
 
-    if (!window.currentConfig) window.currentConfig = {};
-    if (!window.currentConfig.assets) {
-      window.currentConfig.assets = { head: "", css: "", scripts: "" };
+    function ensure() {
+      if (!window.currentConfig) window.currentConfig = {};
+      if (!window.currentConfig.assets) {
+        window.currentConfig.assets = { head: "", css: "", scripts: "" };
+      }
+      return window.currentConfig.assets;
     }
 
-    const saved = window.currentConfig.assets;
-    head.value = saved.head || "";
-    css.value = saved.css || "";
-    scripts.value = saved.scripts || "";
+    function load() {
+      const a = ensure();
+      head.value = a.head || "";
+      css.value = a.css || "";
+      scripts.value = a.scripts || "";
+    }
 
-    head.addEventListener("input", () => { saved.head = head.value; });
-    css.addEventListener("input", () => { saved.css = css.value; });
-    scripts.addEventListener("input", () => { saved.scripts = scripts.value; });
+    function save() {
+      const a = ensure();
+      a.head = head.value;
+      a.css = css.value;
+      a.scripts = scripts.value;
+    }
+
+    head.addEventListener("input", save);
+    css.addEventListener("input", save);
+    scripts.addEventListener("input", save);
 
     window.getCurrentAssets = function () {
-      return { head: saved.head, css: saved.css, scripts: saved.scripts };
+      const a = ensure();
+      return { head: a.head, css: a.css, scripts: a.scripts };
     };
+
+    load();
   }
 
   function initBuildPanel() {
@@ -544,9 +635,6 @@
       const cfg = readValues();
       if (tpl.config) {
         try { window.currentConfig = tpl.config(cfg); } catch (e) {}
-        if (!window.currentConfig.assets) {
-          window.currentConfig.assets = { head: "", css: "", scripts: "" };
-        }
       }
       const code = tpl.generate(cfg);
       setCode(code);
@@ -614,13 +702,129 @@
     runBtn.addEventListener("click", run);
   }
 
-  function initMenu() {
+  function initTopMenu() {
     const menuBtn = document.getElementById("menuBtn");
-    if (!menuBtn) return;
-    menuBtn.addEventListener("click", () => {
-      if (component && component._menu && typeof component._menu.toggle === "function") {
-        component._menu.toggle();
+    const menu = document.getElementById("topmenu");
+    const backdrop = document.getElementById("topmenuBackdrop");
+    if (!menuBtn || !menu || !backdrop) return;
+
+    function open() {
+      menu.classList.add("open");
+      backdrop.classList.add("open");
+    }
+    function close() {
+      menu.classList.remove("open");
+      backdrop.classList.remove("open");
+    }
+
+    menuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (menu.classList.contains("open")) close();
+      else open();
+    });
+    backdrop.addEventListener("click", close);
+
+    document.getElementById("tmBuild").addEventListener("click", () => {
+      close();
+      document.getElementById("tabBuild").click();
+    });
+    document.getElementById("tmAssets").addEventListener("click", () => {
+      close();
+      document.getElementById("tabAssets").click();
+    });
+    document.getElementById("tmGoto").addEventListener("click", () => {
+      close();
+      if (component && component._openGotoPicker) component._openGotoPicker();
+    });
+    document.getElementById("tmFind").addEventListener("click", () => {
+      close();
+      if (component && component._openFind) component._openFind(false);
+    });
+    document.getElementById("tmFormat").addEventListener("click", () => {
+      close();
+      if (component && component.editor._formatDocument) component.editor._formatDocument();
+    });
+    document.getElementById("tmComment").addEventListener("click", () => {
+      close();
+      if (component && component.editor.toggleComment) component.editor.toggleComment();
+    });
+    document.getElementById("tmWrap").addEventListener("click", () => {
+      close();
+      if (component && component._toggleWordWrap) component._toggleWordWrap();
+    });
+    document.getElementById("tmMinimap").addEventListener("click", () => {
+      close();
+      if (component && component._toggleMinimap) component._toggleMinimap();
+    });
+    document.getElementById("tmTheme").addEventListener("click", () => {
+      close();
+      if (component && component.editor.cycleTheme) {
+        component.editor.cycleTheme();
+        toast("Theme changed", "success");
       }
+    });
+    document.getElementById("tmSave").addEventListener("click", async () => {
+      close();
+      try {
+        const user = await supabase.auth.getSession();
+        if (!user || !user.data || !user.data.session) {
+          toast("Not signed in", "warning");
+          return;
+        }
+        const files = {};
+        const filenames = [];
+        for (const doc of component.editor.documents.items) {
+          files[doc.name] = doc.getValue();
+          filenames.push(doc.name);
+        }
+        const { error } = await supabase
+          .from("user_documents")
+          .upsert({
+            user_id: user.data.session.user.id,
+            files: files,
+            filenames: filenames,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "user_id" });
+        if (error) {
+          toast("Save failed: " + error.message, "error");
+        } else {
+          toast("Saved", "success");
+        }
+      } catch (err) {
+        toast("Save error: " + err.message, "error");
+      }
+    });
+    document.getElementById("tmLoad").addEventListener("click", async () => {
+      close();
+      try {
+        const session = await supabase.auth.getSession();
+        if (!session || !session.data || !session.data.session) {
+          toast("Not signed in", "warning");
+          return;
+        }
+        const { data, error } = await supabase
+          .from("user_documents")
+          .select("files, filenames")
+          .eq("user_id", session.data.session.user.id)
+          .maybeSingle();
+        if (error || !data || !data.filenames || data.filenames.length === 0) {
+          toast("No cloud files", "info");
+          return;
+        }
+        const editor = component.editor;
+        editor.documents.items.length = 0;
+        editor.documents.activeIndex = -1;
+        for (const name of data.filenames) {
+          editor.documents.add({ name: name, value: data.files[name] || "" });
+        }
+        toast("Loaded " + data.filenames.length + " file(s)", "success");
+      } catch (err) {
+        toast("Load error: " + err.message, "error");
+      }
+    });
+    document.getElementById("tmPublish").addEventListener("click", () => {
+      close();
+      if (component && component.publish) component.publish();
     });
   }
 
@@ -629,7 +833,7 @@
   initAssetsPanel();
   initBuildPanel();
   initRun();
-  initMenu();
+  initTopMenu();
 
   await bootLimn();
 </script>
