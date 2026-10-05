@@ -349,13 +349,14 @@
     color: var(--accent);
   }
 
-  .limn-tabs-run {
+  .limn-tabs-run,
+  .limn-tabs-extra {
     width: 40px;
     height: 100%;
     border: none;
     background: transparent;
-    color: var(--accent);
-    font-size: 16px;
+    color: var(--text-1);
+    font-size: 15px;
     font-weight: 700;
     cursor: pointer;
     display: flex;
@@ -367,12 +368,29 @@
     touch-action: manipulation;
     transition: background 0.12s, color 0.12s;
   }
+
+  .limn-tabs-run {
+    color: var(--accent);
+    font-size: 16px;
+  }
   .limn-tabs-run:hover {
     background: rgba(110, 168, 254, 0.12);
     color: #9fc4ff;
   }
   .limn-tabs-run:active {
     background: rgba(110, 168, 254, 0.2);
+  }
+
+  .limn-tabs-extra:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-0);
+  }
+  .limn-tabs-extra:active {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .limn-tabs-extra.active {
+    color: var(--accent);
+    background: rgba(110, 168, 254, 0.1);
   }
 
   #codeSection, #buildSection, #assetsSection {
@@ -1325,7 +1343,8 @@
     .build-card { padding: var(--s-4); }
     .dialog-controls button { width: 40px; height: 40px; font-size: 16px; }
     .dialog-zoom-display { height: 40px; min-width: 64px; font-size: 12px; }
-    .limn-tabs-run { width: 44px; font-size: 15px; }
+    .limn-tabs-run,
+    .limn-tabs-extra { width: 38px; font-size: 14px; }
   }
 </style>
 </head>
@@ -1547,6 +1566,7 @@
 </dialog>
 
 <div class="toast-container" id="toastContainer"></div>
+
 <script src="/editor/templates.js"></script>
 <script src="/editor/build.js"></script>
 <script type="module">
@@ -1761,7 +1781,7 @@ async function bootLimn() {
   component.publish = publishGame;
   component.share = shareGame;
 
-  injectRunButtonIntoTabs();
+  injectTabStripButtons();
 
   function fit() {
     const w = mount.clientWidth || 0;
@@ -1784,37 +1804,77 @@ async function bootLimn() {
   window.__editor = component;
 }
 
-function injectRunButtonIntoTabs() {
+function injectTabStripButtons() {
   if (!component || !component._tabs || !component._tabs._el) return;
 
   const bar = component._tabs._el;
 
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "limn-tabs-run";
-  btn.title = "Run game";
-  btn.setAttribute("aria-label", "Run game");
-  btn.textContent = "▶";
+  const makeBtn = (cls, glyph, title, handler) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = cls;
+    btn.title = title;
+    btn.setAttribute("aria-label", title);
+    btn.textContent = glyph;
 
-  let lastFire = 0;
-  const fire = (e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-    }
-    const now = Date.now();
-    if (now - lastFire < 400) return;
-    lastFire = now;
-    const runBtn = document.getElementById("runBtn");
-    if (runBtn) runBtn.click();
+    let lastFire = 0;
+    const fire = (e) => {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      }
+      const now = Date.now();
+      if (now - lastFire < 400) return;
+      lastFire = now;
+      handler(btn);
+    };
+
+    btn.addEventListener("mousedown", (e) => e.preventDefault());
+    btn.addEventListener("touchend", fire, { passive: false });
+    btn.addEventListener("click", fire);
+
+    bar.appendChild(btn);
+    return btn;
   };
 
-  btn.addEventListener("mousedown", (e) => e.preventDefault());
-  btn.addEventListener("touchend", fire, { passive: false });
-  btn.addEventListener("click", fire);
+  makeBtn("limn-tabs-extra", "📁", "Files", () => {
+    const b = document.getElementById("filesBtn");
+    if (b) b.click();
+  });
 
-  bar.appendChild(btn);
+  const consoleBtn = makeBtn("limn-tabs-extra", "🖥", "Console", () => {
+    const b = document.getElementById("consoleBtn");
+    if (b) b.click();
+  });
+
+  const menuBtn = makeBtn("limn-tabs-extra", "⋮", "Menu", () => {
+    const b = document.getElementById("menuBtn");
+    if (b) b.click();
+  });
+
+  makeBtn("limn-tabs-run", "▶", "Run game", () => {
+    const b = document.getElementById("runBtn");
+    if (b) b.click();
+  });
+
+  const consoleSheet = document.getElementById("consoleSheet");
+  if (consoleSheet) {
+    const observer = new MutationObserver(() => {
+      consoleBtn.classList.toggle("active", consoleSheet.classList.contains("open"));
+    });
+    observer.observe(consoleSheet, { attributes: true, attributeFilter: ["class"] });
+  }
+
+  if (component._menu) {
+    const menu = component._menu;
+    if (menu._el) {
+      const observer = new MutationObserver(() => {
+        menuBtn.classList.toggle("active", menu._el.classList.contains("open"));
+      });
+      observer.observe(menu._el, { attributes: true, attributeFilter: ["class"] });
+    }
+  }
 }
 
 async function getActiveUser() {
