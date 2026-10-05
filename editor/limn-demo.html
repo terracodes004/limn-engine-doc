@@ -36,6 +36,27 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    #debugBox {
+      position: fixed;
+      top: 60px;
+      left: 8px;
+      right: 8px;
+      max-height: 40vh;
+      overflow-y: auto;
+      background: rgba(20, 5, 5, 0.96);
+      color: #f88;
+      font: 11px ui-monospace, monospace;
+      padding: 8px 10px;
+      border: 1px solid #a33;
+      border-radius: 8px;
+      z-index: 999999;
+      white-space: pre-wrap;
+      word-break: break-all;
+      display: none;
+    }
+    #debugBox.visible { display: block; }
+    #debugBox .ok { color: #6f9; }
+
     .topbar {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -329,6 +350,8 @@
 </head>
 <body>
 
+<div id="debugBox"></div>
+
 <div class="topbar" id="topbar">
   <div class="brand">
     <div class="brand-mark">L</div>
@@ -405,8 +428,62 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
+<script>
+  (function () {
+    var box = document.getElementById("debugBox");
+    function show(msg, isOk) {
+      if (!box) return;
+      box.classList.add("visible");
+      var line = document.createElement("div");
+      if (isOk) line.className = "ok";
+      line.textContent = msg;
+      box.appendChild(line);
+      box.scrollTop = box.scrollHeight;
+    }
+    window.__dbg = show;
+
+    window.addEventListener("error", function (e) {
+      show("ERROR: " + e.message + " @ " + (e.filename || "?") + ":" + (e.lineno || "?"));
+    });
+    window.addEventListener("unhandledrejection", function (e) {
+      show("REJECT: " + ((e.reason && e.reason.message) || e.reason));
+    });
+
+    show("initial script ran", true);
+  })();
+</script>
+
 <script src="/editor/build.js"></script>
 <script src="/editor/templates.js"></script>
 <script type="module" src="/editor/limn-studio.js"></script>
+
+<script>
+  (function () {
+    var box = document.getElementById("debugBox");
+    function show(msg) {
+      if (!box) return;
+      box.classList.add("visible");
+      var line = document.createElement("div");
+      line.textContent = msg;
+      box.appendChild(line);
+      box.scrollTop = box.scrollHeight;
+    }
+    if (typeof window.LimnTemplates === "undefined") show("LimnTemplates NOT loaded (templates.js failed)");
+    else show("LimnTemplates loaded (" + Object.keys(window.LimnTemplates).length + " templates)");
+
+    if (typeof window.buildGameHTML !== "function") show("buildGameHTML NOT loaded (build.js failed)");
+    else show("buildGameHTML loaded");
+
+    if (typeof window.__v4t === "string" && window.__v4t.length > 0) show("Engine __v4t loaded (" + window.__v4t.length + " chars)");
+    else show("Engine __v4t NOT loaded yet (may load async)");
+
+    setTimeout(function () {
+      if (typeof window.__v4t === "string" && window.__v4t.length > 0) show("Engine __v4t loaded later (" + window.__v4t.length + " chars)");
+      if (window.__editor) show("window.__editor exists — Limn booted");
+      else show("window.__editor is undefined — Limn did NOT boot");
+    }, 1500);
+  })();
+</script>
+
 </body>
 </html>
