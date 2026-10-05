@@ -76,6 +76,8 @@
       background: transparent; border: none; color: var(--text-1);
       padding: 7px 12px; border-radius: 999px; cursor: pointer;
       font-size: 12.5px; font-weight: 600; font-family: inherit; white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
     .tabswitch button.active {
       background: linear-gradient(135deg, #6ea8fe, #a371f7);
@@ -87,6 +89,8 @@
       border-radius: 10px; color: var(--text-1); font-size: 15px;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
     .icon-btn:active { background: var(--bg-2); }
     .show-btn {
@@ -145,6 +149,8 @@
       padding: 12px 18px; border-radius: 10px;
       border: 1px solid var(--border-2); background: var(--bg-2); color: var(--text-0);
       font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
     .btn-primary {
       background: linear-gradient(135deg, #6ea8fe, #a371f7);
@@ -301,43 +307,18 @@
 <script src="/editor/build.js"></script>
 
 <script>
-  (function () {
-    function log(msg, cls) { if (window.__dbg) window.__dbg(msg, cls); }
+  window.__dbg && window.__dbg("before module tag", "ok");
+</script>
 
-    setTimeout(function () {
-      log("after 300ms: buildGameHTML=" + typeof window.buildGameHTML);
-      log("after 300ms: LimnTemplates=" + (window.LimnTemplates ? Object.keys(window.LimnTemplates).length : "none"));
-      log("after 300ms: __v4t length=" + (window.__v4t ? window.__v4t.length : "none"));
+<script type="module" src="/editor/limn-studio.js"></script>
 
-      log("fetching limn-studio.js…", "ok");
-      fetch("/editor/limn-studio.js")
-        .then(function (r) { return r.text(); })
-        .then(function (studioSrc) {
-          var patched = studioSrc;
-          patched = patched.replace(
-            "https://esm.sh/@supabase/supabase-js@2",
-            "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
-          );
-          patched = patched.replace(
-            'await import("./limn-bridge.js")',
-            'await import("' + window.location.origin + '/editor/limn-bridge.js")'
-          );
-
-          log("evaluating limn-studio.js via blob…", "ok");
-          var blob = new Blob([patched], { type: "application/javascript" });
-          var url = URL.createObjectURL(blob);
-          var s = document.createElement("script");
-          s.type = "module";
-          s.src = url;
-          s.onerror = function () { log("limn-studio.js blob load FAILED"); };
-          s.onload = function () { log("limn-studio.js blob loaded", "ok"); };
-          document.body.appendChild(s);
-        })
-        .catch(function (e) {
-          log("fetch failed: " + e.message);
-        });
-    }, 300);
-  })();
+<script>
+  setTimeout(function () {
+    window.__dbg && window.__dbg("after 3000ms: buildGameHTML=" + typeof window.buildGameHTML);
+    window.__dbg && window.__dbg("after 3000ms: __v4t length=" + (window.__v4t ? window.__v4t.length : "none"));
+    window.__dbg && window.__dbg("after 3000ms: __editor=" + typeof window.__editor);
+    window.__dbg && window.__dbg("after 3000ms: __limnEditor=" + typeof window.__limnEditor);
+  }, 3000);
 </script>
 
 </body>
