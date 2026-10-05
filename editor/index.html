@@ -95,11 +95,25 @@
     100% { background-position: 0% 50%; }
   }
 
+  @keyframes ptr-spin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
   .limn-toolbar { display: flex !important; }
   .limn-toolbar.hidden { display: none !important; }
 
   body.not-code #limn-editor-mount,
   body.not-code #gameCanvas {
+    display: none !important;
+  }
+
+  body.not-code .limn-appbar,
+  body.not-code .limn-tabs,
+  body.not-code .limn-breadcrumb,
+  body.not-code .limn-statusbar,
+  body.not-code .limn-toolbar,
+  body.not-code .limn-minimap {
     display: none !important;
   }
 
@@ -122,6 +136,14 @@
 
   .topbar.hidden {
     transform: translateY(calc(-100% - env(safe-area-inset-top, 0px)));
+  }
+
+  body.code-mode .topbar {
+    transform: translateY(calc(-100% - env(safe-area-inset-top, 0px)));
+  }
+
+  body.code-mode #topbarReset {
+    display: flex;
   }
 
   .brand {
@@ -270,6 +292,17 @@
     color: var(--accent);
   }
 
+  #topbarReset {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
+    left: 8px;
+    z-index: 200001;
+    background: rgba(18,20,29,0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: none;
+  }
+
   .show-btn {
     position: fixed;
     top: calc(env(safe-area-inset-top, 0px) + 8px);
@@ -292,6 +325,52 @@
   }
 
   .show-btn.visible { display: flex; }
+
+  .ptr {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    z-index: 199999;
+    background: transparent;
+    pointer-events: none;
+    transition: height 0.15s ease;
+  }
+
+  .ptr-inner {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    color: var(--text-2);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    padding-top: env(safe-area-inset-top, 0);
+  }
+
+  .ptr-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    font-size: 15px;
+    color: var(--accent);
+    transition: transform 0.2s ease;
+  }
+
+  .ptr.refreshing .ptr-icon {
+    animation: ptr-spin 0.9s linear infinite;
+  }
+
+  .ptr.release .ptr-inner {
+    color: var(--accent);
+  }
 
   #codeSection, #buildSection, #assetsSection {
     position: fixed;
@@ -317,6 +396,10 @@
   }
 
   #codeSection > * { pointer-events: auto; }
+
+  body.code-mode #codeSection {
+    top: 0;
+  }
 
   #buildSection, #assetsSection {
     z-index: 50000;
@@ -428,9 +511,16 @@
   .field textarea {
     resize: vertical;
     min-height: 90px;
-    font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    font-size: 12.5px;
-    line-height: 1.55;
+    font-family: inherit;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  .field-hint {
+    font-size: 11.5px;
+    color: var(--text-2);
+    margin-top: 6px;
+    line-height: 1.4;
   }
 
   .swatch-field {
@@ -1358,7 +1448,16 @@
   <button class="icon-btn" id="hideBtn" type="button" title="Hide bar">▲</button>
 </div>
 
+<button class="icon-btn" id="topbarReset" type="button" title="Show toolbar">▼</button>
+
 <button class="show-btn" id="showBtn" type="button" title="Show bar">▼</button>
+
+<div class="ptr" id="ptr">
+  <div class="ptr-inner">
+    <span class="ptr-icon" id="ptrIcon">↓</span>
+    <span id="ptrLabel">Pull to refresh</span>
+  </div>
+</div>
 
 <div class="files-backdrop" id="filesBackdrop"></div>
 
@@ -1406,6 +1505,13 @@
         <select id="templateSelect"></select>
       </div>
       <div id="templateFields"></div>
+
+      <div class="field" style="margin-top:16px">
+        <label for="gameDescription">Description (optional)</label>
+        <textarea id="gameDescription" rows="3" maxlength="200" placeholder="Tell people what your game is about..."></textarea>
+        <div class="field-hint">Shown on the arcade page when you publish. Max 200 characters.</div>
+      </div>
+
       <button class="btn btn-primary" id="buildApply" type="button">Apply to editor</button>
     </div>
   </div>
@@ -1572,6 +1678,48 @@ function setCode(text) {
   component.setValue(String(text == null ? "" : text));
 }
 
+function getDescription() {
+  const el = document.getElementById("gameDescription");
+  return el ? el.value.trim() : "";
+}
+
+function setDescription(value) {
+  const el = document.getElementById("gameDescription");
+  if (el) el.value = value || "";
+  if (!window.currentConfig) window.currentConfig = {};
+  window.currentConfig.description = value || "";
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch (e) {}
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "0";
+    ta.style.left = "0";
+    ta.style.width = "1px";
+    ta.style.height = "1px";
+    ta.style.opacity = "0";
+    ta.style.pointerEvents = "none";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch (e) {
+    return false;
+  }
+}
+
 async function bootLimn() {
   const mount = document.getElementById("limn-editor-mount");
   if (!mount) return;
@@ -1585,7 +1733,7 @@ async function bootLimn() {
     x: 0,
     y: 0,
     width: mount.clientWidth || window.innerWidth,
-    height: mount.clientHeight || (window.innerHeight - 60),
+    height: mount.clientHeight || window.innerHeight,
     value: "// Limn Studio\n// Switch to Build to pick a template.\n",
     name: "main.js",
     fontSize: 14,
@@ -1597,13 +1745,12 @@ async function bootLimn() {
 
   await component.attach({ canvas: dummy });
 
-  if (component._appbar) component._appbar.hide();
-  if (component._tabs) component._tabs.hide();
-  if (component._breadcrumb) component._breadcrumb.hide();
-
   if (component._menu) {
     component._menu.hideFab();
   }
+
+  component.publish = publishGame;
+  component.share = shareGame;
 
   function fit() {
     const w = mount.clientWidth || 0;
@@ -1616,8 +1763,6 @@ async function bootLimn() {
   setTimeout(fit, 150);
   setTimeout(fit, 500);
 
-  component.focus();
-
   (function loop() {
     if (!component) return;
     component.update();
@@ -1626,6 +1771,168 @@ async function bootLimn() {
 
   window.__limnEditor = component;
   window.__editor = component;
+}
+
+async function getActiveUser() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session ? session.user : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function publishGame() {
+  const user = await getActiveUser();
+  const code = getCode().trim();
+
+  if (!code) {
+    toast("Nothing to publish", "warning");
+    return;
+  }
+
+  const activeDoc = component && component.editor ? component.editor.activeDoc : null;
+  let title = activeDoc ? activeDoc.name.replace(/\.[^.]+$/, "") : "Untitled";
+  if (title === "*Untitled*" || !title) title = "Untitled";
+
+  const description = getDescription();
+
+  const config = window.currentConfig || {};
+  config.title = title;
+  config.description = description;
+  config.assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
+  window.currentConfig = config;
+
+  const engineVersion = "v4";
+  const engineCode = window.__v4t || "";
+
+  if (!engineCode) {
+    toast("Engine still loading…", "warning");
+    return;
+  }
+
+  const slug = (title.toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 30) || "game") + "-" + Math.random().toString(36).slice(2, 6);
+
+  const { data, error } = await supabase
+    .from("games")
+    .insert([{
+      slug: slug,
+      title: title,
+      author_id: user ? user.id : null,
+      author_name: user ? (user.email || "anonymous") : "anonymous",
+      config: config,
+      code: code,
+      engine_version: engineVersion,
+      engine_code: engineCode,
+      description: description || null
+    }])
+    .select("slug")
+    .single();
+
+  if (error) {
+    toast("Publish failed: " + error.message, "error");
+    return;
+  }
+
+  const playUrl = window.location.origin + "/arcade/game.html?slug=" + data.slug;
+  await copyText(playUrl);
+  toast("Published! Link copied", "success", 3000);
+}
+
+async function shareGame() {
+  const docs = component && component.editor ? component.editor.documents.items : [];
+
+  const files = {};
+  const filenames = [];
+  for (const doc of docs) {
+    files[doc.name] = doc.getValue();
+    filenames.push(doc.name);
+  }
+
+  const payload = JSON.stringify({
+    files: files,
+    filesName: filenames,
+    assets: (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" }
+  });
+
+  const { data, error } = await supabase
+    .from("snippets")
+    .insert([{ code: payload }])
+    .select("id")
+    .single();
+
+  if (error) {
+    toast("Share failed: " + error.message, "error");
+    return;
+  }
+
+  const shareUrl = window.location.origin + "/editor/limn-demo.html?id=" + data.id;
+  await copyText(shareUrl);
+  toast("Share link copied", "success", 3000);
+}
+
+async function loadPublishedGame() {
+  const params = new URLSearchParams(window.location.search);
+  const editSlug = params.get("edit");
+  const snippetId = params.get("id");
+
+  if (editSlug) {
+    try {
+      const { data, error } = await supabase
+        .from("games")
+        .select("title, description, code, config, engine_version")
+        .eq("slug", editSlug)
+        .maybeSingle();
+
+      if (!error && data) {
+        if (data.code) setCode(data.code);
+        if (data.config) {
+          window.currentConfig = data.config;
+          if (data.config.assets) {
+            const head = document.getElementById("assetHead");
+            const css = document.getElementById("assetCss");
+            const scripts = document.getElementById("assetScripts");
+            if (head) head.value = data.config.assets.head || "";
+            if (css) css.value = data.config.assets.css || "";
+            if (scripts) scripts.value = data.config.assets.scripts || "";
+          }
+        }
+        if (data.description) setDescription(data.description);
+        toast("Loaded " + (data.title || editSlug), "success");
+      }
+    } catch (e) {}
+    return;
+  }
+
+  if (snippetId) {
+    try {
+      const { data, error } = await supabase
+        .from("snippets")
+        .select("code")
+        .eq("id", snippetId)
+        .single();
+
+      if (!error && data) {
+        const parsed = JSON.parse(data.code);
+        if (parsed.files && parsed.filesName && parsed.filesName.length > 0) {
+          const firstFile = parsed.filesName[0];
+          setCode(parsed.files[firstFile] || "");
+          if (parsed.assets) {
+            const head = document.getElementById("assetHead");
+            const css = document.getElementById("assetCss");
+            const scripts = document.getElementById("assetScripts");
+            if (head) head.value = parsed.assets.head || "";
+            if (css) css.value = parsed.assets.css || "";
+            if (scripts) scripts.value = parsed.assets.scripts || "";
+          }
+          toast("Loaded shared project", "success");
+        }
+      }
+    } catch (e) {}
+  }
 }
 
 function initTabs() {
@@ -1642,15 +1949,18 @@ function initTabs() {
 
     if (which === "code") {
       document.body.classList.remove("not-code");
+      document.body.classList.add("code-mode");
       tabCode.classList.add("active");
       codeSection.classList.add("active");
-      setTimeout(() => window.dispatchEvent(new Event("resize")), 30);
+      setTimeout(() => window.dispatchEvent(new Event("resize")), 60);
     } else if (which === "build") {
       document.body.classList.add("not-code");
+      document.body.classList.remove("code-mode");
       tabBuild.classList.add("active");
       buildSection.classList.add("active");
     } else if (which === "assets") {
       document.body.classList.add("not-code");
+      document.body.classList.remove("code-mode");
       tabAssets.classList.add("active");
       assetsSection.classList.add("active");
     }
@@ -1659,6 +1969,15 @@ function initTabs() {
   tabCode.addEventListener("click", () => show("code"));
   tabBuild.addEventListener("click", () => show("build"));
   tabAssets.addEventListener("click", () => show("assets"));
+
+  const resetBtn = document.getElementById("topbarReset");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      document.body.classList.remove("code-mode");
+      show("build");
+    });
+  }
 
   show("code");
 }
@@ -1682,6 +2001,131 @@ function initBarToggle() {
     showBtn.classList.remove("visible");
     setTimeout(() => window.dispatchEvent(new Event("resize")), 300);
   });
+}
+
+function initPullToRefresh() {
+  const ptr = document.getElementById("ptr");
+  const ptrIcon = document.getElementById("ptrIcon");
+  const ptrLabel = document.getElementById("ptrLabel");
+  if (!ptr) return;
+
+  const THRESHOLD = 70;
+  const MAX_PULL = 140;
+  let tracking = false;
+  let startY = 0;
+  let currentPull = 0;
+  let refreshing = false;
+
+  function editorAtTop() {
+    if (!component || !component.editor || !component.editor.viewport) return true;
+    return component.editor.viewport.scrollTop <= 0;
+  }
+
+  function isCodeTab() {
+    return document.body.classList.contains("code-mode") &&
+      !document.body.classList.contains("not-code");
+  }
+
+  function setPull(y) {
+    currentPull = Math.max(0, Math.min(MAX_PULL, y));
+    ptr.style.height = currentPull + "px";
+    ptr.style.background = currentPull > 0 ? "rgba(13,15,22,0.98)" : "transparent";
+
+    if (refreshing) return;
+
+    if (currentPull >= THRESHOLD) {
+      ptr.classList.add("release");
+      ptrIcon.textContent = "↻";
+      ptrLabel.textContent = "Release to refresh";
+    } else {
+      ptr.classList.remove("release");
+      ptrIcon.textContent = "↓";
+      ptrLabel.textContent = "Pull to refresh";
+    }
+  }
+
+  function reset() {
+    ptr.style.height = "0px";
+    ptr.style.background = "transparent";
+    ptr.classList.remove("release");
+    ptr.classList.remove("refreshing");
+    ptrIcon.textContent = "↓";
+    ptrLabel.textContent = "Pull to refresh";
+    currentPull = 0;
+  }
+
+  function triggerRefresh() {
+    refreshing = true;
+    ptr.classList.add("refreshing");
+    ptrIcon.textContent = "↻";
+    ptrLabel.textContent = "Refreshing…";
+    setTimeout(() => {
+      window.location.reload();
+    }, 250);
+  }
+
+  document.addEventListener("touchstart", (e) => {
+    if (refreshing) return;
+    if (!isCodeTab()) return;
+    if (e.touches.length !== 1) return;
+
+    const t = e.touches[0];
+    if (t.clientY > 120) return;
+
+    const scrollTop = component && component.editor && component.editor.viewport
+      ? component.editor.viewport.scrollTop
+      : 0;
+
+    if (scrollTop > 0) return;
+
+    tracking = true;
+    startY = t.clientY;
+    currentPull = 0;
+  }, { passive: true, capture: true });
+
+  document.addEventListener("touchmove", (e) => {
+    if (!tracking || refreshing) return;
+    if (e.touches.length !== 1) return;
+
+    const t = e.touches[0];
+    const dy = t.clientY - startY;
+
+    if (dy <= 0) {
+      if (currentPull > 0) {
+        currentPull = 0;
+        reset();
+      }
+      return;
+    }
+
+    if (!editorAtTop()) {
+      tracking = false;
+      reset();
+      return;
+    }
+
+    const damped = dy * 0.55;
+    setPull(damped);
+  }, { passive: true, capture: true });
+
+  document.addEventListener("touchend", (e) => {
+    if (!tracking) return;
+    tracking = false;
+
+    if (refreshing) return;
+
+    if (currentPull >= THRESHOLD) {
+      triggerRefresh();
+    } else {
+      reset();
+    }
+  }, { passive: true, capture: true });
+
+  document.addEventListener("touchcancel", () => {
+    if (!tracking) return;
+    tracking = false;
+    if (!refreshing) reset();
+  }, { passive: true, capture: true });
 }
 
 function initAssetsPanel() {
@@ -1832,6 +2276,21 @@ function initAssetsPanel() {
   load();
 }
 
+function initDescription() {
+  const el = document.getElementById("gameDescription");
+  if (!el) return;
+
+  if (!window.currentConfig) window.currentConfig = {};
+  if (window.currentConfig.description) {
+    el.value = window.currentConfig.description;
+  }
+
+  el.addEventListener("input", () => {
+    if (!window.currentConfig) window.currentConfig = {};
+    window.currentConfig.description = el.value.trim();
+  });
+}
+
 function initBuildPanel() {
   const fieldsEl = document.getElementById("templateFields");
   const selectEl = document.getElementById("templateSelect");
@@ -1957,7 +2416,12 @@ function initBuildPanel() {
     const cfg = readValues();
     if (tpl.config) {
       try {
-        window.currentConfig = tpl.config(cfg);
+        const built = tpl.config(cfg);
+        const desc = window.currentConfig && window.currentConfig.description;
+        const assets = window.currentConfig && window.currentConfig.assets;
+        window.currentConfig = built || {};
+        if (desc) window.currentConfig.description = desc;
+        if (assets) window.currentConfig.assets = assets;
       } catch (e) {}
     }
     const code = tpl.generate(cfg);
@@ -2087,7 +2551,7 @@ function initMenuButton() {
 
     if (!component || !component._menu) {
       if (window.__logToConsole) {
-        window.__logToConsole("error", ["Menu not ready — component._menu is " + (component ? "null" : "component is null")]);
+        window.__logToConsole("error", ["Menu not ready"]);
       }
       return;
     }
@@ -2544,7 +3008,9 @@ function initConsole() {
 
 initTabs();
 initBarToggle();
+initPullToRefresh();
 initAssetsPanel();
+initDescription();
 initBuildPanel();
 initRun();
 initMenuButton();
@@ -2553,6 +3019,7 @@ initConsole();
 await bootLimn();
 
 initFilesDrawer();
+await loadPublishedGame();
 
 document.addEventListener("keydown", (e) => {
   const t = e.target;
