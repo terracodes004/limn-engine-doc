@@ -1076,6 +1076,8 @@
     width: 100%;
     height: 100%;
     transform-origin: center center;
+    transition: transform 0.15s ease;
+    will-change: transform;
   }
 
   .dialog-frame-wrap iframe {
@@ -1093,20 +1095,54 @@
     display: flex;
     gap: var(--s-2);
     z-index: 400500;
+    align-items: center;
   }
 
   .dialog-controls button {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     background: rgba(24,27,38,0.95);
     color: var(--text-0);
     border: 1px solid var(--border-2);
     border-radius: var(--radius);
     cursor: pointer;
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
+
+  .dialog-controls button:hover {
+    background: var(--bg-4);
+    border-color: var(--border-3);
+  }
+
+  .dialog-controls button:active { transform: scale(0.96); }
+
+  .dialog-zoom-display {
+    padding: 0 14px;
+    height: 44px;
+    min-width: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(24,27,38,0.95);
+    color: var(--text-0);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .dialog-zoom-display:hover { background: var(--bg-4); border-color: var(--border-3); }
 
   .console-sheet {
     position: fixed;
@@ -1291,6 +1327,8 @@
     .asset-icon { width: 32px; height: 32px; font-size: 15px; }
     .asset-body { padding: 0 var(--s-3) var(--s-3); }
     .build-card { padding: var(--s-4); }
+    .dialog-controls button { width: 40px; height: 40px; font-size: 16px; }
+    .dialog-zoom-display { height: 40px; min-width: 64px; font-size: 12px; }
   }
 </style>
 </head>
@@ -1488,10 +1526,10 @@
     </div>
   </div>
   <div class="dialog-controls">
-    <button id="zoomOutBtn" type="button">−</button>
-    <button id="zoomDisplay" type="button">100%</button>
-    <button id="zoomInBtn" type="button">+</button>
-    <button id="fsBtn" type="button">⛶</button>
+    <button id="zoomOutBtn" type="button" title="Zoom out">−</button>
+    <button class="dialog-zoom-display" id="zoomDisplay" type="button" title="Reset zoom">100%</button>
+    <button id="zoomInBtn" type="button" title="Zoom in">+</button>
+    <button id="fsBtn" type="button" title="Fullscreen">⛶</button>
   </div>
 </dialog>
 
@@ -1944,34 +1982,60 @@ function initRun() {
   const frame = document.getElementById("gameFrame");
   const wrap = document.getElementById("dialogFrameWrap");
   const zoomDisplay = document.getElementById("zoomDisplay");
+  const zoomInBtn = document.getElementById("zoomInBtn");
+  const zoomOutBtn = document.getElementById("zoomOutBtn");
+  const fsBtn = document.getElementById("fsBtn");
   if (!runBtn || !dialog) return;
 
-  let zoom = 1;
+  const ZOOM_MIN = 0.3;
+  const ZOOM_MAX = 3;
+  const ZOOM_STEP = 0.1;
+  let zoomLevel = 1;
 
   function applyZoom() {
-    wrap.style.transform = zoom === 1 ? "" : "scale(" + zoom + ")";
-    zoomDisplay.textContent = Math.round(zoom * 100) + "%";
+    if (zoomLevel === 1) {
+      wrap.style.transform = "";
+    } else {
+      wrap.style.transform = "scale(" + zoomLevel + ")";
+    }
+    zoomDisplay.textContent = Math.round(zoomLevel * 100) + "%";
   }
 
-  document.getElementById("zoomInBtn").addEventListener("click", () => {
-    zoom = Math.min(3, zoom + 0.1);
+  function setZoom(level) {
+    zoomLevel = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, +level.toFixed(2)));
     applyZoom();
-  });
+  }
 
-  document.getElementById("zoomOutBtn").addEventListener("click", () => {
-    zoom = Math.max(0.3, zoom - 0.1);
+  function resetZoom() {
+    zoomLevel = 1;
     applyZoom();
-  });
+  }
 
-  zoomDisplay.addEventListener("click", () => {
-    zoom = 1;
-    applyZoom();
-  });
+  if (zoomInBtn) {
+    zoomInBtn.addEventListener("click", () => setZoom(zoomLevel + ZOOM_STEP));
+  }
 
-  document.getElementById("fsBtn").addEventListener("click", () => {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else if (wrap.requestFullscreen) wrap.requestFullscreen();
-  });
+  if (zoomOutBtn) {
+    zoomOutBtn.addEventListener("click", () => setZoom(zoomLevel - ZOOM_STEP));
+  }
+
+  if (zoomDisplay) {
+    zoomDisplay.addEventListener("click", resetZoom);
+  }
+
+  if (fsBtn) {
+    fsBtn.addEventListener("click", async () => {
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+          return;
+        }
+        if (wrap.requestFullscreen) {
+          await wrap.requestFullscreen();
+        }
+      } catch (err) {}
+    });
+  }
 
   dialogClose.addEventListener("click", () => {
     if (document.fullscreenElement) document.exitFullscreen();
@@ -1996,10 +2060,14 @@ function initRun() {
     const assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
     const html = window.buildGameHTML(engine, code, assets);
     if (!dialog.hasAttribute("open")) dialog.showModal();
+    resetZoom();
     frame.srcdoc = html;
   }
 
   runBtn.addEventListener("click", run);
+
+  window.__setPreviewZoom = setZoom;
+  window.__resetPreviewZoom = resetZoom;
 }
 
 function initMenuButton() {
@@ -2485,6 +2553,32 @@ initConsole();
 await bootLimn();
 
 initFilesDrawer();
+
+document.addEventListener("keydown", (e) => {
+  const t = e.target;
+  const tag = t && t.tagName ? t.tagName.toLowerCase() : "";
+  if (tag === "input" || tag === "textarea" || (t && t.isContentEditable)) return;
+
+  const dialog = document.getElementById("runDialog");
+  if (!dialog || !dialog.hasAttribute("open")) return;
+
+  if (!window.__setPreviewZoom) return;
+
+  if (e.key === "+" || e.key === "=") {
+    e.preventDefault();
+    window.__setPreviewZoom((parseFloat(document.getElementById("zoomDisplay").textContent) / 100) + 0.1);
+  } else if (e.key === "-" || e.key === "_") {
+    e.preventDefault();
+    window.__setPreviewZoom((parseFloat(document.getElementById("zoomDisplay").textContent) / 100) - 0.1);
+  } else if (e.key === "0") {
+    e.preventDefault();
+    window.__resetPreviewZoom();
+  } else if (e.key === "f" || e.key === "F") {
+    e.preventDefault();
+    const b = document.getElementById("fsBtn");
+    if (b) b.click();
+  }
+});
 </script>
 </body>
 </html>
