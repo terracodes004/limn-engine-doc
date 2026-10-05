@@ -1708,6 +1708,18 @@ function ensureBase(html, baseHref) {
   return baseTag + html;
 }
 
+function injectEngineIfMissing(html) {
+  if (/epic\.js|tcjsgame-v2\.js|tcjsgame-v3\.js/.test(html)) return html;
+  const tag = '<script src="/editor/epic.js"><\/script>';
+  if (/<head[^>]*>/i.test(html)) {
+    return html.replace(/<head([^>]*)>/i, '<head$1>' + tag);
+  }
+  if (/<body[^>]*>/i.test(html)) {
+    return html.replace(/<body([^>]*)>/i, '<body$1>' + tag);
+  }
+  return tag + html;
+}
+
 function getActiveDoc() {
   if (!component || !component.editor) return null;
   return component.editor.activeDoc || null;
@@ -2746,6 +2758,7 @@ function initRun() {
 
       let html = html0;
       html = ensureBase(html, baseHref);
+      html = injectEngineIfMissing(html);
       html = rewriteRelativeUrls(html, fileMap);
       html = replaceMissingDeps(html, openNames);
 
