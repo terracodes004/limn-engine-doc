@@ -56,6 +56,7 @@
     }
     #debugBox.visible { display: block; }
     #debugBox .ok { color: #6f9; }
+    #debugBox .warn { color: #fc6; }
 
     .topbar {
       position: fixed;
@@ -352,6 +353,29 @@
 
 <div id="debugBox"></div>
 
+<script>
+  (function () {
+    var box = document.getElementById("debugBox");
+    function show(msg, cls) {
+      if (!box) return;
+      box.classList.add("visible");
+      var line = document.createElement("div");
+      if (cls) line.className = cls;
+      line.textContent = msg;
+      box.appendChild(line);
+      box.scrollTop = box.scrollHeight;
+    }
+    window.__dbg = show;
+    window.addEventListener("error", function (e) {
+      show("ERROR: " + e.message + " @ " + (e.filename || "?") + ":" + (e.lineno || "?"));
+    });
+    window.addEventListener("unhandledrejection", function (e) {
+      show("REJECT: " + ((e.reason && e.reason.message) || e.reason));
+    });
+    show("initial script ran", "ok");
+  })();
+</script>
+
 <div class="topbar" id="topbar">
   <div class="brand">
     <div class="brand-mark">L</div>
@@ -428,60 +452,36 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
-<script>
-  (function () {
-    var box = document.getElementById("debugBox");
-    function show(msg, isOk) {
-      if (!box) return;
-      box.classList.add("visible");
-      var line = document.createElement("div");
-      if (isOk) line.className = "ok";
-      line.textContent = msg;
-      box.appendChild(line);
-      box.scrollTop = box.scrollHeight;
-    }
-    window.__dbg = show;
-
-    window.addEventListener("error", function (e) {
-      show("ERROR: " + e.message + " @ " + (e.filename || "?") + ":" + (e.lineno || "?"));
-    });
-    window.addEventListener("unhandledrejection", function (e) {
-      show("REJECT: " + ((e.reason && e.reason.message) || e.reason));
-    });
-
-    show("initial script ran", true);
-  })();
-</script>
-
 <script src="/editor/build.js"></script>
 <script src="/editor/templates.js"></script>
 <script type="module" src="/editor/limn-studio.js"></script>
 
 <script>
   (function () {
-    var box = document.getElementById("debugBox");
-    function show(msg) {
-      if (!box) return;
-      box.classList.add("visible");
-      var line = document.createElement("div");
-      line.textContent = msg;
-      box.appendChild(line);
-      box.scrollTop = box.scrollHeight;
+    function show(msg, cls) {
+      if (window.__dbg) window.__dbg(msg, cls);
     }
-    if (typeof window.LimnTemplates === "undefined") show("LimnTemplates NOT loaded (templates.js failed)");
-    else show("LimnTemplates loaded (" + Object.keys(window.LimnTemplates).length + " templates)");
-
-    if (typeof window.buildGameHTML !== "function") show("buildGameHTML NOT loaded (build.js failed)");
-    else show("buildGameHTML loaded");
-
-    if (typeof window.__v4t === "string" && window.__v4t.length > 0) show("Engine __v4t loaded (" + window.__v4t.length + " chars)");
-    else show("Engine __v4t NOT loaded yet (may load async)");
 
     setTimeout(function () {
-      if (typeof window.__v4t === "string" && window.__v4t.length > 0) show("Engine __v4t loaded later (" + window.__v4t.length + " chars)");
-      if (window.__editor) show("window.__editor exists — Limn booted");
-      else show("window.__editor is undefined — Limn did NOT boot");
-    }, 1500);
+      show("=== 500ms ===");
+      show("buildGameHTML: " + typeof window.buildGameHTML);
+      show("LimnTemplates: " + (window.LimnTemplates ? Object.keys(window.LimnTemplates).length + " templates" : "none"));
+      show("__v4t length: " + (window.__v4t ? window.__v4t.length : "none"));
+      show("__v2t length: " + (window.__v2t ? window.__v2t.length : "none"));
+      show("__v3t length: " + (window.__v3t ? window.__v3t.length : "none"));
+      show("__enginesReady: " + window.__enginesReady);
+      show("__editor: " + typeof window.__editor);
+      show("__limnEditor: " + typeof window.__limnEditor);
+    }, 500);
+
+    setTimeout(function () {
+      show("=== 2500ms ===");
+      show("buildGameHTML: " + typeof window.buildGameHTML);
+      show("__v4t length: " + (window.__v4t ? window.__v4t.length : "none"));
+      show("__enginesReady: " + window.__enginesReady);
+      show("__editor: " + typeof window.__editor);
+      show("__limnEditor: " + typeof window.__limnEditor);
+    }, 2500);
   })();
 </script>
 
