@@ -85,6 +85,18 @@ function buildErrorOverlay() {
     '<\/script>\n';
 }
 
+function escapeScriptContent(code) {
+    return String(code || '').replace(/<\/script>/gi, '<\\/script>');
+}
+
+function mimeIsCss(name) {
+    return /\.css$/i.test(name);
+}
+
+function mimeIsJs(name) {
+    return /\.(m?js|jsx)$/i.test(name);
+}
+
 function normalizeAssets(assets) {
     var a = assets && typeof assets === 'object' ? assets : {};
     var head = typeof a.head === 'string' ? a.head : '';
@@ -117,10 +129,38 @@ function buildAssetsHeadHtml(assets) {
     return parts.length ? parts.join('\n') + '\n' : '';
 }
 
-window.buildGameHTML = function (engineCode, userCode, assets) {
-    var safeUserCode = String(userCode || '').replace(/<\/script>/gi, '<\\/script>');
+function buildExtrasHeadHtml(extras) {
+    if (!extras || typeof extras !== 'object') return '';
+    var names = Object.keys(extras);
+    var parts = [];
+    for (var i = 0; i < names.length; i++) {
+        var name = names[i];
+        if (!mimeIsCss(name)) continue;
+        var content = escapeScriptContent(extras[name]);
+        parts.push('<style data-name="' + String(name).replace(/"/g, '&quot;') + '">\n' + content + '\n</style>');
+    }
+    return parts.length ? parts.join('\n') + '\n' : '';
+}
+
+function buildExtrasBodyHtml(extras) {
+    if (!extras || typeof extras !== 'object') return '';
+    var names = Object.keys(extras);
+    var parts = [];
+    for (var i = 0; i < names.length; i++) {
+        var name = names[i];
+        if (!mimeIsJs(name)) continue;
+        var content = escapeScriptContent(extras[name]);
+        parts.push('<script data-name="' + String(name).replace(/"/g, '&quot;') + '">\n' + content + '\n<\/script>');
+    }
+    return parts.length ? parts.join('\n') + '\n' : '';
+}
+
+window.buildGameHTML = function (engineCode, userCode, assets, extras) {
+    var safeUserCode = escapeScriptContent(userCode);
     var safeEngine = String(engineCode || '');
     var assetsHead = buildAssetsHeadHtml(assets);
+    var extrasHead = buildExtrasHeadHtml(extras);
+    var extrasBody = buildExtrasBodyHtml(extras);
 
     return '<!DOCTYPE html>\n' +
         '<html lang="en">\n' +
@@ -128,6 +168,7 @@ window.buildGameHTML = function (engineCode, userCode, assets) {
         '<meta charset="UTF-8">\n' +
         '<meta name="viewport" content="width=device-width,initial-scale=1">\n' +
         assetsHead +
+        extrasHead +
         '<style>\n' +
         'html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%;}\n' +
         'canvas{display:block;margin:0 auto;}\n' +
@@ -137,11 +178,29 @@ window.buildGameHTML = function (engineCode, userCode, assets) {
         buildErrorOverlay() +
         '</head>\n' +
         '<body>\n' +
+        extrasBody +
         '<script>\n' +
         safeUserCode + '\n' +
         '<\/script>\n' +
         '</body>\n' +
         '</html>';
+};
+
+window.collectExtrasFromEditor = function () {
+    var extras = {};
+    var editor = window.__editor;
+    if (!editor || !editor.documents || !editor.documents.items) return extras;
+
+    var activeDoc = editor.activeDoc;
+    var items = editor.documents.items;
+
+    for (var i = 0; i < items.length; i++) {
+        var doc = items[i];
+        if (doc === activeDoc) continue;
+        extras[doc.name] = doc.getValue();
+    }
+
+    return extras;
 };
 
 window.runn = function () {
@@ -182,7 +241,11 @@ window.runn = function () {
         ? window.getCurrentAssets()
         : { head: '', css: '', scripts: '' };
 
-    var html = window.buildGameHTML(engineCode, code, assets);
+    var extras = (typeof window.collectExtrasFromEditor === 'function')
+        ? window.collectExtrasFromEditor()
+        : {};
+
+    var html = window.buildGameHTML(engineCode, code, assets, extras);
 
     iframe.srcdoc = html;
 };
