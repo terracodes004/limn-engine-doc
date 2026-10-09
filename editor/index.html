@@ -1616,6 +1616,51 @@ function setDescription(value) {
   window.currentConfig.description = value || "";
 }
 
+function isHtmlEntry(name) {
+  return /\.html?$/i.test(name || "");
+}
+
+function extractScriptSrc(html) {
+  const re = /<script\b[^>]*\bsrc\s*=\s*(?:"([^"]+)"|'([^']+)')[^>]*>/gi;
+  const results = [];
+  let match;
+  while ((match = re.exec(html)) !== null) {
+    const src = String(match[1] || match[2] || "").trim();
+    if (!src) continue;
+    if (/^(?:[a-z]+:)?\/\//i.test(src)) continue;
+    if (src.startsWith("data:") || src.startsWith("blob:")) continue;
+    results.push(src.replace(/^\.\//, "").replace(/^\//, ""));
+  }
+  return results;
+}
+
+function findDocByName(name) {
+  if (!component || !component.editor || !component.editor.documents) return null;
+  const items = component.editor.documents.items || [];
+  for (const doc of items) {
+    if (doc.name === name) return doc;
+  }
+  return null;
+}
+
+function resolveRunTarget() {
+  const activeDoc = component && component.editor ? component.editor.activeDoc : null;
+  if (!activeDoc) return null;
+
+  const name = activeDoc.name || "";
+  if (!isHtmlEntry(name)) {
+    return activeDoc;
+  }
+
+  const html = activeDoc.getValue() || "";
+  const srcs = extractScriptSrc(html);
+  for (const src of srcs) {
+    const found = findDocByName(src);
+    if (found) return found;
+  }
+  return null;
+}
+
 async function copyText(text) {
   try {
     if (navigator.clipboard && window.isSecureContext) {
@@ -1783,15 +1828,22 @@ async function getActiveUser() {
 
 async function publishGame() {
   const user = await getActiveUser();
-  const activeDoc = component && component.editor ? component.editor.activeDoc : null;
-  const code = activeDoc ? activeDoc.getValue().trim() : "";
+
+  const target = resolveRunTarget();
+  if (!target) {
+    toast("Nothing to publish — no .js target found", "warning");
+    return;
+  }
+
+  let name = target.name || "game.js";
+  let code = (target.getValue() || "").trim();
 
   if (!code) {
     toast("Nothing to publish", "warning");
     return;
   }
 
-  let title = activeDoc ? activeDoc.name.replace(/\.[^.]+$/, "") : "Untitled";
+  let title = name.replace(/\.[^.]+$/, "") || "Untitled";
   if (title === "*Untitled*" || !title) title = "Untitled";
 
   const description = getDescription();
@@ -1800,20 +1852,8 @@ async function publishGame() {
   config.title = title;
   config.description = description;
   config.assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
-
-  const extras = (typeof window.collectExtrasFromEditor === "function")
-    ? window.collectExtrasFromEditor()
-    : {};
-
-  if (Object.keys(extras).length > 0) {
-    config.files = Object.assign({}, extras);
-    config.files[activeDoc.name] = code;
-    config.entry = activeDoc.name;
-  } else {
-    delete config.files;
-    delete config.entry;
-  }
-
+  delete config.files;
+  delete config.entry;
   window.currentConfig = config;
 
   const engineVersion = "v4";
@@ -1882,7 +1922,7 @@ async function shareGame() {
     return;
   }
 
-  const shareUrl = window.location.origin + "/editor/limn-demo.html?id=" + data.id;
+  const shareUrl = window.location.origin + "/editor/?id=" + data.id;
   await copyText(shareUrl);
   toast("Share link copied", "success", 3000);
 }
@@ -2608,8 +2648,14 @@ function initRun() {
       return;
     }
 
-    const code = getCode();
-    if (!code.trim()) {
+    const target = resolveRunTarget();
+    if (!target) {
+      toast("No .js to run — add a <script src=\"...\"> to your HTML or open a .js file", "warning");
+      return;
+    }
+
+    const code = (target.getValue() || "").trim();
+    if (!code) {
       toast("Nothing to run", "warning");
       return;
     }
@@ -2621,10 +2667,7 @@ function initRun() {
     }
 
     const assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
-    const extras = (typeof window.collectExtrasFromEditor === "function")
-      ? window.collectExtrasFromEditor()
-      : {};
-    const html = window.buildGameHTML(engine, code, assets, extras);
+    const html = window.buildGameHTML(engine, code, assets);
 
     if (!dialog.hasAttribute("open")) dialog.showModal();
     resetZoom();
