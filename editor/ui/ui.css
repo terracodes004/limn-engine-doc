@@ -1,29 +1,31 @@
 :root {
-  --limn-bg-0: #08090d;
-  --limn-bg-1: #0d0f16;
-  --limn-bg-2: #12141d;
-  --limn-bg-3: #181b26;
-  --limn-bg-4: #1f2330;
-  --limn-border: #242938;
-  --limn-border-2: #2f3547;
-  --limn-border-3: #3d4459;
-  --limn-text-0: #f0f3f8;
-  --limn-text-1: #a3aac0;
-  --limn-text-2: #6e7589;
-  --limn-text-3: #4a5163;
+  --limn-bg-0: #05060c;
+  --limn-bg-1: #0a0c14;
+  --limn-bg-2: #0f121c;
+  --limn-bg-3: #141824;
+  --limn-bg-4: #1c2130;
+  --limn-border: #1a1f2e;
+  --limn-border-2: #262c3d;
+  --limn-border-3: #363d52;
+  --limn-text-0: #eef1f6;
+  --limn-text-1: #98a1b8;
+  --limn-text-2: #6b7385;
+  --limn-text-3: #464d61;
   --limn-accent: #6ea8fe;
   --limn-accent-2: #a371f7;
   --limn-accent-3: #ec4899;
   --limn-success: #4ade80;
   --limn-warning: #fbbf24;
   --limn-danger: #f87171;
-  --limn-radius: 12px;
-  --limn-radius-lg: 18px;
-  --limn-blur: 24px;
+  --limn-radius: 10px;
+  --limn-radius-lg: 14px;
+  --limn-blur: 20px;
   --limn-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --limn-accent-soft: rgba(110, 168, 254, 0.12);
+  --limn-accent-glow: rgba(110, 168, 254, 0.35);
+  --limn-glass: rgba(13, 15, 22, 0.72);
+  --limn-glass-2: rgba(18, 20, 32, 0.85);
 }
-
-/* ---------- Toolbar ---------- */
 
 .limn-toolbar {
   position: fixed;
@@ -33,10 +35,10 @@
   height: 52px;
   display: flex;
   align-items: stretch;
-  background: rgba(13, 15, 22, 0.85);
-  backdrop-filter: blur(var(--limn-blur));
-  -webkit-backdrop-filter: blur(var(--limn-blur));
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--limn-glass);
+  backdrop-filter: blur(var(--limn-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--limn-blur)) saturate(180%);
+  border-top: 1px solid var(--limn-border);
   z-index: 100;
   user-select: none;
   -webkit-user-select: none;
@@ -48,12 +50,13 @@
 .limn-toolbar::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 10%;
-  right: 10%;
+  top: -1px;
+  left: 20%;
+  right: 20%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--limn-accent), transparent);
+  background: linear-gradient(90deg, transparent, var(--limn-accent-glow), transparent);
   opacity: 0.5;
+  pointer-events: none;
 }
 
 .limn-toolbar.hidden {
@@ -68,12 +71,12 @@
   background: transparent;
   border: none;
   color: var(--limn-text-1);
-  font-size: 22px;
+  font-size: 20px;
   font-family: inherit;
   cursor: pointer;
   padding: 0;
   margin: 6px 3px;
-  border-radius: 10px;
+  border-radius: var(--limn-radius);
   transition: background 0.15s var(--limn-ease),
               color 0.15s var(--limn-ease),
               transform 0.1s var(--limn-ease);
@@ -83,12 +86,12 @@
 }
 
 .limn-toolbar-btn:hover {
-  background: rgba(110, 168, 254, 0.08);
+  background: var(--limn-bg-2);
   color: var(--limn-text-0);
 }
 
 .limn-toolbar-btn:active {
-  background: rgba(110, 168, 254, 0.16);
+  background: var(--limn-bg-3);
   color: var(--limn-accent);
   transform: scale(0.94);
 }
@@ -103,47 +106,37 @@
   color: var(--limn-text-1);
 }
 
-/* ---------- FAB ---------- */
-
 .limn-fab {
   position: fixed;
   right: 20px;
   bottom: calc(72px + env(safe-area-inset-bottom, 0));
-  width: 56px;
-  height: 56px;
-  border-radius: 28px;
-  background: linear-gradient(135deg, var(--limn-accent) 0%, var(--limn-accent-2) 60%, var(--limn-accent-3) 100%);
-  background-size: 200% 200%;
+  width: 54px;
+  height: 54px;
+  border-radius: 27px;
+  background: linear-gradient(135deg, var(--limn-accent) 0%, var(--limn-accent-2) 100%);
   color: #fff;
   border: none;
-  font-size: 24px;
+  font-size: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow:
-    0 8px 32px rgba(110, 168, 254, 0.45),
-    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+    0 8px 24px rgba(110, 168, 254, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
   cursor: pointer;
   z-index: 200;
-  transition: transform 0.25s var(--limn-ease),
-              box-shadow 0.25s var(--limn-ease),
-              background-position 0.4s var(--limn-ease);
+  transition: transform 0.2s var(--limn-ease),
+              box-shadow 0.2s var(--limn-ease);
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
-  animation: limn-fab-pulse 4s ease-in-out infinite;
-}
-
-@keyframes limn-fab-pulse {
-  0%, 100% { background-position: 0% 50%; }
-  50%      { background-position: 100% 50%; }
 }
 
 .limn-fab:hover {
-  transform: scale(1.06);
+  transform: scale(1.05);
   box-shadow:
-    0 12px 40px rgba(110, 168, 254, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+    0 12px 32px rgba(110, 168, 254, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .limn-fab:active {
@@ -155,7 +148,7 @@
 }
 
 .limn-fab.open:hover {
-  transform: rotate(45deg) scale(1.06);
+  transform: rotate(45deg) scale(1.05);
 }
 
 .limn-fab.hidden {
@@ -163,14 +156,12 @@
 }
 
 .limn-fab-icon {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 300;
   line-height: 1;
   display: block;
   transition: transform 0.25s var(--limn-ease);
 }
-
-/* ---------- Menu ---------- */
 
 .limn-menu {
   position: fixed;
@@ -179,14 +170,12 @@
   width: 260px;
   max-height: 65vh;
   overflow-y: auto;
-  background: rgba(18, 20, 29, 0.94);
-  backdrop-filter: blur(var(--limn-blur));
-  -webkit-backdrop-filter: blur(var(--limn-blur));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(var(--limn-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--limn-blur)) saturate(180%);
+  border: 1px solid var(--limn-border-2);
   border-radius: var(--limn-radius-lg);
-  box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.6),
-    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
   padding: 8px;
   z-index: 300;
   display: none;
@@ -201,11 +190,11 @@
 .limn-menu::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 15%;
-  right: 15%;
+  top: -1px;
+  left: 20%;
+  right: 20%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--limn-accent), transparent);
+  background: linear-gradient(90deg, transparent, var(--limn-accent-glow), transparent);
   opacity: 0.6;
   pointer-events: none;
 }
@@ -238,14 +227,14 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 11px 12px;
+  padding: 10px 12px;
   background: transparent;
   border: none;
   color: var(--limn-text-0);
-  font-size: 14px;
+  font-size: 13.5px;
   font-family: inherit;
   text-align: left;
-  border-radius: 10px;
+  border-radius: var(--limn-radius);
   cursor: pointer;
   transition: background 0.12s var(--limn-ease);
   touch-action: manipulation;
@@ -267,7 +256,7 @@
 }
 
 .limn-menu-item:hover {
-  background: rgba(110, 168, 254, 0.08);
+  background: var(--limn-accent-soft);
 }
 
 .limn-menu-item:hover::before {
@@ -275,7 +264,7 @@
 }
 
 .limn-menu-item:active {
-  background: rgba(110, 168, 254, 0.15);
+  background: rgba(110, 168, 254, 0.18);
 }
 
 .limn-menu-item .icon {
@@ -284,10 +273,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: 14px;
   flex-shrink: 0;
   border-radius: 7px;
-  background: rgba(110, 168, 254, 0.08);
+  background: var(--limn-accent-soft);
   color: var(--limn-accent);
 }
 
@@ -358,13 +347,9 @@
   border-color: var(--limn-border-3);
 }
 
-/* ---------- Status pill ---------- */
-
 .limn-status-pill {
   display: none;
 }
-
-/* ---------- Search ---------- */
 
 .limn-search {
   position: fixed;
@@ -372,10 +357,10 @@
   left: 0;
   right: 0;
   z-index: 250;
-  background: rgba(18, 20, 29, 0.96);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(var(--limn-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--limn-blur)) saturate(180%);
+  border-bottom: 1px solid var(--limn-border);
   padding: 8px 10px;
   display: none;
   flex-direction: column;
@@ -392,10 +377,10 @@
   content: "";
   position: absolute;
   bottom: -1px;
-  left: 10%;
-  right: 10%;
+  left: 15%;
+  right: 15%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--limn-accent), transparent);
+  background: linear-gradient(90deg, transparent, var(--limn-accent-glow), transparent);
   opacity: 0.5;
 }
 
@@ -420,10 +405,11 @@
   border: 1px solid var(--limn-border-2);
   border-radius: 8px;
   color: var(--limn-text-0);
-  font-size: 14px;
+  font-size: 13.5px;
   font-family: inherit;
   padding: 8px 12px;
   outline: none;
+  transition: border-color 0.15s var(--limn-ease), box-shadow 0.15s var(--limn-ease);
 }
 
 .limn-search-input::placeholder {
@@ -432,6 +418,7 @@
 
 .limn-search-input:focus {
   border-color: var(--limn-accent);
+  box-shadow: 0 0 0 3px var(--limn-accent-soft);
 }
 
 .limn-search-toggle {
@@ -452,7 +439,7 @@
 }
 
 .limn-search-toggle.active {
-  background: rgba(110, 168, 254, 0.15);
+  background: var(--limn-accent-soft);
   border-color: var(--limn-accent);
   color: var(--limn-accent);
 }
@@ -499,8 +486,6 @@
   flex-shrink: 0;
 }
 
-/* ---------- Tabs ---------- */
-
 .limn-tabs {
   position: fixed;
   top: 0;
@@ -509,10 +494,10 @@
   height: 40px;
   display: flex;
   align-items: stretch;
-  background: rgba(13, 15, 22, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--limn-glass);
+  backdrop-filter: blur(var(--limn-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--limn-blur)) saturate(180%);
+  border-bottom: 1px solid var(--limn-border);
   z-index: 250;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   user-select: none;
@@ -546,11 +531,17 @@
   font-size: 12.5px;
   font-family: ui-monospace, monospace;
   cursor: pointer;
-  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  border-right: 1px solid var(--limn-border);
   position: relative;
   flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  transition: background 0.12s var(--limn-ease), color 0.12s var(--limn-ease);
+}
+
+.limn-tab:hover {
+  background: var(--limn-bg-2);
+  color: var(--limn-text-1);
 }
 
 .limn-tab.active {
@@ -621,29 +612,28 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border-left: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 1px solid var(--limn-border);
   touch-action: manipulation;
+  transition: background 0.12s var(--limn-ease), color 0.12s var(--limn-ease);
 }
 
 .limn-tabs-add:hover {
-  background: rgba(110, 168, 254, 0.1);
+  background: var(--limn-accent-soft);
   color: var(--limn-accent);
 }
-
-/* ---------- Toast ---------- */
 
 .limn-toast {
   position: fixed;
   bottom: calc(120px + env(safe-area-inset-bottom, 0));
   left: 50%;
   transform: translateX(-50%) translateY(20px);
-  background: rgba(18, 20, 29, 0.96);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(var(--limn-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--limn-blur)) saturate(180%);
   color: var(--limn-text-0);
   padding: 10px 18px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--limn-border-2);
   font-size: 13px;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
@@ -666,12 +656,12 @@
 .limn-toast.error   { border-color: rgba(248, 113, 113, 0.4); }
 .limn-toast.warning { border-color: rgba(251, 191, 36, 0.4); }
 
-/* ---------- File tree ---------- */
-
 .limn-filetree-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 4000;
   display: none;
 }
@@ -686,8 +676,10 @@
   left: 0;
   bottom: 0;
   width: min(320px, 86vw);
-  background: rgba(13, 15, 22, 0.98);
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-right: 1px solid var(--limn-border-2);
   box-shadow: 16px 0 48px rgba(0, 0, 0, 0.6);
   z-index: 4001;
   display: flex;
@@ -707,7 +699,7 @@
   gap: 8px;
   padding: 16px 16px 12px;
   padding-top: calc(16px + env(safe-area-inset-top, 0));
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--limn-border);
 }
 
 .limn-filetree-title {
@@ -732,11 +724,13 @@
   align-items: center;
   justify-content: center;
   touch-action: manipulation;
+  transition: background 0.12s var(--limn-ease), border-color 0.12s var(--limn-ease);
 }
 
 .limn-filetree-btn:hover {
-  background: rgba(110, 168, 254, 0.1);
+  background: var(--limn-accent-soft);
   color: var(--limn-accent);
+  border-color: var(--limn-border-2);
 }
 
 .limn-filetree-list {
@@ -757,7 +751,7 @@
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: var(--limn-radius);
   margin-bottom: 2px;
   cursor: pointer;
   position: relative;
@@ -766,15 +760,16 @@
   font-family: ui-monospace, monospace;
   min-height: 44px;
   touch-action: manipulation;
+  transition: background 0.12s var(--limn-ease), color 0.12s var(--limn-ease);
 }
 
 .limn-filetree-row:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--limn-bg-3);
   color: var(--limn-text-0);
 }
 
 .limn-filetree-row.active {
-  background: linear-gradient(90deg, rgba(110, 168, 254, 0.15), rgba(110, 168, 254, 0.04));
+  background: linear-gradient(90deg, var(--limn-accent-soft), transparent);
   color: var(--limn-text-0);
 }
 
@@ -818,13 +813,21 @@
   justify-content: center;
   flex-shrink: 0;
   touch-action: manipulation;
+  transition: background 0.12s var(--limn-ease), color 0.12s var(--limn-ease);
+}
+
+.limn-filetree-more:hover {
+  background: var(--limn-bg-4);
+  color: var(--limn-text-0);
 }
 
 .limn-filetree-rowmenu {
   position: fixed;
-  background: rgba(18, 20, 29, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--limn-border-2);
+  border-radius: var(--limn-radius-lg);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
   padding: 6px;
   z-index: 5000;
@@ -844,6 +847,11 @@
   text-align: left;
   border-radius: 8px;
   cursor: pointer;
+  transition: background 0.12s var(--limn-ease);
+}
+
+.limn-filetree-rowmenu-item:hover {
+  background: var(--limn-accent-soft);
 }
 
 .limn-filetree-rowmenu-item .icon {
@@ -851,9 +859,6 @@
   text-align: center;
   font-size: 14px;
 }
-
-/* ---------- App bar ---------- */
-
 .limn-appbar {
   position: fixed;
   top: 0;
@@ -865,8 +870,10 @@
   gap: 4px;
   padding: 0 8px;
   padding-top: env(safe-area-inset-top, 0);
-  background: rgba(13, 15, 22, 0.95);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--limn-glass);
+  backdrop-filter: blur(var(--limn-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--limn-blur)) saturate(180%);
+  border-bottom: 1px solid var(--limn-border);
   z-index: 3600;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   user-select: none;
@@ -898,31 +905,31 @@
 .limn-appbar-btn {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: var(--limn-radius);
   background: transparent;
   border: 1px solid transparent;
   color: var(--limn-text-1);
-  font-size: 17px;
+  font-size: 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   touch-action: manipulation;
+  transition: background 0.12s var(--limn-ease), border-color 0.12s var(--limn-ease), color 0.12s var(--limn-ease);
 }
 
 .limn-appbar-btn:hover {
-  background: rgba(110, 168, 254, 0.08);
+  background: var(--limn-bg-2);
+  border-color: var(--limn-border-2);
   color: var(--limn-text-0);
 }
 
 .limn-appbar-btn.active {
-  background: linear-gradient(135deg, rgba(110, 168, 254, 0.18), rgba(163, 113, 247, 0.18));
+  background: var(--limn-accent-soft);
   color: var(--limn-accent);
-  border-color: rgba(110, 168, 254, 0.4);
+  border-color: var(--limn-accent);
 }
-
-/* ---------- Status bar ---------- */
 
 .limn-statusbar {
   position: fixed;
@@ -933,8 +940,10 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 6px;
-  background: rgba(13, 15, 22, 0.98);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-top: 1px solid var(--limn-border);
   z-index: 3550;
   font-family: ui-monospace, monospace;
   font-size: 11px;
@@ -964,10 +973,11 @@
   cursor: pointer;
   touch-action: manipulation;
   white-space: nowrap;
+  transition: background 0.12s var(--limn-ease), color 0.12s var(--limn-ease);
 }
 
 .limn-statusbar-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--limn-bg-3);
   color: var(--limn-text-1);
 }
 
@@ -988,15 +998,15 @@
 .limn-statusbar-item.status-dirty  { color: var(--limn-warning); }
 .limn-statusbar-item.status-saving { color: var(--limn-accent); }
 
-/* ---------- Context menu ---------- */
-
 .limn-contextmenu {
   position: fixed;
   z-index: 8500;
   min-width: 200px;
-  background: rgba(18, 20, 29, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--limn-border-2);
+  border-radius: var(--limn-radius-lg);
   box-shadow: 0 20px 56px rgba(0, 0, 0, 0.7);
   padding: 6px;
   display: none;
@@ -1020,14 +1030,15 @@
   color: var(--limn-text-0);
   font-size: 13.5px;
   text-align: left;
-  border-radius: 9px;
+  border-radius: var(--limn-radius);
   cursor: pointer;
   touch-action: manipulation;
   position: relative;
+  transition: background 0.12s var(--limn-ease);
 }
 
 .limn-contextmenu-item:hover {
-  background: rgba(110, 168, 254, 0.09);
+  background: var(--limn-accent-soft);
 }
 
 .limn-contextmenu-item:disabled {
@@ -1048,7 +1059,7 @@
   font-size: 14px;
   flex-shrink: 0;
   border-radius: 6px;
-  background: rgba(110, 168, 254, 0.08);
+  background: var(--limn-accent-soft);
   color: var(--limn-accent);
 }
 
@@ -1072,8 +1083,6 @@
   margin: 5px 8px;
 }
 
-/* ---------- Preview ---------- */
-
 .limn-preview {
   position: fixed;
   inset: 0;
@@ -1092,8 +1101,10 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: rgba(13, 15, 22, 0.95);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--limn-border);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 }
 
@@ -1105,12 +1116,18 @@
 
 .limn-preview-btn {
   padding: 6px 12px;
-  border-radius: 7px;
+  border-radius: var(--limn-radius);
   background: var(--limn-bg-3);
   border: 1px solid var(--limn-border-2);
   color: var(--limn-text-0);
   font-size: 12px;
   cursor: pointer;
+  transition: background 0.12s var(--limn-ease), border-color 0.12s var(--limn-ease);
+}
+
+.limn-preview-btn:hover {
+  background: var(--limn-bg-4);
+  border-color: var(--limn-border-3);
 }
 
 .limn-preview-close {
@@ -1138,12 +1155,12 @@
   background: #fff;
 }
 
-/* ---------- New file picker ---------- */
-
 .limn-newfile-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 9000;
   display: none;
   align-items: center;
@@ -1158,9 +1175,11 @@
 .limn-newfile {
   width: 100%;
   max-width: 380px;
-  background: rgba(18, 20, 29, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--limn-border-2);
+  border-radius: var(--limn-radius-lg);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
   padding: 20px;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -1187,12 +1206,18 @@
   padding: 12px 14px;
   background: var(--limn-bg-2);
   border: 1px solid var(--limn-border-2);
-  border-radius: 12px;
+  border-radius: var(--limn-radius);
   cursor: pointer;
   color: var(--limn-text-0);
   font-size: 13px;
   text-align: left;
   touch-action: manipulation;
+  transition: background 0.12s var(--limn-ease), border-color 0.12s var(--limn-ease);
+}
+
+.limn-newfile-item:hover {
+  background: var(--limn-bg-3);
+  border-color: var(--limn-border-3);
 }
 
 .limn-newfile-icon {
@@ -1219,19 +1244,25 @@
   padding: 12px;
   background: transparent;
   border: 1px solid var(--limn-border-2);
-  border-radius: 10px;
+  border-radius: var(--limn-radius);
   color: var(--limn-text-1);
   font-size: 13px;
   cursor: pointer;
   touch-action: manipulation;
+  transition: background 0.12s var(--limn-ease), border-color 0.12s var(--limn-ease);
 }
 
-/* ---------- Language picker ---------- */
+.limn-newfile-cancel:hover {
+  background: var(--limn-bg-2);
+  border-color: var(--limn-border-3);
+}
 
 .limn-langpick-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 9000;
   display: none;
   align-items: center;
@@ -1246,9 +1277,11 @@
 .limn-langpick {
   width: 100%;
   max-width: 320px;
-  background: rgba(18, 20, 29, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--limn-border-2);
+  border-radius: var(--limn-radius-lg);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
   padding: 16px;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -1278,13 +1311,14 @@
   color: var(--limn-text-0);
   font-size: 14px;
   text-align: left;
-  border-radius: 10px;
+  border-radius: var(--limn-radius);
   cursor: pointer;
   touch-action: manipulation;
+  transition: background 0.12s var(--limn-ease);
 }
 
 .limn-langpick-item:hover {
-  background: rgba(110, 168, 254, 0.08);
+  background: var(--limn-accent-soft);
 }
 
 .limn-langpick-item .check {
@@ -1297,7 +1331,7 @@
 }
 
 .limn-langpick-item.active {
-  background: rgba(110, 168, 254, 0.12);
+  background: var(--limn-accent-soft);
   color: var(--limn-accent);
 }
 
@@ -1306,14 +1340,18 @@
   padding: 11px;
   background: transparent;
   border: 1px solid var(--limn-border-2);
-  border-radius: 10px;
+  border-radius: var(--limn-radius);
   color: var(--limn-text-1);
   font-size: 13px;
   cursor: pointer;
   touch-action: manipulation;
+  transition: background 0.12s var(--limn-ease), border-color 0.12s var(--limn-ease);
 }
 
-/* ---------- Game pause ---------- */
+.limn-langpick-cancel:hover {
+  background: var(--limn-bg-2);
+  border-color: var(--limn-border-3);
+}
 
 body.game-open .limn-fab,
 body.game-open .limn-menu,
@@ -1346,19 +1384,17 @@ body.game-open .limn-contextmenu {
   }
 }
 
-/* ---------- Autocomplete ---------- */
-
 .limn-autocomplete {
   position: fixed;
   z-index: 8000;
   min-width: 200px;
   max-width: 320px;
   max-height: 240px;
-  background: rgba(18, 20, 29, 0.98);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--limn-border-2);
+  border-radius: var(--limn-radius-lg);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
   padding: 4px;
   display: none;
@@ -1419,7 +1455,7 @@ body.game-open .limn-contextmenu {
   font-size: 10px;
   font-weight: 700;
   flex-shrink: 0;
-  background: rgba(110, 168, 254, 0.12);
+  background: var(--limn-accent-soft);
   color: var(--limn-accent);
 }
 
@@ -1471,8 +1507,6 @@ body.game-open .limn-autocomplete {
   background: rgba(18, 20, 29, 0.99) !important;
 }
 
-/* ---------- Command Palette ---------- */
-
 .limn-cmd-backdrop {
   position: fixed;
   inset: 0;
@@ -1495,9 +1529,11 @@ body.game-open .limn-autocomplete {
 .limn-cmd {
   width: 100%;
   max-width: 520px;
-  background: rgba(18, 20, 29, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--limn-border-2);
+  border-radius: var(--limn-radius-lg);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
   overflow: hidden;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -1508,7 +1544,7 @@ body.game-open .limn-autocomplete {
   padding: 16px 20px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--limn-border);
   color: var(--limn-text-0);
   font-size: 15px;
   font-family: inherit;
@@ -1546,6 +1582,7 @@ body.game-open .limn-autocomplete {
   font-size: 13.5px;
   user-select: none;
   -webkit-user-select: none;
+  transition: background 0.12s var(--limn-ease);
 }
 
 .limn-cmd-item.selected {
@@ -1600,8 +1637,6 @@ body.game-open .limn-autocomplete {
   font-size: 13px;
 }
 
-/* ---------- Breadcrumb ---------- */
-
 .limn-breadcrumb {
   position: fixed;
   left: 0;
@@ -1611,8 +1646,10 @@ body.game-open .limn-autocomplete {
   align-items: center;
   gap: 2px;
   padding: 0 10px;
-  background: rgba(13, 15, 22, 0.92);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--limn-glass);
+  backdrop-filter: blur(var(--limn-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--limn-blur)) saturate(180%);
+  border-bottom: 1px solid var(--limn-border);
   z-index: 249;
   font-family: ui-monospace, monospace;
   font-size: 11.5px;
@@ -1642,10 +1679,11 @@ body.game-open .limn-autocomplete {
   cursor: pointer;
   flex-shrink: 0;
   touch-action: manipulation;
+  transition: background 0.12s var(--limn-ease), color 0.12s var(--limn-ease);
 }
 
 .limn-breadcrumb-item:not(.static):hover {
-  background: rgba(110, 168, 254, 0.1);
+  background: var(--limn-accent-soft);
   color: var(--limn-accent);
 }
 
@@ -1664,8 +1702,6 @@ body.game-open .limn-autocomplete {
   flex-shrink: 0;
   padding: 0 1px;
 }
-
-/* ---------- Symbol picker ---------- */
 
 .limn-sym-backdrop {
   position: fixed;
@@ -1689,9 +1725,11 @@ body.game-open .limn-autocomplete {
 .limn-sym {
   width: 100%;
   max-width: 520px;
-  background: rgba(18, 20, 29, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--limn-border-2);
+  border-radius: var(--limn-radius-lg);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
   overflow: hidden;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -1702,7 +1740,7 @@ body.game-open .limn-autocomplete {
   padding: 16px 20px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--limn-border);
   color: var(--limn-text-0);
   font-size: 15px;
   font-family: inherit;
@@ -1741,6 +1779,7 @@ body.game-open .limn-autocomplete {
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
+  transition: background 0.12s var(--limn-ease);
 }
 
 .limn-sym-item.selected {
@@ -1758,7 +1797,7 @@ body.game-open .limn-autocomplete {
   font-size: 12px;
   font-weight: 700;
   flex-shrink: 0;
-  background: rgba(110, 168, 254, 0.12);
+  background: var(--limn-accent-soft);
   color: var(--limn-accent);
   font-family: ui-monospace, monospace;
 }
@@ -1800,15 +1839,15 @@ body.game-open .limn-autocomplete {
   font-size: 13px;
 }
 
-/* ---------- Stats popup ---------- */
-
 .limn-stats-popup {
   position: fixed;
   z-index: 8600;
   min-width: 220px;
-  background: rgba(18, 20, 29, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--limn-border-2);
+  border-radius: var(--limn-radius-lg);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
   padding: 12px 14px;
   font-family: ui-monospace, monospace;
@@ -1835,6 +1874,7 @@ body.game-open .limn-autocomplete {
 .limn-stats-row .value {
   color: var(--limn-text-0);
 }
+
 .limn-statusbar-item.wrap-on {
   color: var(--limn-success);
 }
@@ -1842,6 +1882,7 @@ body.game-open .limn-autocomplete {
 .limn-statusbar-item.wrap-off {
   color: var(--limn-warning);
 }
+
 .limn-statusbar-item.diag-ok { color: var(--limn-success); }
 .limn-statusbar-item.diag-warn { color: var(--limn-warning); }
 .limn-statusbar-item.diag-err { color: var(--limn-danger); }
@@ -1853,9 +1894,11 @@ body.game-open .limn-autocomplete {
   max-width: 380px;
   max-height: 50vh;
   overflow-y: auto;
-  background: rgba(18, 20, 29, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--limn-border-2);
+  border-radius: var(--limn-radius-lg);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
   padding: 6px;
   font-family: ui-monospace, monospace;
@@ -1881,10 +1924,11 @@ body.game-open .limn-autocomplete {
   padding: 8px 10px;
   border-radius: 7px;
   cursor: pointer;
+  transition: background 0.12s var(--limn-ease);
 }
 
 .limn-diag-row:hover {
-  background: rgba(110, 168, 254, 0.08);
+  background: var(--limn-accent-soft);
 }
 
 .limn-diag-icon {
@@ -1906,11 +1950,12 @@ body.game-open .limn-autocomplete {
   flex: 1;
   line-height: 1.4;
 }
+
 .limn-minimap {
   position: absolute;
   z-index: 10;
-  background: rgba(0, 0, 0, 0.35);
-  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.4);
+  border-left: 1px solid var(--limn-border);
   overflow: hidden;
   pointer-events: auto;
   touch-action: none;
@@ -1929,8 +1974,10 @@ body.game-open .limn-autocomplete {
   width: 100%;
   height: 100%;
 }
+
 .limn-statusbar-item.minimap-on { color: var(--limn-accent); }
 .limn-statusbar-item.minimap-off { color: var(--limn-text-3); }
+
 .limn-snippet-menu {
   position: fixed;
   z-index: 8600;
@@ -1938,9 +1985,11 @@ body.game-open .limn-autocomplete {
   max-width: 320px;
   max-height: 60vh;
   overflow-y: auto;
-  background: rgba(18, 20, 29, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--limn-border-2);
+  border-radius: var(--limn-radius-lg);
   box-shadow: 0 20px 56px rgba(0, 0, 0, 0.7);
   padding: 8px;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -1973,16 +2022,18 @@ body.game-open .limn-autocomplete {
   text-align: left;
   border-radius: 8px;
   cursor: pointer;
+  transition: background 0.12s var(--limn-ease), color 0.12s var(--limn-ease);
 }
 
 .limn-snippet-menu-item:hover {
-  background: rgba(110, 168, 254, 0.1);
+  background: var(--limn-accent-soft);
   color: var(--limn-accent);
 }
+
 .limn-diag-fix {
   padding: 3px 8px;
   border-radius: 6px;
-  background: rgba(110, 168, 254, 0.15);
+  background: var(--limn-accent-soft);
   border: 1px solid rgba(110, 168, 254, 0.4);
   color: var(--limn-accent);
   font-size: 11px;
@@ -1990,10 +2041,11 @@ body.game-open .limn-autocomplete {
   cursor: pointer;
   margin-left: 6px;
   flex-shrink: 0;
+  transition: background 0.12s var(--limn-ease);
 }
 
 .limn-diag-fix:hover {
-  background: rgba(110, 168, 254, 0.25);
+  background: rgba(110, 168, 254, 0.22);
 }
 
 .limn-quickfix {
@@ -2001,9 +2053,11 @@ body.game-open .limn-autocomplete {
   z-index: 8700;
   min-width: 220px;
   max-width: 320px;
-  background: rgba(18, 20, 29, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--limn-border-2);
+  border-radius: var(--limn-radius-lg);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
   padding: 6px;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -2035,18 +2089,20 @@ body.game-open .limn-autocomplete {
   text-align: left;
   border-radius: 8px;
   cursor: pointer;
+  transition: background 0.12s var(--limn-ease), color 0.12s var(--limn-ease);
 }
 
 .limn-quickfix-item:hover {
-  background: rgba(110, 168, 254, 0.1);
+  background: var(--limn-accent-soft);
   color: var(--limn-accent);
 }
-/* ---------- Goto line picker ---------- */
 
 .limn-goto-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 9600;
   display: none;
   align-items: center;
@@ -2061,9 +2117,11 @@ body.game-open .limn-autocomplete {
 .limn-goto {
   width: 100%;
   max-width: 320px;
-  background: rgba(18, 20, 29, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--limn-border-2);
+  border-radius: var(--limn-radius-lg);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
   padding: 18px;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -2081,17 +2139,19 @@ body.game-open .limn-autocomplete {
   padding: 12px 14px;
   background: var(--limn-bg-1);
   border: 1px solid var(--limn-border-2);
-  border-radius: 10px;
+  border-radius: var(--limn-radius);
   color: var(--limn-text-0);
   font-size: 15px;
   font-family: ui-monospace, monospace;
   outline: none;
   box-sizing: border-box;
   margin-bottom: 14px;
+  transition: border-color 0.15s var(--limn-ease), box-shadow 0.15s var(--limn-ease);
 }
 
 .limn-goto-input:focus {
   border-color: var(--limn-accent);
+  box-shadow: 0 0 0 3px var(--limn-accent-soft);
 }
 
 .limn-goto-actions {
@@ -2103,12 +2163,13 @@ body.game-open .limn-autocomplete {
 .limn-goto-go {
   flex: 1;
   padding: 11px;
-  border-radius: 10px;
+  border-radius: var(--limn-radius);
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
   touch-action: manipulation;
+  transition: background 0.12s var(--limn-ease), border-color 0.12s var(--limn-ease), transform 0.08s var(--limn-ease);
 }
 
 .limn-goto-cancel {
@@ -2117,13 +2178,21 @@ body.game-open .limn-autocomplete {
   color: var(--limn-text-1);
 }
 
+.limn-goto-cancel:hover {
+  background: var(--limn-bg-2);
+  border-color: var(--limn-border-3);
+}
+
 .limn-goto-go {
   background: linear-gradient(135deg, var(--limn-accent), var(--limn-accent-2));
   border: none;
   color: #fff;
+  box-shadow: 0 4px 16px rgba(110, 168, 254, 0.35);
 }
 
-/* ---------- Status bar scroll-top ---------- */
+.limn-goto-go:hover {
+  box-shadow: 0 6px 22px rgba(110, 168, 254, 0.5);
+}
 
 .limn-statusbar-item.scrolltop {
   color: var(--limn-accent);
@@ -2131,16 +2200,17 @@ body.game-open .limn-autocomplete {
   font-size: 14px;
   padding: 0 10px;
 }
-/* ---------- Hover tooltip ---------- */
 
 .limn-hover-tooltip {
   position: fixed;
   z-index: 8800;
   max-width: 320px;
   padding: 8px 12px;
-  background: rgba(18, 20, 29, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
+  background: var(--limn-glass-2);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--limn-border-2);
+  border-radius: var(--limn-radius);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
   color: var(--limn-text-0);
   font-family: ui-monospace, monospace;
