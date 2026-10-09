@@ -760,65 +760,6 @@ let currentGameData = null;
 let isLoadingFromCache = false;
 let zoomLevel = 1;
 
-const previewBlobs = [];
-
-function revokePreviewBlobs() {
-  while (previewBlobs.length) {
-    const url = previewBlobs.pop();
-    try { URL.revokeObjectURL(url); } catch (e) {}
-  }
-}
-
-function makeBlobUrl(content, mime) {
-  const blob = new Blob([content], { type: (mime || 'text/plain') + ';charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  previewBlobs.push(url);
-  return url;
-}
-
-function mimeFor(name) {
-  const n = (name || '').toLowerCase();
-  if (n.endsWith('.js') || n.endsWith('.mjs')) return 'text/javascript';
-  if (n.endsWith('.css')) return 'text/css';
-  if (n.endsWith('.html') || n.endsWith('.htm')) return 'text/html';
-  if (n.endsWith('.json')) return 'application/json';
-  if (n.endsWith('.svg')) return 'image/svg+xml';
-  return 'text/plain';
-}
-
-function escapeRegExp(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function rewriteRelativeUrls(html, fileMap) {
-  let out = html;
-  const names = Object.keys(fileMap);
-  names.sort((a, b) => b.length - a.length);
-
-  for (const name of names) {
-    const url = fileMap[name];
-    const esc = escapeRegExp(name);
-    const reDouble = new RegExp('(src|href)\\s*=\\s*"(' + esc + ')"', 'g');
-    const reSingle = new RegExp("(src|href)\\s*=\\s*'(" + esc + ")'", 'g');
-    out = out.replace(reDouble, '$1="' + url + '"');
-    out = out.replace(reSingle, "$1='" + url + "'");
-  }
-
-  return out;
-}
-
-function ensureBase(html, baseHref) {
-  const baseTag = '<base href="' + baseHref + '">';
-  if (/<base\s/i.test(html)) return html;
-  if (/<head[^>]*>/i.test(html)) {
-    return html.replace(/<head([^>]*)>/i, '<head$1>' + baseTag);
-  }
-  if (/<html[^>]*>/i.test(html)) {
-    return html.replace(/<html([^>]*)>/i, '<html$1><head>' + baseTag + '</head>');
-  }
-  return baseTag + html;
-}
-
 function isPhone() {
   const ua = navigator.userAgent || '';
   const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
@@ -950,7 +891,6 @@ async function boot() {
 }
 
 function buildCacheEntry(data) {
-  const config = data.config || {};
   return {
     id: data.id || null,
     slug: data.slug || slug,
@@ -962,11 +902,7 @@ function buildCacheEntry(data) {
     engine_version: data.engine_version || 'v4',
     plays: data.plays || 0,
     description: data.description || '',
-    config: {
-      files: config.files || null,
-      entry: config.entry || null,
-      assets: config.assets || null
-    },
+    config: data.config || null,
     cached_at: Date.now(),
   };
 }
@@ -1054,47 +990,6 @@ function applyGameData(data, fromCache) {
 }
 
 function renderGame(data) {
-  revokePreviewBlobs();
-
-  const config = data.config || {};
-  const multiFiles = config.files && config.entry && typeof config.files === 'object';
-
-  if (multiFiles) {
-    log('Multi-file game detected. Entry: ' + config.entry);
-
-    const entryName = config.entry;
-    const entryHtml = config.files[entryName] || '';
-    if (!entryHtml) {
-      stage.innerHTML = '<div class="err">Entry file "' + entryName + '" is missing from the published bundle.</div>';
-      return;
-    }
-
-    const fileMap = {};
-    for (const name of Object.keys(config.files)) {
-      if (name === entryName) continue;
-      fileMap[name] = makeBlobUrl(config.files[name] || '', mimeFor(name));
-    }
-
-    let html = entryHtml;
-    html = ensureBase(html, location.origin + '/editor/');
-    html = rewriteRelativeUrls(html, fileMap);
-
-    const entryUrl = makeBlobUrl(html, 'text/html');
-
-    stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" allowfullscreen id="gameFrame"></iframe>';
-    const frame = document.getElementById('gameFrame');
-
-    frame.addEventListener('load', () => {
-      setTimeout(applyZoom, 60);
-    });
-
-    frame.src = entryUrl;
-
-    updateZoomLabel();
-    log('Multi-file iframe rendered with ' + Object.keys(fileMap).length + ' extra file(s)');
-    return;
-  }
-
   const userCode = data.code || '';
   const safeUserCode = userCode.replace(/<\/script>/gi, '<\\/script>');
 
@@ -1106,23 +1001,10 @@ function renderGame(data) {
 
   log('Using engine URL: ' + engineUrl + ' (' + engineFile + ')');
 
-  const assets = (config.assets) || { head: '', css: '', scripts: '' };
-  const headExtra = assets.head || '';
-  const cssExtra = assets.css || '';
-  const scriptUrls = (assets.scripts || '')
-    .split('\n')
-    .map(s => s.trim())
-    .filter(s => s.length > 0);
-  const scriptTags = scriptUrls.map(u => '<script src="' + u + '"><\/script>').join('');
-
   const html = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width,initial-scale=1">' +
     '<title>' + escapeHtml(data.title) + '</title>' +
-    '<style>html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%}canvas{display:block;margin:0 auto}' +
-    (cssExtra ? cssExtra : '') +
-    '</style>' +
-    headExtra +
-    scriptTags +
+    '<style>html,body{margin:0;padding:0;background:#0a0a0a;overflow:hidden;height:100%}canvas{display:block;margin:0 auto}</style>' +
     '</head><body>' +
     '<script src="' + engineUrl + '"><\/script>' +
     '<script>' +
@@ -1134,8 +1016,6 @@ function renderGame(data) {
     '<\/script>' +
     '</body></html>';
 
-  const url = makeBlobUrl(html, 'text/html');
-
   stage.innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" allowfullscreen id="gameFrame"></iframe>';
   const frame = document.getElementById('gameFrame');
 
@@ -1143,10 +1023,10 @@ function renderGame(data) {
     setTimeout(applyZoom, 60);
   });
 
-  frame.src = url;
+  frame.srcdoc = html;
 
   updateZoomLabel();
-  log('Single-file iframe rendered');
+  log('Iframe rendered');
 }
 
 window.addEventListener('message', (e) => {
@@ -1302,9 +1182,18 @@ function wireButtons(data) {
   };
 
   document.getElementById('forkBtn').onclick = () => {
-    localStorage.setItem('limn_fork_code', data.code || '');
+    const cfg = data.config || {};
+    if (cfg.files && cfg.entry && typeof cfg.files === 'object') {
+      localStorage.setItem('limn_fork_files', JSON.stringify(cfg.files));
+      localStorage.setItem('limn_fork_entry', cfg.entry);
+      localStorage.removeItem('limn_fork_code');
+    } else {
+      localStorage.setItem('limn_fork_code', data.code || '');
+      localStorage.removeItem('limn_fork_files');
+      localStorage.removeItem('limn_fork_entry');
+    }
     localStorage.setItem('limn_fork_title', data.title || 'forked');
-    location.href = '/editor/?fork=1';
+    location.href = '/editor/limn-demo.html?fork=1';
   };
 
   const offlineBtn = document.getElementById('offlineBtn');
