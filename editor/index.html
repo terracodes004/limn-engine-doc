@@ -96,6 +96,11 @@
     0%   { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
+  @keyframes preview-glow {
+    0%   { opacity: 0.3; }
+    50%  { opacity: 0.65; }
+    100% { opacity: 0.3; }
+  }
 
   .limn-toolbar { display: flex !important; }
   .limn-toolbar.hidden { display: none !important; }
@@ -1080,65 +1085,193 @@
   }
   dialog#runDialog::backdrop { background: #000; }
 
-  .dialog-close {
+  .dialog-shell {
     position: absolute;
-    top: 16px;
-    left: 16px;
-    z-index: 400500;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    background: rgba(24,27,38,0.95);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-size: 16px;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(110,168,254,0.14), transparent 45%),
+      radial-gradient(circle at 100% 100%, rgba(163,113,247,0.12), transparent 45%),
+      #05060c;
+  }
+
+  .dialog-chrome {
+    flex-shrink: 0;
+    height: 44px;
+    padding: 0 56px 0 60px;
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    background: rgba(13,15,22,0.98);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .dialog-chrome::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 8%;
+    right: 8%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent-2), transparent);
+    opacity: 0.7;
+    animation: preview-glow 4s ease-in-out infinite;
+  }
+
+  .dialog-chrome-dots {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .dialog-chrome-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dialog-chrome-dots span:nth-child(1) { background: #ff5f57; }
+  .dialog-chrome-dots span:nth-child(2) { background: #febc2e; }
+  .dialog-chrome-dots span:nth-child(3) { background: #28c840; }
+
+  .dialog-chrome-title {
+    flex: 1;
+    min-width: 0;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12.5px;
+    color: var(--text-1);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dialog-chrome-title::before {
+    content: "▸";
+    color: var(--accent);
+    font-size: 10px;
   }
 
   .dialog-stage {
-    position: absolute;
-    inset: 0;
+    flex: 1;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: #000;
+    padding: 22px;
   }
+
   .dialog-frame-wrap {
+    position: relative;
     width: 100%;
     height: 100%;
     transform-origin: center center;
     transition: transform 0.15s ease;
     will-change: transform;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    box-shadow:
+      0 0 0 1px rgba(110,168,254,0.22),
+      0 0 0 4px rgba(110,168,254,0.06),
+      0 24px 80px rgba(0,0,0,0.8);
   }
+
+  .dialog-frame-wrap::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: 12px;
+    z-index: 5;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  }
+
+  .dialog-frame-wrap::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: 12px;
+    z-index: 4;
+    background:
+      linear-gradient(180deg, rgba(110,168,254,0.08), transparent 14%),
+      linear-gradient(0deg, rgba(163,113,247,0.06), transparent 14%);
+  }
+
   .dialog-frame-wrap iframe {
     width: 100%;
     height: 100%;
     border: 0;
     display: block;
     background: #000;
+    position: relative;
+    z-index: 2;
+  }
+
+  .dialog-frame-corner {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-color: var(--accent);
+    border-style: solid;
+    border-width: 0;
+    z-index: 6;
+    pointer-events: none;
+    opacity: 0.7;
+  }
+  .dialog-frame-corner.tl { top: 8px; left: 8px; border-top-width: 2px; border-left-width: 2px; border-top-left-radius: 6px; }
+  .dialog-frame-corner.tr { top: 8px; right: 8px; border-top-width: 2px; border-right-width: 2px; border-top-right-radius: 6px; }
+  .dialog-frame-corner.bl { bottom: 8px; left: 8px; border-bottom-width: 2px; border-left-width: 2px; border-bottom-left-radius: 6px; }
+  .dialog-frame-corner.br { bottom: 8px; right: 8px; border-bottom-width: 2px; border-right-width: 2px; border-bottom-right-radius: 6px; }
+
+  .dialog-close {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    z-index: 400500;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: rgba(24,27,38,0.95);
+    color: #fff;
+    border: 1px solid var(--border-2);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dialog-close:hover {
+    background: var(--bg-4);
+    border-color: var(--border-3);
   }
 
   .dialog-controls {
     position: absolute;
-    bottom: 20px;
-    right: 20px;
+    top: 6px;
+    right: 8px;
     display: flex;
     gap: var(--s-2);
     z-index: 400500;
     align-items: center;
   }
+
   .dialog-controls button {
-    width: 44px;
-    height: 44px;
+    width: 32px;
+    height: 32px;
     padding: 0;
     background: rgba(24,27,38,0.95);
     color: var(--text-0);
     border: 1px solid var(--border-2);
-    border-radius: var(--radius);
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 600;
     display: flex;
     align-items: center;
@@ -1153,17 +1286,17 @@
   .dialog-controls button:active { transform: scale(0.96); }
 
   .dialog-zoom-display {
-    padding: 0 14px;
-    height: 44px;
-    min-width: 72px;
+    padding: 0 10px;
+    height: 32px;
+    min-width: 56px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: rgba(24,27,38,0.95);
     color: var(--text-0);
     border: 1px solid var(--border-2);
-    border-radius: var(--radius);
-    font-size: 13px;
+    border-radius: 8px;
+    font-size: 11.5px;
     font-weight: 700;
     font-family: ui-monospace, "SF Mono", Menlo, monospace;
     cursor: pointer;
@@ -1341,8 +1474,8 @@
     .asset-icon { width: 32px; height: 32px; font-size: 15px; }
     .asset-body { padding: 0 var(--s-3) var(--s-3); }
     .build-card { padding: var(--s-4); }
-    .dialog-controls button { width: 40px; height: 40px; font-size: 16px; }
-    .dialog-zoom-display { height: 40px; min-width: 64px; font-size: 12px; }
+    .dialog-chrome { padding: 0 48px 0 52px; }
+    .dialog-stage { padding: 12px; }
     .limn-tabs-run,
     .limn-tabs-extra { width: 38px; font-size: 14px; }
   }
@@ -1551,17 +1684,29 @@
 </div>
 
 <dialog id="runDialog">
-  <button class="dialog-close" id="dialogClose" type="button">✕</button>
-  <div class="dialog-stage">
-    <div class="dialog-frame-wrap" id="dialogFrameWrap">
-      <iframe id="gameFrame" allowfullscreen srcdoc="<center style='padding-top:20vh;color:#8b949e;font-family:system-ui'><h1>Loading…</h1></center>"></iframe>
+  <div class="dialog-shell">
+    <div class="dialog-chrome">
+      <button class="dialog-close" id="dialogClose" type="button">✕</button>
+      <div class="dialog-chrome-dots">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="dialog-chrome-title" id="dialogTitle">preview</div>
+      <div class="dialog-controls">
+        <button id="zoomOutBtn" type="button" title="Zoom out">−</button>
+        <button class="dialog-zoom-display" id="zoomDisplay" type="button" title="Reset zoom">100%</button>
+        <button id="zoomInBtn" type="button" title="Zoom in">+</button>
+        <button id="fsBtn" type="button" title="Fullscreen">⛶</button>
+      </div>
     </div>
-  </div>
-  <div class="dialog-controls">
-    <button id="zoomOutBtn" type="button" title="Zoom out">−</button>
-    <button class="dialog-zoom-display" id="zoomDisplay" type="button" title="Reset zoom">100%</button>
-    <button id="zoomInBtn" type="button" title="Zoom in">+</button>
-    <button id="fsBtn" type="button" title="Fullscreen">⛶</button>
+    <div class="dialog-stage">
+      <div class="dialog-frame-wrap" id="dialogFrameWrap">
+        <div class="dialog-frame-corner tl"></div>
+        <div class="dialog-frame-corner tr"></div>
+        <div class="dialog-frame-corner bl"></div>
+        <div class="dialog-frame-corner br"></div>
+        <iframe id="gameFrame" allowfullscreen srcdoc="<center style='padding-top:20vh;color:#8b949e;font-family:system-ui'><h1>Loading…</h1></center>"></iframe>
+      </div>
+    </div>
   </div>
 </dialog>
 
@@ -1574,6 +1719,9 @@ const supaMod = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const createClient = supaMod.createClient;
 const bridgeMod = await import("/editor/limn-bridge.js");
 const LimnEditorComponent = bridgeMod.LimnEditorComponent;
+const mdMod = await import("/editor/core/markdown.js");
+const renderMarkdown = mdMod.renderMarkdown;
+const wrapMarkdownDocument = mdMod.wrapMarkdownDocument;
 
 const SUPABASE_URL = "https://pjtpesdhjfvcidfkxord.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqdHBlc2RoamZ2Y2lkZmt4b3JkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxNDUyNDUsImV4cCI6MjEwMzcyMTI0NX0.110aDXEqJ4PxjKWNv1Z2YNR8frklg3WW1u0HePDoN38";
@@ -1616,49 +1764,264 @@ function setDescription(value) {
   window.currentConfig.description = value || "";
 }
 
-function isHtmlEntry(name) {
-  return /\.html?$/i.test(name || "");
+function escapeScriptContent(code) {
+  return String(code || "").replace(/<\/script>/gi, "<\\/script>");
 }
 
-function extractScriptSrc(html) {
-  const re = /<script\b[^>]*\bsrc\s*=\s*(?:"([^"]+)"|'([^']+)')[^>]*>/gi;
-  const results = [];
-  let match;
-  while ((match = re.exec(html)) !== null) {
-    const src = String(match[1] || match[2] || "").trim();
-    if (!src) continue;
-    if (/^(?:[a-z]+:)?\/\//i.test(src)) continue;
-    if (src.startsWith("data:") || src.startsWith("blob:")) continue;
-    results.push(src.replace(/^\.\//, "").replace(/^\//, ""));
-  }
-  return results;
+function extOf(name) {
+  if (!name) return "";
+  const dot = name.lastIndexOf(".");
+  if (dot === -1) return "";
+  return name.slice(dot + 1).toLowerCase();
+}
+
+function isHtmlFile(name) {
+  const e = extOf(name);
+  return e === "html" || e === "htm";
+}
+
+function isCssFile(name) {
+  return extOf(name) === "css";
+}
+
+function isMdFile(name) {
+  const e = extOf(name);
+  return e === "md" || e === "markdown";
+}
+
+function isJsonFile(name) {
+  return extOf(name) === "json";
 }
 
 function findDocByName(name) {
   if (!component || !component.editor || !component.editor.documents) return null;
   const items = component.editor.documents.items || [];
+  const clean = String(name || "").replace(/^\.\//, "").replace(/^\//, "");
   for (const doc of items) {
-    if (doc.name === name) return doc;
+    if (doc.name === clean) return doc;
   }
   return null;
 }
 
-function resolveRunTarget() {
-  const activeDoc = component && component.editor ? component.editor.activeDoc : null;
-  if (!activeDoc) return null;
+function listDocs() {
+  if (!component || !component.editor || !component.editor.documents) return [];
+  return component.editor.documents.items || [];
+}
 
-  const name = activeDoc.name || "";
-  if (!isHtmlEntry(name)) {
-    return activeDoc;
+function inlineCompanions(html, extras) {
+  let out = String(html || "");
+  const map = extras || {};
+
+  out = out.replace(/<script\b([^>]*?)\bsrc\s*=\s*(?:"([^"]+)"|'([^']+)')([^>]*?)>\s*<\/script>/gi, function (match, pre, dbl, sgl, post) {
+    const src = String(dbl || sgl || "").trim();
+    if (!src) return match;
+    if (/^(?:[a-z]+:)?\/\//i.test(src)) return match;
+    if (src.startsWith("data:") || src.startsWith("blob:")) return match;
+    if (src.startsWith("/")) return match;
+    const clean = src.replace(/^\.\//, "");
+    if (map[clean] == null) return match;
+    const content = escapeScriptContent(map[clean]);
+    return "<script>" + content + "<\/script>";
+  });
+
+  out = out.replace(/<link\b([^>]*?)\brel\s*=\s*["']stylesheet["']([^>]*?)\bhref\s*=\s*(?:"([^"]+)"|'([^']+)')([^>]*?)\/?>/gi, function (match, a, b, dbl, sgl, c) {
+    const href = String(dbl || sgl || "").trim();
+    if (!href) return match;
+    if (/^(?:[a-z]+:)?\/\//i.test(href)) return match;
+    if (href.startsWith("data:") || href.startsWith("blob:")) return match;
+    if (href.startsWith("/")) return match;
+    const clean = href.replace(/^\.\//, "");
+    if (map[clean] == null) return match;
+    return "<style>" + map[clean] + "</style>";
+  });
+
+  out = out.replace(/<link\b([^>]*?)\bhref\s*=\s*(?:"([^"]+)"|'([^']+)')([^>]*?)\brel\s*=\s*["']stylesheet["']([^>]*?)\/?>/gi, function (match, a, dbl, sgl, b, c) {
+    const href = String(dbl || sgl || "").trim();
+    if (!href) return match;
+    if (/^(?:[a-z]+:)?\/\//i.test(href)) return match;
+    if (href.startsWith("data:") || href.startsWith("blob:")) return match;
+    if (href.startsWith("/")) return match;
+    const clean = href.replace(/^\.\//, "");
+    if (map[clean] == null) return match;
+    return "<style>" + map[clean] + "</style>";
+  });
+
+  return out;
+}
+
+function ensureEngineScript(html, engineCode) {
+  let out = String(html || "");
+  const hasEpic = /epic\.js|tcjsgame-v2\.js|tcjsgame-v3\.js/.test(out);
+  const hasEngineInline = false;
+  if (hasEpic || hasEngineInline) return out;
+
+  const engineTag = "<script src=\"/editor/epic.js\"><\/script>";
+
+  if (/<head[^>]*>/i.test(out)) {
+    out = out.replace(/<head([^>]*)>/i, "<head$1>" + engineTag);
+  } else if (/<body[^>]*>/i.test(out)) {
+    out = out.replace(/<body([^>]*)>/i, "<head>" + engineTag + "</head><body$1>");
+  } else {
+    out = engineTag + out;
   }
 
-  const html = activeDoc.getValue() || "";
-  const srcs = extractScriptSrc(html);
-  for (const src of srcs) {
-    const found = findDocByName(src);
-    if (found) return found;
+  return out;
+}
+
+function ensureConsoleForwarder(html) {
+  let out = String(html || "");
+  if (/data-limn-forwarder/.test(out)) return out;
+
+  const forwarder = "<script data-limn-forwarder=\"1\">\n" +
+    "(function(){\n" +
+    "  function send(kind, args, stack) {\n" +
+    "    try {\n" +
+    "      var serialized = [];\n" +
+    "      for (var i = 0; i < args.length; i++) {\n" +
+    "        var a = args[i];\n" +
+    "        if (a === undefined) serialized.push(\"undefined\");\n" +
+    "        else if (a === null) serialized.push(\"null\");\n" +
+    "        else if (typeof a === \"function\") serialized.push(\"[Function \" + (a.name || \"anonymous\") + \"]\");\n" +
+    "        else if (a instanceof Error) serialized.push(a.name + \": \" + a.message);\n" +
+    "        else if (typeof a === \"object\") {\n" +
+    "          try { serialized.push(JSON.stringify(a)); } catch (e) { serialized.push(String(a)); }\n" +
+    "        }\n" +
+    "        else serialized.push(String(a));\n" +
+    "      }\n" +
+    "      window.parent.postMessage({ type: \"console\", kind: kind, args: serialized, stack: stack || null }, \"*\");\n" +
+    "    } catch (e) {}\n" +
+    "  }\n" +
+    "  var origLog = console.log;\n" +
+    "  var origWarn = console.warn;\n" +
+    "  var origError = console.error;\n" +
+    "  var origInfo = console.info;\n" +
+    "  console.log = function() { origLog.apply(console, arguments); send(\"log\", arguments, null); };\n" +
+    "  console.warn = function() { origWarn.apply(console, arguments); send(\"warn\", arguments, null); };\n" +
+    "  console.error = function() { origError.apply(console, arguments); send(\"error\", arguments, null); };\n" +
+    "  console.info = function() { origInfo.apply(console, arguments); send(\"info\", arguments, null); };\n" +
+    "  window.addEventListener(\"error\", function(e) {\n" +
+    "    var msg = e.message || \"Unknown error\";\n" +
+    "    var stack = e.error && e.error.stack ? e.error.stack : null;\n" +
+    "    send(\"error\", [msg], stack);\n" +
+    "  });\n" +
+    "  window.addEventListener(\"unhandledrejection\", function(e) {\n" +
+    "    var r = e.reason;\n" +
+    "    var msg = r && r.message ? r.message : String(r);\n" +
+    "    var stack = r && r.stack ? r.stack : null;\n" +
+    "    send(\"error\", [\"Unhandled promise rejection: \" + msg], stack);\n" +
+    "  });\n" +
+    "})();\n" +
+    "<\/script>";
+
+  if (/<head[^>]*>/i.test(out)) {
+    out = out.replace(/<head([^>]*)>/i, "<head$1>" + forwarder);
+  } else if (/<body[^>]*>/i.test(out)) {
+    out = out.replace(/<body([^>]*)>/i, "<body$1>" + forwarder);
+  } else {
+    out = forwarder + out;
+  }
+
+  return out;
+}
+
+function collectExtras(excludeName) {
+  const extras = {};
+  const docs = listDocs();
+  for (const doc of docs) {
+    if (doc.name === excludeName) continue;
+    extras[doc.name] = doc.getValue();
+  }
+  return extras;
+}
+
+function findHtmlLinkingCss(cssName) {
+  const docs = listDocs();
+  const clean = String(cssName || "").replace(/^\.\//, "");
+  for (const doc of docs) {
+    if (!isHtmlFile(doc.name)) continue;
+    const src = doc.getValue() || "";
+    const linkRe = /<link\b[^>]*\bhref\s*=\s*(?:"([^"]+)"|'([^']+)')[^>]*\/?>/gi;
+    let m;
+    while ((m = linkRe.exec(src)) !== null) {
+      const href = String(m[1] || m[2] || "").trim();
+      if (!href) continue;
+      const hclean = href.replace(/^\.\//, "").replace(/^\//, "");
+      if (hclean === clean) return doc;
+    }
+  }
+  if (docs.length > 0) {
+    const indexDoc = docs.find(d => d.name === "index.html");
+    if (indexDoc) return null;
   }
   return null;
+}
+
+function buildHtmlPreview(htmlDoc, engineCode) {
+  const src = htmlDoc.getValue() || "";
+  const extras = collectExtras(htmlDoc.name);
+  let out = src;
+  out = inlineCompanions(out, extras);
+  out = ensureEngineScript(out, engineCode);
+  out = ensureConsoleForwarder(out);
+  return out;
+}
+
+function buildCssPreview(cssDoc, engineCode) {
+  const htmlDoc = findHtmlLinkingCss(cssDoc.name);
+  if (!htmlDoc) {
+    return null;
+  }
+  return buildHtmlPreview(htmlDoc, engineCode);
+}
+
+function buildMdPreview(mdDoc) {
+  try {
+    const body = renderMarkdown(mdDoc.getValue() || "");
+    const full = wrapMarkdownDocument(body, mdDoc.name);
+    return full;
+  } catch (e) {
+    return "<!DOCTYPE html><html><body><pre style=\"color:#f88;padding:20px;font-family:monospace;background:#0a0a0a;margin:0;min-height:100vh;box-sizing:border-box\">Markdown render failed: " + String(e.message || e) + "</pre></body></html>";
+  }
+}
+
+function buildJsonPreview(jsonDoc) {
+  let parsed = null;
+  let parseError = null;
+  try {
+    parsed = JSON.parse(jsonDoc.getValue() || "null");
+  } catch (e) {
+    parseError = e;
+  }
+
+  if (parseError) {
+    const escaped = String(jsonDoc.getValue() || "").replace(/[&<>]/g, function (c) {
+      return c === "&" ? "&amp;" : c === "<" ? "&lt;" : "&gt;";
+    });
+    return "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><style>" +
+      "html,body{margin:0;background:#0a0a0a;color:#e6edf3;font-family:ui-monospace,Menlo,monospace;height:100%;overflow:auto}" +
+      ".err{padding:20px;color:#f87171;font-size:13px;line-height:1.6}" +
+      ".src{padding:16px 20px;white-space:pre-wrap;font-size:12.5px;line-height:1.6;color:#c9d1d9}" +
+      "</style></head><body>" +
+      "<div class=\"err\">JSON parse error: " + String(parseError.message || parseError).replace(/</g, "&lt;") + "</div>" +
+      "<div class=\"src\">" + escaped + "</div>" +
+      "</body></html>";
+  }
+
+  const pretty = JSON.stringify(parsed, null, 2);
+  const highlighted = pretty
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/("(?:[^"\\]|\\.)*")(\s*:)?/g, function (m, str, colon) {
+      return colon
+        ? "<span style=\"color:#79c0ff\">" + str + "</span><span style=\"color:#8b949e\">" + colon + "</span>"
+        : "<span style=\"color:#a5d6ff\">" + str + "</span>";
+    })
+    .replace(/\b(true|false|null)\b/g, "<span style=\"color:#ff7b72\">$1</span>")
+    .replace(/\b(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\b/g, "<span style=\"color:#a5d6ff\">$1</span>");
+
+  return "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><style>" +
+    "html,body{margin:0;background:#0a0a0a;color:#c9d1d9;font-family:ui-monospace,Menlo,monospace;height:100%;overflow:auto}" +
+    "pre{padding:18px 22px;margin:0;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word}" +
+    "</style></head><body><pre>" + highlighted + "</pre></body></html>";
 }
 
 async function copyText(text) {
@@ -1828,22 +2191,45 @@ async function getActiveUser() {
 
 async function publishGame() {
   const user = await getActiveUser();
-
-  const target = resolveRunTarget();
-  if (!target) {
-    toast("Nothing to publish — no .js target found", "warning");
+  const activeDoc = component && component.editor ? component.editor.activeDoc : null;
+  if (!activeDoc) {
+    toast("Nothing to publish", "warning");
     return;
   }
 
-  let name = target.name || "game.js";
-  let code = (target.getValue() || "").trim();
+  const name = activeDoc.name || "";
+  let code = (activeDoc.getValue() || "").trim();
+  let title = name.replace(/\.[^.]+$/, "") || "Untitled";
+
+  if (isHtmlFile(name)) {
+    const engineCode = window.__v4t || "";
+    code = buildHtmlPreview(activeDoc, engineCode);
+    title = name.replace(/\.[^.]+$/, "") || "Untitled";
+  } else if (isCssFile(name)) {
+    const engineCode = window.__v4t || "";
+    const built = buildCssPreview(activeDoc, engineCode);
+    if (!built) {
+      toast("No HTML file links to " + name, "warning");
+      return;
+    }
+    code = built;
+    title = name.replace(/\.css$/i, "") || "Untitled";
+  } else if (isMdFile(name)) {
+    code = buildMdPreview(activeDoc);
+    title = name.replace(/\.[^.]+$/, "") || "Untitled";
+  } else if (isJsonFile(name)) {
+    toast("Cannot publish a JSON file as a game", "warning");
+    return;
+  } else if (extOf(name) !== "js" && extOf(name) !== "mjs") {
+    toast("Cannot publish a ." + extOf(name) + " file", "warning");
+    return;
+  }
 
   if (!code) {
     toast("Nothing to publish", "warning");
     return;
   }
 
-  let title = name.replace(/\.[^.]+$/, "") || "Untitled";
   if (title === "*Untitled*" || !title) title = "Untitled";
 
   const description = getDescription();
@@ -1896,7 +2282,7 @@ async function publishGame() {
 }
 
 async function shareGame() {
-  const docs = component && component.editor ? component.editor.documents.items : [];
+  const docs = listDocs();
 
   const files = {};
   const filenames = [];
@@ -2579,6 +2965,7 @@ function initRun() {
   const runBtn = document.getElementById("runBtn");
   const dialog = document.getElementById("runDialog");
   const dialogClose = document.getElementById("dialogClose");
+  const dialogTitle = document.getElementById("dialogTitle");
   const frame = document.getElementById("gameFrame");
   const wrap = document.getElementById("dialogFrameWrap");
   const zoomDisplay = document.getElementById("zoomDisplay");
@@ -2630,8 +3017,8 @@ function initRun() {
           await document.exitFullscreen();
           return;
         }
-        if (wrap.requestFullscreen) {
-          await wrap.requestFullscreen();
+        if (dialog.requestFullscreen) {
+          await dialog.requestFullscreen();
         }
       } catch (err) {}
     });
@@ -2642,37 +3029,80 @@ function initRun() {
     dialog.close();
   });
 
+  function setTitle(text) {
+    if (dialogTitle) dialogTitle.textContent = text || "preview";
+  }
+
+  function showHtml(html, title) {
+    if (!dialog.hasAttribute("open")) dialog.showModal();
+    resetZoom();
+    setTitle(title);
+    frame.removeAttribute("src");
+    frame.srcdoc = html;
+  }
+
   function run() {
-    if (typeof window.buildGameHTML !== "function") {
-      toast("Preview builder not loaded", "error");
-      return;
-    }
-
-    const target = resolveRunTarget();
-    if (!target) {
-      toast("No .js to run — add a <script src=\"...\"> to your HTML or open a .js file", "warning");
-      return;
-    }
-
-    const code = (target.getValue() || "").trim();
-    if (!code) {
+    const activeDoc = component && component.editor ? component.editor.activeDoc : null;
+    if (!activeDoc) {
       toast("Nothing to run", "warning");
       return;
     }
 
-    const engine = window.__v4t || "";
-    if (!engine) {
-      toast("Engine still loading…", "warning");
+    const name = activeDoc.name || "";
+    const ext = extOf(name);
+
+    if (ext === "html" || ext === "htm") {
+      const engineCode = window.__v4t || "";
+      const html = buildHtmlPreview(activeDoc, engineCode);
+      showHtml(html, name);
       return;
     }
 
-    const assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
-    const html = window.buildGameHTML(engine, code, assets);
+    if (ext === "css") {
+      const engineCode = window.__v4t || "";
+      const html = buildCssPreview(activeDoc, engineCode);
+      if (!html) {
+        toast("No HTML file links to " + name, "warning");
+        return;
+      }
+      showHtml(html, name + " → " + (findHtmlLinkingCss(name) ? findHtmlLinkingCss(name).name : "html"));
+      return;
+    }
 
-    if (!dialog.hasAttribute("open")) dialog.showModal();
-    resetZoom();
-    frame.removeAttribute("src");
-    frame.srcdoc = html;
+    if (ext === "md" || ext === "markdown") {
+      const html = buildMdPreview(activeDoc);
+      showHtml(html, name);
+      return;
+    }
+
+    if (ext === "json") {
+      const html = buildJsonPreview(activeDoc);
+      showHtml(html, name);
+      return;
+    }
+
+    if (ext === "js" || ext === "mjs") {
+      if (typeof window.buildGameHTML !== "function") {
+        toast("Preview builder not loaded", "error");
+        return;
+      }
+      const code = (activeDoc.getValue() || "").trim();
+      if (!code) {
+        toast("Nothing to run", "warning");
+        return;
+      }
+      const engine = window.__v4t || "";
+      if (!engine) {
+        toast("Engine still loading…", "warning");
+        return;
+      }
+      const assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
+      const html = window.buildGameHTML(engine, code, assets);
+      showHtml(html, name);
+      return;
+    }
+
+    toast("No preview for ." + ext, "warning");
   }
 
   runBtn.addEventListener("click", run);
@@ -2721,13 +3151,6 @@ function initFilesDrawer() {
   const openFileBtn = document.getElementById("filesOpen");
 
   if (!drawer || !backdrop || !listEl || !openBtn) return;
-
-  function extOf(name) {
-    if (!name) return "";
-    const dot = name.lastIndexOf(".");
-    if (dot === -1) return "";
-    return name.slice(dot + 1).toLowerCase();
-  }
 
   function badgeClass(name) {
     const ext = extOf(name);
