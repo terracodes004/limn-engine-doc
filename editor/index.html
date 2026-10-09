@@ -1800,6 +1800,20 @@ async function publishGame() {
   config.title = title;
   config.description = description;
   config.assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
+
+  const extras = (typeof window.collectExtrasFromEditor === "function")
+    ? window.collectExtrasFromEditor()
+    : {};
+
+  if (Object.keys(extras).length > 0) {
+    config.files = Object.assign({}, extras);
+    config.files[activeDoc.name] = code;
+    config.entry = activeDoc.name;
+  } else {
+    delete config.files;
+    delete config.entry;
+  }
+
   window.currentConfig = config;
 
   const engineVersion = "v4";
@@ -1942,6 +1956,79 @@ async function loadPublishedGame() {
       }
     } catch (e) {}
   }
+}
+
+async function loadForkedGame() {
+  const params = new URLSearchParams(window.location.search);
+  const forkFlag = params.get("fork");
+  if (forkFlag !== "1") return;
+
+  const title = localStorage.getItem("limn_fork_title") || "forked";
+  const filesRaw = localStorage.getItem("limn_fork_files");
+  const entry = localStorage.getItem("limn_fork_entry");
+  const singleCode = localStorage.getItem("limn_fork_code");
+
+  localStorage.removeItem("limn_fork_title");
+  localStorage.removeItem("limn_fork_files");
+  localStorage.removeItem("limn_fork_entry");
+  localStorage.removeItem("limn_fork_code");
+
+  const editor = component && component.editor ? component.editor : null;
+  if (!editor || !editor.documents) {
+    toast("Editor not ready", "warning");
+    return;
+  }
+
+  if (filesRaw && entry) {
+    let files = null;
+    try { files = JSON.parse(filesRaw); } catch (e) {}
+
+    if (!files || typeof files !== "object") {
+      toast("Fork data corrupted", "error");
+      return;
+    }
+
+    editor.documents.items.length = 0;
+    editor.documents.activeIndex = -1;
+
+    const names = Object.keys(files);
+    for (const name of names) {
+      editor.documents.add({ name: name, value: files[name] || "" });
+    }
+
+    let entryIndex = -1;
+    for (let i = 0; i < editor.documents.items.length; i++) {
+      if (editor.documents.items[i].name === entry) {
+        entryIndex = i;
+        break;
+      }
+    }
+    if (entryIndex >= 0) {
+      editor.documents.activeIndex = entryIndex;
+    }
+
+    if (component._onDocumentsChange) component._onDocumentsChange();
+    if (component._appbar) component._appbar.setTitle(entry);
+
+    toast("Forked " + title + " (" + names.length + " files)", "success");
+    return;
+  }
+
+  if (singleCode) {
+    const fileName = "forked-" + String(title).replace(/\.[^.]+$/, "") + ".js";
+
+    editor.documents.items.length = 0;
+    editor.documents.activeIndex = -1;
+    editor.documents.add({ name: fileName, value: singleCode });
+
+    if (component._onDocumentsChange) component._onDocumentsChange();
+    if (component._appbar) component._appbar.setTitle(fileName);
+
+    toast("Forked " + title, "success");
+    return;
+  }
+
+  toast("Nothing to fork", "warning");
 }
 
 function initTabs() {
@@ -2534,7 +2621,10 @@ function initRun() {
     }
 
     const assets = (window.getCurrentAssets && window.getCurrentAssets()) || { head: "", css: "", scripts: "" };
-    const html = window.buildGameHTML(engine, code, assets);
+    const extras = (typeof window.collectExtrasFromEditor === "function")
+      ? window.collectExtrasFromEditor()
+      : {};
+    const html = window.buildGameHTML(engine, code, assets, extras);
 
     if (!dialog.hasAttribute("open")) dialog.showModal();
     resetZoom();
@@ -3034,6 +3124,7 @@ await bootLimn();
 
 initFilesDrawer();
 await loadPublishedGame();
+await loadForkedGame();
 
 document.addEventListener("keydown", (e) => {
   const t = e.target;
