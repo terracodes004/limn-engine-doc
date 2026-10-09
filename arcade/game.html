@@ -1193,7 +1193,7 @@ function wireButtons(data) {
       localStorage.removeItem('limn_fork_entry');
     }
     localStorage.setItem('limn_fork_title', data.title || 'forked');
-    location.href = '/editor/limn-demo.html?fork=1';
+    location.href = '/editor/?fork=1';
   };
 
   const offlineBtn = document.getElementById('offlineBtn');
