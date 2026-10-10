@@ -4,9 +4,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  const webhookUrl = process.env.WEBHOOK_URL;
+
   if (!webhookUrl) {
-    return res.status(500).json({ error: 'Discord webhook not configured' });
+    console.error('[report] WEBHOOK_URL env var is missing');
+    return res.status(500).json({ error: 'Webhook not configured' });
   }
 
   let body = req.body;
@@ -19,29 +21,43 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'No reports provided' });
   }
 
-  const descriptionText = reports.map(r =>
-    '• **Time:** ' + (r.timestamp || 'unknown') + '\n' +
-    '  **Error:** ' + (r.error || 'N/A') + '\n' +
-    '  **File:** ' + (r.file || 'N/A') + ':' + (r.line || 'N/A') + '\n' +
-    '  **Desc:** ' + (r.description || 'N/A')
-  ).join('\n\n');
+  const embeds = reports.slice(0, 10).map(r => ({
+    title: String(r.description || 'Bug report').slice(0, 250),
+    color: 0xff4757,
+    fields: [
+      { name: 'Error', value: String(r.error || 'N/A').slice(0, 1000) },
+      { name: 'File',  value: `\`${r.file || 'N/A'}:${r.line || 'N/A'}\``, inline: true },
+      { name: 'Time',  value: String(r.timestamp || '?'), inline: true },
+    ],
+    timestamp: r.timestamp || new Date().toISOString(),
+  }));
 
   try {
-    const discordRes = await fetch(webhookUrl, {
+    const webhookRes = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        content: '🚨 **Limn Engine - Offline Bug Report(s):**\n' + descriptionText
-      })
+        username: 'Limn Bug Reporter',
+        content: '🚨 **Limn Engine — Offline Bug Report(s)**',
+        embeds,
+      }),
     });
 
-    if (!discordRes.ok) {
-      const detail = await discordRes.text();
-      return res.status(discordRes.status).json({ error: 'Discord rejected the request', detail });
+    if (!webhookRes.ok) {
+      const detail = await webhookRes.text();
+      console.error('[report] Webhook error', webhookRes.status, detail);
+      return res.status(webhookRes.status).json({
+        error: 'Webhook rejected the request',
+        detail,
+      });
     }
 
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, count: reports.length });
   } catch (err) {
-    return res.status(500).json({ error: 'Failed to reach Discord', detail: err.message });
+    console.error('[report] fetch failed', err);
+    return res.status(500).json({
+      error: 'Failed to reach webhook',
+      detail: err.message,
+    });
   }
 }
