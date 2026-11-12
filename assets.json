@@ -1,0 +1,22 @@
+{
+  "assets": [
+    {
+      "id": "example-entry",
+      "name": "Example asset entry",
+      "category": "Characters",
+      "description": "Replace this sample catalog record with a real asset file you have permission to share.",
+      "previewUrl": "./assets/preview-placeholder.svg",
+      "downloadUrl": "./assets/README.txt",
+      "fileName": "asset-instructions.txt",
+      "format": "Example",
+      "size": "Free",
+      "license": "Specify the license",
+      "featured": true,
+      "createdAt": "2026-11-12",
+      "tags": [
+        "sprite",
+        "character"
+      ]
+    }
+  ]
+}
